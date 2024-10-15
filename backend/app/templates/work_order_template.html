@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes de Trabajo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            background-color: #f2f2f2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table th, table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .header {
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        .section-title {
+            background-color: #f2f2f2;
+            padding: 5px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .checkbox {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1px solid black;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .checked {
+            background-color: black;
+        }
+
+        .small-input {
+            background-color: #d9e8f5;
+            display: inline-block;
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+
+        .form-section {
+            margin-bottom: 10px;
+        }
+
+        .signature {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f2f2f2;
+        }
+
+        .footer p {
+            text-align: center;
+            font-size: 12px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>ÓRDENES DE TRABAJO</h1>
+
+    <!-- Sección de encabezado -->
+    <div class="form-section">
+        <span><strong>NÚMERO DE ORDEN:</strong> <span class="small-input">{{ order_no }}</span></span>
+        <span style="float: right;"><strong>ESTACIONAMIENTO:</strong> <span class="small-input">{{parking_spot}}</span></span>
+    </div>
+
+    <!-- Sección de fecha -->
+    <div class="form-section">
+        <strong>FECHA:</strong> <span class="small-input">{{ date }}</span>
+    </div>
+
+    <!-- Sección de detalles del vehículo -->
+    <div class="form-section">
+        <table>
+            <tr>
+                <th>INICIO</th>
+                <th>EFECTIVA</th>
+                <th>FINAL</th>
+            </tr>
+            <tr>
+                <td><strong>{{ vehicle_type }}</strong></td>
+                <td><strong>{{ effective_date }}</strong></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Sección de nombre e información de contacto -->
+    <div class="form-section">
+        <p><strong>NOMBRE Y APELLIDO:</strong> {{ name_surname }}</p>
+        <p><strong>TELÉFONO:</strong> {{ phone }} &nbsp;&nbsp;&nbsp;&nbsp; <strong>E-MAIL:</strong> {{ email }}</p>
+    </div>
+
+    <!-- Sección de matrícula, tarjeta y control remoto -->
+    <div class="form-section">
+        <p><strong>NÚMERO DE MATRÍCULA:</strong> <span class="small-input">{{ license_plate }}</span>
+        &nbsp;&nbsp;&nbsp;&nbsp; <strong>TARJETA:</strong> <span class="small-input">{{ card }}</span>
+        &nbsp;&nbsp;&nbsp;&nbsp; <strong>MANDO:</strong> <span class="small-input">{{ remote }}</span></p>
+    </div>
+
+    <!-- Sección de pooling -->
+     <div class="form-section">
+        <strong>POOLING:</strong>
+        <span class="checkbox {% if license_plate2 or license_plate3 %}checked{% endif %}"></span> SÍ
+        <span class="checkbox {% if not license_plate2 and not license_plate3 %}checked{% endif %}"></span> NO
+    </div>
+
+    <!-- Sección de cambio de matrícula -->
+   <div class="form-section">
+        <table>
+            <tr>
+                <th>MATRÍCULA 1</th>
+                <th>MATRÍCULA 2</th>
+                <th>MATRÍCULA 3</th>
+            </tr>
+            <tr>
+                <td>{{ license_plate1 }}</td>
+                <td>{{ license_plate2 }}</td>
+                <td>{{ license_plate3 }}</td>
+            </tr>
+        </table>
+    </div>
+
+  {% if has_license_plate_changes %}
+    <h3>CAMBIO DE MATRÍCULA:</h3>
+    <p><strong>MATRÍCULA(S) ANTERIOR(ES):</strong> {{ old_license_plate }}</p>
+    <p><strong>MATRÍCULA(S) NUEVA(S):</strong> {{ new_license_plate }}</p>
+    {% endif %}
+
+    <!-- Sección de observaciones -->
+    <div class="form-section">
+        <p><strong>OBSERVACIONES:</strong> {{ observations }}</p>
+    </div>
+
+    <!-- Sección de autorización y firma -->
+    <div class="signature">
+        <p><strong>AUTORIZADO</strong></p>
+        <p>_______________________________</p>
+        <p>_______________________________</p>
+    </div>
+</body>
+</html>

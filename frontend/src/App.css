@@ -1,0 +1,373 @@
+@import url("https://fonts.googleapis.com/css?family=Fira+Sans:400,500,600,700,800");
+
+* {
+    box-sizing: border-box;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 20px;
+    max-width: 150px; /* Adjust the size as needed */
+}
+
+body {
+    background: #f4f4f4 !important;
+    min-height: 100vh;
+    display: flex;
+    font-weight: 400;
+    font-family: "Fira Sans", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+label,
+span {
+    font-weight: 500;
+    font-family: "Fira Sans", sans-serif;
+}
+
+body,
+html,
+.App,
+#root,
+.auth-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.navbar-brand {
+    font-weight: 800; /* Bolder text, you can go up to 900 for thicker */
+    color: #ffffff !important; /* White text color */
+    font-size: 1.5rem; /* Adjust this value as needed for larger text */
+    text-transform: uppercase;
+}
+
+/* App.css */
+.App {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px; /* Set your desired width */
+    position: sticky; /* Ensure sidebar sticks to the side */
+    top: 0; /* Stick to the top */
+    height: 100vh; /* Full height of the viewport */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    z-index: 1000; /* Ensure it’s above other elements */
+}
+
+/* Navbar */
+.navbar {
+    position: sticky; /* Ensure the navbar sticks to the top */
+    top: 0; /* Stick to the very top */
+    z-index: 1000; /* Make sure it's above other content */
+}
+
+
+.navbar-light {
+    background-color: transparent !important;
+    box-shadow: 0px 14px 80px rgba(34, 35, 58, 0.2);
+}
+
+.navbar {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    color: #252525 !important;
+}
+
+.navbar-toggler:not(:disabled):not(.disabled) {
+    cursor: pointer;
+}
+
+/* Add media query for smaller screens */
+@media (max-width: 767px) {
+    .navbar-light .navbar-toggler {
+        color: #252525 !important;
+        border-color: #ffffff !important;
+        background: #ffffff !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .navbar-light .navbar-toggler {
+        color: #252525 !important;
+        border-color: #ffffff !important;
+        background: #ffffff !important;
+    }
+}
+
+.navbar-toggler {
+    padding: 0.25rem 0.75rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+}
+
+.head_section {
+    width: 100%;
+    float: left;
+    background-color: #f9b116;
+    height: auto;
+    background-size: 100%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .navbar-expand-lg .navbar-nav .nav-link {
+        text-align: center; /* Center align text for medium-sized screens */
+    }
+}
+
+.navbar-expand-lg .navbar-nav .nav-link {
+    padding: 3px 20px;
+    font-size: 17px;
+    color: #fefefd; /* White color for nav links */
+    border-radius: 5px;
+    text-transform: uppercase; /* Uppercase text */
+}
+
+.navbar-light .navbar-nav .active > .nav-link,
+.navbar-light .navbar-nav .nav-link.active,
+.navbar-light .navbar-nav .nav-link.show,
+.navbar-light .navbar-nav .show > .nav-link {
+    color: #252525 !important; /* Dark color for active nav links */
+}
+
+/* Home */
+.home-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+/* Login */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-form {
+    margin-bottom: 15px;
+}
+
+.login-button {
+    width: 100%;
+}
+
+/* Signup  */
+
+.signup-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.signup-form-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.signup-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.signup-form {
+    margin-bottom: 15px;
+}
+
+.signup-button {
+    width: 100%;
+}
+
+/* Forget Password */
+
+.forgot-password,
+.forgot-password a {
+    text-align: right;
+    font-size: 13px;
+    padding-top: 10px;
+    color: #7f7d7d;
+    margin: 0;
+}
+
+.forgot-password a {
+    color: #167bff;
+}
+
+.forget-password-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.forget-password-form-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}
+
+.forget-password-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.forget-password-form {
+    margin-bottom: 15px;
+}
+
+.forget-password-button {
+    width: 100%;
+}
+
+.company-logo {
+    width: 150px; /* Adjust this value as needed */
+    height: auto; /* Keeps the aspect ratio intact */
+}
+
+/* ---------------Owner List ---------------------*/
+
+.owner_h2 {
+    color: #343a40; /* Dark gray color for the title */
+    font-family: 'Georgia', serif; /* Elegant font style */
+    margin-bottom: 30px; /* Margin below title */
+    text-align: center; /* Center the title */
+    text-transform: uppercase;
+    font-weight: bolder;
+}
+
+.owner_table {
+    border-radius: 8px; /* Rounded corners for the table */
+    overflow: hidden; /* Ensures border-radius works */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.owner_table thead th {
+    background-color: #007bff; /* Primary color for the header */
+    color: white; /* White text for contrast */
+    font-weight: bold; /* Bold text */
+}
+
+.owner_table tbody tr {
+    transition: background-color 0.3s; /* Smooth background change on hover */
+}
+
+.owner_table tbody tr:hover {
+    background-color: #e9ecef; /* Light gray background on row hover */
+}
+
+.owner_table td {
+    vertical-align: middle; /* Center-align table data */
+}
+
+/* Spinner customization */
+.owner_spinner {
+    width: 2rem; /* Adjust size */
+    height: 2rem; /* Adjust size */
+}
+
+/* Alert customization */
+.owner_alert {
+    margin: 20px 0; /* Margin around alert */
+    border-radius: 5px; /* Rounded corners */
+}
+
+/*-------------------------------*/
+
+/*.register_owner_container {*/
+/*    background-color: #f8f9fa;*/
+/*    padding: 2rem;*/
+/*    border-radius: 8px;*/
+/*    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+.register_owner_company_logo {
+    max-width: 150px;
+    display: block;
+    margin: 0 auto;
+}
+
+/*.register_owner_heading {*/
+/*    color: #343a40;*/
+/*}*/
+
+/*.register_owner_text_center {*/
+/*    text-align: center;*/
+/*}*/
+
+/*.register_owner_form_group {*/
+/*    margin-bottom: 1.5rem;*/
+/*}*/
+
+/*.register_owner_button {*/
+/*    font-weight: bold;*/
+/*}*/
+
+/*.register_owner_alert {*/
+/*    margin-top: 1rem;*/
+/*}*/
+
+/*-------------------------------*/
+
+/* Add this CSS to your styles */
+.CDBSidebarMenuItem span {
+  display: inline-flex; /* Ensures icon spans are treated as inline elements */
+  align-items: center; /* Centers the icon and text vertically */
+}
+/* Add this to your styles */
+.CDBSidebarMenuItem:focus {
+  outline: none; /* Removes the default outline */
+}
+/* Example media query for small screens */
+@media (max-width: 768px) {
+  .CDBSidebarMenuItem {
+    font-size: 0.9em; /* Smaller font size for smaller screens */
+  }
+
+  .CDBSidebarMenuItem span {
+    min-width: 18px; /* Adjust icon size */
+  }
+}
