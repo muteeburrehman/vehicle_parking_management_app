@@ -10,10 +10,18 @@ from backend.app.schemas.parking_lot_config import ParkingLotConfigCreate, Parki
 
 router = APIRouter()
 
+
 @router.post("/parking-lot-config/", response_model=ParkingLotConfigResponse)
-def create_parking_lot_config(config: ParkingLotConfigCreate, db: Session = Depends(get_db)):
-    db_config = ParkingLotConfig(**config.dict())
-    db.add(db_config)
+def create_or_update_parking_lot_config(config: ParkingLotConfigCreate, db: Session = Depends(get_db)):
+    existing_config = db.query(ParkingLotConfig).first()
+    if existing_config:
+        for key, value in config.dict().items():
+            setattr(existing_config, key, value)
+        db_config = existing_config
+    else:
+        db_config = ParkingLotConfig(**config.dict())
+        db.add(db_config)
+
     db.commit()
     db.refresh(db_config)
     return db_config
@@ -21,6 +29,13 @@ def create_parking_lot_config(config: ParkingLotConfigCreate, db: Session = Depe
 @router.get("/parking-lot-config/", response_model=List[ParkingLotConfigResponse])
 def get_parking_lot_configs(db: Session = Depends(get_db)):
     return db.query(ParkingLotConfig).all()
+
+@router.get("/parking-lot-config/", response_model=ParkingLotConfigResponse)
+def get_parking_lot_config(db: Session = Depends(get_db)):
+    db_config = db.query(ParkingLotConfig).first()
+    if not db_config:
+        raise HTTPException(status_code=404, detail="Parking lot configuration not found")
+    return db_config
 
 
 @router.get("/parking-lot-stats", response_model=ParkingLotStatsResponse)

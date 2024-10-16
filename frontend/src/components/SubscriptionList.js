@@ -2,9 +2,11 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSubscriptions, getSubscriptionTypes, exportSubscriptions } from '../services/subscriptionService';
 import { Table, Button, Spinner, Alert, Container, Form, Badge, Modal } from 'react-bootstrap';
+import {fetchOwnerByDNI} from "../services/getOwnerService";
 
 const SubscriptionList = () => {
     const [subscriptions, setSubscriptions] = useState([]);
+    const [owners, setOwners] = useState({});
     const [subscriptionTypes, setSubscriptionTypes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -14,6 +16,18 @@ const SubscriptionList = () => {
     const [exportFields, setExportFields] = useState([]);
     const navigate = useNavigate();
 
+   const fetchOwnerInfo = async (ownerId) => {
+    try {
+        const ownerData = await fetchOwnerByDNI(ownerId);
+        setOwners(prevOwners => ({
+            ...prevOwners,
+            [ownerId]: ownerData
+        }));
+    } catch (err) {
+        console.error('Failed to fetch owner info:', err.message);
+    }
+};
+
     useEffect(() => {
         const fetchSubscriptionsAndTypes = async () => {
             setLoading(true);
@@ -22,6 +36,9 @@ const SubscriptionList = () => {
                 const [subs, types] = await Promise.all([getSubscriptions(), getSubscriptionTypes()]);
                 setSubscriptions(subs);
                 setSubscriptionTypes(types);
+
+                // Fetch owner info for each subscription
+                subs.forEach(sub => fetchOwnerInfo(sub.owner_id));
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -281,41 +298,51 @@ const SubscriptionList = () => {
                 ) : (
                     <Table striped bordered hover>
                         <thead>
-                            <tr>
-                                <th>Owner ID</th>
-                                <th>Subscription Type</th>
-                                <th>Access Card</th>
-                                <th>License Plates</th>
-                                <th>Registration Date</th>
-                            </tr>
+                        <tr>
+                            <th>DNI</th>
+                            <th>Name</th>
+                            <th>Last Name</th>
+                            <th>Subscription Type</th>
+                            <th>Email</th>
+                            <th>Telephone</th>
+                            <th>Observations</th>
+                            <th>Registration Date</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {filteredSubscriptions.map((subscription) => {
-                                const subType = subscriptionTypes.find((type) => type.id === subscription.subscription_type_id);
-                                return (
-                                    <tr
-                                        key={subscription.id}
-                                        onClick={() => handleRowClick(subscription.id)}
-                                        style={{ cursor: 'pointer' }}
-                                    >
-                                        <td>{subscription.owner_id}</td>
-                                        <td>{subType ? subType.name : 'Unknown'}</td>
-                                        <td>{subscription.access_card || 'N/A'}</td>
-                                        <td>
-                                            {subscription.lisence_plate1}
-                                            {subscription.lisence_plate2 && `, ${subscription.lisence_plate2}`}
-                                            {subscription.lisence_plate3 && `, ${subscription.lisence_plate3}`}
-                                        </td>
-                                        <td>{formatDate(subscription.registration_date)}</td>
-                                    </tr>
-                                );
-                            })}
+                        {filteredSubscriptions.map((subscription) => {
+                            const subType = subscriptionTypes.find((type) => type.id === subscription.subscription_type_id);
+                            const owner = owners[subscription.owner_id] || {};
+
+                            return (
+                                <tr
+                                    key={subscription.id}
+                                    onClick={() => handleRowClick(subscription.id)}
+                                    style={{cursor: 'pointer'}}
+                                >
+                                    <td>{subscription.owner_id}</td>
+                                    <td>{owner.first_name || 'Loading...'}</td>
+                                    <td>{owner.last_name}</td>
+                                    <td>{subType ? subType.name : 'Unknown'}</td>
+                                    <td>{owner.email || 'Loading...'}</td>
+
+                                    <td>{owner.phone_number || 'N/A'}</td>
+                                    {/*<td>*/}
+                                    {/*    {subscription.lisence_plate1}*/}
+                                    {/*    {subscription.lisence_plate2 && `, ${subscription.lisence_plate2}`}*/}
+                                    {/*    {subscription.lisence_plate3 && `, ${subscription.lisence_plate3}`}*/}
+                                    {/*</td>*/}
+                                    <td>{subscription.observations}</td>
+                                    <td>{formatDate(subscription.registration_date)}</td>
+                                </tr>
+                            );
+                        })}
                         </tbody>
                     </Table>
                 )
             )}
 
-          <Modal show={showExportModal} onHide={() => setShowExportModal(false)}>
+            <Modal show={showExportModal} onHide={() => setShowExportModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Export Subscriptions</Modal.Title>
                 </Modal.Header>

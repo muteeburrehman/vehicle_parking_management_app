@@ -31,7 +31,6 @@ const Sidebar = () => {
     isSuperUser && { to: "/add-subscription-type", icon: "user-plus", text: "Subscription Type" },
     isSuperUser && { to: "/subscription-type-list", icon: "columns", text: "Subscription Type List" },
       isSuperUser && {to:"/parking-lot-config", icon: "user-plus", text: "Parking Lot Config "},
-      isSuperUser && {to: "/edit-parking-lot-config", icon:"user-plus", text: "Edit Parking Lot"},
       isSuperUser && {to:"/parking-lot-stats", icon:"chart-line", text: "Parking Lot Stats" },
     { to: "/add-subscription", icon: "user-plus", text: "Subscription" },
     { to: "/subscription-list", icon: "columns", text: "Subscription List" },

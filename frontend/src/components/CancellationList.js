@@ -1,12 +1,15 @@
 // src/components/CancellationList.js
 
-import React, { useEffect, useState } from 'react';
-import { getAllCancellations } from '../services/cancellationService';
-import { Container, Table, Alert, Spinner, Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {getAllCancellations} from '../services/cancellationService';
+import {Container, Table, Alert, Spinner, Form} from 'react-bootstrap';
+import {useNavigate} from 'react-router-dom';
+import {getSubscriptionTypes} from '../services/subscriptionService'; // Fetch subscription types
 
 const CancellationList = () => {
     const [cancellations, setCancellations] = useState([]);
+    const [subscriptionTypes, setSubscriptionTypes] = useState([]); // State for subscription types
+
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(''); // State for search input
@@ -14,15 +17,21 @@ const CancellationList = () => {
 
     useEffect(() => {
         const fetchCancellations = async () => {
-            try {
-                const data = await getAllCancellations();
-                setCancellations(data);
-            } catch (error) {
-                setError(`Error fetching cancellations: ${error}`);
+               try {
+                // Fetch both cancellations and subscription types in parallel
+                const [cancellationData, types] = await Promise.all([
+                    getAllCancellations(),
+                    getSubscriptionTypes(),
+                ]);
+                setCancellations(cancellationData);
+                setSubscriptionTypes(types);
+            } catch (err) {
+                setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchCancellations();
     }, []);
 
@@ -56,6 +65,10 @@ const CancellationList = () => {
         return ownerIdMatch || licensePlateMatch; // Filter by owner ID or license plates
     });
 
+   const getSubscriptionTypeName = (typeId) => {
+        const subType = subscriptionTypes.find(type => type.id === typeId);
+        return subType ? subType.name : 'Unknown'; // Return subscription type name or 'Unknown'
+    };
     return (
         <Container className="mt-5">
             <h2 className="text-center mb-4">Cancelled Subscriptions</h2>
@@ -69,46 +82,45 @@ const CancellationList = () => {
                     />
                 </Form.Group>
             </Form>
-            {loading && <Spinner animation="border" variant="primary" />}
+            {loading && <Spinner animation="border" variant="primary"/>}
             {error && <Alert variant="danger">{error}</Alert>}
             {!loading && !error && (
                 <Table striped bordered hover responsive>
                     <thead>
-                        <tr>
-                            <th>Owner ID</th>
-                            <th>Subscription Type ID</th>
-                            <th>Access Card</th>
-                            <th>License Plate 1</th>
-                            <th>License Plate 2</th>
-                            <th>License Plate 3</th>
-                            <th>Observations</th>
-                            <th>Parking Spot</th>
-                            <th>Registration Date</th>
-                            <th>Cancellation Date</th>
-                        </tr>
+                    <tr>
+                        <th>Owner ID</th>
+                        <th>Subscription Name</th>
+                        <th>Access Card</th>
+                        <th>License Plate 1</th>
+                        <th>License Plate 2</th>
+                        <th>License Plate 3</th>
+                        <th>Observations</th>
+                        <th>Parking Spot</th>
+                        <th>Registration Date</th>
+                        <th>Cancellation Date</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {filteredCancellations.map((cancelled) => (
-                            <tr key={cancelled.id} onClick={() => handleRowClick(cancelled.id)} style={{ cursor: 'pointer' }}>
-                                <td>{cancelled.owner_id}</td>
-                                <td>{cancelled.subscription_type_id}</td>
-                                <td>{cancelled.access_card || 'N/A'}</td>
-                                <td>{cancelled.lisence_plate1 || 'N/A'}</td>
-                                <td>{cancelled.lisence_plate2 || 'N/A'}</td>
-                                <td>{cancelled.lisence_plate3 || 'N/A'}</td>
-                                <td>{cancelled.observations || 'N/A'}</td>
-                                <td>{cancelled.parking_spot || 'N/A'}</td>
-                                <td>{formatDate(cancelled.registration_date)}</td>
-                                <td>{formatDate(cancelled.modification_time)}</td>
-                            </tr>
-                        ))}
-                        {filteredCancellations.length === 0 && (
-                            <tr>
-                                <td colSpan="10" className="text-center">
-                                    No cancellations found.
-                                </td>
-                            </tr>
-                        )}
+                    {filteredCancellations.map((cancelled) => (
+                        <tr key={cancelled.id} onClick={() => handleRowClick(cancelled.id)} style={{cursor: 'pointer'}}>
+                            <td>{cancelled.owner_id}</td>
+  <td>{getSubscriptionTypeName(cancelled.subscription_type_id)}</td> {/* Display subscription type name */}                            <td>{cancelled.access_card || 'N/A'}</td>
+                            <td>{cancelled.lisence_plate1 || 'N/A'}</td>
+                            <td>{cancelled.lisence_plate2 || 'N/A'}</td>
+                            <td>{cancelled.lisence_plate3 || 'N/A'}</td>
+                            <td>{cancelled.observations || 'N/A'}</td>
+                            <td>{cancelled.parking_spot || 'N/A'}</td>
+                            <td>{formatDate(cancelled.registration_date)}</td>
+                            <td>{formatDate(cancelled.modification_time)}</td>
+                        </tr>
+                    ))}
+                    {filteredCancellations.length === 0 && (
+                        <tr>
+                            <td colSpan="10" className="text-center">
+                                No cancellations found.
+                            </td>
+                        </tr>
+                    )}
                     </tbody>
                 </Table>
             )}

@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { fetchSubscriptionHistories } from '../services/subscriptionHistoryService';
+import { getSubscriptionTypes } from '../services/subscriptionService'; // Assuming this service fetches subscription types
 import { Table, Spinner, Alert, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 const SubscriptionHistoryList = () => {
     const [subscriptionHistories, setSubscriptionHistories] = useState([]);
+    const [subscriptionTypes, setSubscriptionTypes] = useState([]); // State for subscription types
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState(''); // State for search input
     const navigate = useNavigate(); // Hook to navigate to the detail page
 
     useEffect(() => {
-        const getSubscriptionHistories = async () => {
+        const getSubscriptionData = async () => {
             try {
-                const histories = await fetchSubscriptionHistories();
+                // Fetch both subscription histories and types in parallel
+                const [histories, types] = await Promise.all([
+                    fetchSubscriptionHistories(),
+                    getSubscriptionTypes(),
+                ]);
                 setSubscriptionHistories(histories);
+                setSubscriptionTypes(types);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -22,7 +29,7 @@ const SubscriptionHistoryList = () => {
             }
         };
 
-        getSubscriptionHistories();
+        getSubscriptionData();
     }, []);
 
     const handleSearchChange = (event) => {
@@ -35,6 +42,11 @@ const SubscriptionHistoryList = () => {
             .some(plate => plate && plate.toLowerCase().includes(searchQuery.toLowerCase()));
         return ownerIdMatch || licensePlateMatch; // Filter by owner ID or license plates
     });
+
+    const getSubscriptionTypeName = (typeId) => {
+        const subType = subscriptionTypes.find(type => type.id === typeId);
+        return subType ? subType.name : 'Unknown'; // Return subscription type name or 'Unknown' if not found
+    };
 
     if (loading) {
         return (
@@ -87,7 +99,7 @@ const SubscriptionHistoryList = () => {
                         <tr>
                             <th>History ID</th>
                             <th>Owner ID</th>
-                            <th>Subscription Type ID</th>
+                            <th>Subscription Type</th> {/* Changed from Subscription Type ID to Subscription Type */}
                             <th>Access Card</th>
                             <th>License Plate 1</th>
                             <th>License Plate 2</th>
@@ -100,7 +112,8 @@ const SubscriptionHistoryList = () => {
                             <tr key={history.history_id} onClick={() => handleRowClick(history.history_id)} style={{ cursor: 'pointer' }}>
                                 <td>{history.history_id}</td>
                                 <td>{history.owner_id}</td>
-                                <td>{history.subscription_type_id}</td>
+                                {/* Display subscription type name instead of ID */}
+                                <td>{getSubscriptionTypeName(history.subscription_type_id)}</td>
                                 <td>{history.access_card}</td>
                                 <td>{history.lisence_plate1}</td>
                                 <td>{history.lisence_plate2 || 'N/A'}</td>

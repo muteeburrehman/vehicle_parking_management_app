@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Container, Card, Spinner, Alert, Button, Row, Col } from 'react-bootstrap';
 import { getCancellationById } from '../services/cancellationService';
+import { getSubscriptionTypes } from '../services/subscriptionService';
 import DocumentPreviewRow from './DocumentPreviewRow';
 import pdfIcon from "../assets/icons/pdf_icon.svg";
 
@@ -10,13 +11,25 @@ const CancellationDetail = () => {
     const [cancellation, setCancellation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+     const [subscriptionTypes, setSubscriptionTypes] = useState([]); // State for subscription types
     const [documentPreviews, setDocumentPreviews] = useState([]);
+
+
+    // Function to get the name of the subscription type by ID
+    const getSubscriptionTypeName = (typeId) => {
+        const subType = subscriptionTypes.find(type => type.id === typeId);
+        return subType ? subType.name : 'Unknown'; // Return subscription type name or 'Unknown' if not found
+    };
+
 
     useEffect(() => {
         const fetchCancellation = async () => {
             try {
                 const data = await getCancellationById(id);
                 setCancellation(data);
+                const subscriptionTypesData = await getSubscriptionTypes();
+                setSubscriptionTypes(subscriptionTypesData);
+
                 if (data.documents && data.documents.length > 0) {
                     const previews = data.documents.map(doc => ({
                         name: doc.split('/').pop(),
@@ -99,7 +112,7 @@ const CancellationDetail = () => {
                         <Col md={6}>
                             <Card.Text><strong>ID:</strong> {cancellation.id}</Card.Text>
                             <Card.Text><strong>Owner ID:</strong> {cancellation.owner_id}</Card.Text>
-                            <Card.Text><strong>Subscription Type ID:</strong> {cancellation.subscription_type_id}</Card.Text>
+                            <Card.Text><strong>Subscription Type:</strong> {getSubscriptionTypeName(cancellation.subscription_type_id)}</Card.Text>
                             <Card.Text><strong>Access Card:</strong> {cancellation.access_card || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 1:</strong> {cancellation.lisence_plate1 || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 2:</strong> {cancellation.lisence_plate2 || 'N/A'}</Card.Text>
