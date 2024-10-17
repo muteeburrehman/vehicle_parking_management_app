@@ -72,6 +72,7 @@ const OwnerList = () => {
                             <th>DNI</th>
                             <th>First Name</th>
                             <th>Last Name</th>
+                            <th>Telephone</th>
                             <th>Email</th>
                             <th>Registration Date</th>
                             {/*<th>Created By</th>*/}
@@ -91,6 +92,7 @@ const OwnerList = () => {
                                 <td>{owner.dni}</td>
                                 <td>{owner.first_name}</td>
                                 <td>{owner.last_name}</td>
+                                <td>{owner.phone_number}</td>
                                 <td>{owner.email}</td>
                                 <td>{formatDate(owner.registration_date)}</td>
                                 {/*<td>{owner.created_by}</td>*/}

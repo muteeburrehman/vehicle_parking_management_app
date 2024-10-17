@@ -346,7 +346,7 @@ const handleDocumentChange = (e) => {
                 <Row>
                     <Col md={3}>
                         <Form.Group controlId="owner_id" className="mb-3">
-                            <Form.Label>Owner ID:</Form.Label>
+                            <Form.Label>DNI:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="owner_id"

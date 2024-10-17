@@ -45,7 +45,8 @@ const CancellationForm = () => {
       lisence_plate1: formData.lisence_plate1 || null,
       lisence_plate2: formData.lisence_plate2 || null,
       lisence_plate3: formData.lisence_plate3 || null,
-      modified_by: user.email
+      modified_by: user.email,
+      observations: formData.observations
     };
 console.log(dataToSend)
     // Call the cancelSubscription service
@@ -85,13 +86,14 @@ console.log(dataToSend)
       {success && <Alert variant="success">Cancellation successful! Redirecting...</Alert>}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="owner_id" className="mb-3">
-          <Form.Label>Owner ID:</Form.Label>
+          <Form.Label>DNI:</Form.Label>
           <Form.Control
             type="text"
-            name="owner_id"
+            name="dni"
             value={formData.owner_id}
             onChange={handleChange}
             required
+            readOnly
           />
         </Form.Group>
         <Form.Group controlId="subscription_type_id" className="mb-3">
@@ -102,6 +104,7 @@ console.log(dataToSend)
             value={formData.subscription_type_id}
             onChange={handleChange}
             required
+            readOnly
           />
         </Form.Group>
         <Form.Group controlId="access_card" className="mb-3">
@@ -111,6 +114,7 @@ console.log(dataToSend)
             name="access_card"
             value={formData.access_card}
             onChange={handleChange}
+            readOnly
           />
         </Form.Group>
         {['lisence_plate1', 'lisence_plate2', 'lisence_plate3'].map((plate, index) => (
@@ -121,6 +125,7 @@ console.log(dataToSend)
               name={plate}
               value={formData[plate]}
               onChange={handleChange}
+              readOnly
             />
           </Form.Group>
         ))}
@@ -140,6 +145,7 @@ console.log(dataToSend)
             name="parking_spot"
             value={formData.parking_spot}
             onChange={handleChange}
+            readOnly
           />
         </Form.Group>
         <Button variant="danger" type="submit">

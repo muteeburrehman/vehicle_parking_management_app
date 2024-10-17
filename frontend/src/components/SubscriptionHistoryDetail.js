@@ -105,7 +105,7 @@ const SubscriptionHistoryDetail = () => {
                                         <td>{history.id}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Owner ID:</strong></td>
+                                        <td><strong>DNI:</strong></td>
                                         <td>{history.owner_id}</td>
                                     </tr>
                                     <tr>

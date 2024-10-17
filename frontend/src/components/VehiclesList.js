@@ -1,19 +1,44 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Container, Spinner, Alert, InputGroup, FormControl } from 'react-bootstrap';
 import { useGetVehicles } from "../hooks/useGetVehicles"; // Custom hook to fetch vehicle data
 import { useNavigate } from "react-router-dom";
-
+import { fetchOwnerByDNI } from "../services/getOwnerService"; // Fetch owner service
 
 const VehicleList = () => {
-    const { vehicles, loading, error } = useGetVehicles();
+    const { vehicles, loading, error } = useGetVehicles(); // Fetch vehicles data
+    const [owners, setOwners] = useState({}); // State to hold owners info
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
+
+    // Fetch owner info by DNI
+    const fetchOwnerInfo = useCallback(async (ownerId) => {
+        try {
+            if (!owners[ownerId]) {  // Fetch only if not already fetched
+                const ownerData = await fetchOwnerByDNI(ownerId);
+                setOwners(prevOwners => ({
+                    ...prevOwners,
+                    [ownerId]: ownerData // Store owner data by owner ID
+                }));
+            }
+        } catch (err) {
+            console.error('Failed to fetch owner info:', err.message);
+        }
+    }, [owners]); // Memoize with owners dependency
+
+    // UseEffect to fetch owner info for each vehicle owner
+    useEffect(() => {
+        vehicles.forEach(vehicle => {
+            if (vehicle.owner_id) {
+                fetchOwnerInfo(vehicle.owner_id);
+            }
+        });
+    }, [vehicles, fetchOwnerInfo]); // Add fetchOwnerInfo to the dependency array
 
     const handleRowClick = (licensePlate) => {
         navigate(`/vehicle/edit/${licensePlate}`);
     };
 
-const formatDate = (dateString) => {
+    const formatDate = (dateString) => {
         if (!dateString) return '-';
         const date = new Date(dateString);
         return date.toLocaleString([], {
@@ -37,7 +62,7 @@ const formatDate = (dateString) => {
 
     return (
         <Container className="mt-5">
-            <h2 className="vehicle_h2" style={{textTransform:"uppercase"}}>Vehicle List</h2>
+            <h2 className="vehicle_h2" style={{ textTransform: "uppercase" }}>Vehicle List</h2>
 
             {/* Search bar */}
             <InputGroup className="mb-3">
@@ -60,42 +85,41 @@ const formatDate = (dateString) => {
             {!loading && !error && filteredVehicles.length > 0 && (
                 <Table className="vehicle_table" striped bordered hover responsive>
                     <thead>
-                    <tr>
-                        <th>License Plate</th>
-                        <th>Brand</th>
-                        <th>Model</th>
-                        <th>Vehicle Type</th>
-                        <th>OwnerId (DNI)</th>
-                        <th>Registration Date</th>
-                        {/*<th>Created By</th>*/}
-                        {/*<th>Modified By</th>*/}
-                        {/*<th>Modification Time</th>*/}
-
-                    </tr>
+                        <tr>
+                            <th>License Plate</th>
+                            <th>DNI</th>
+                            <th>Name</th>
+                            <th>Last Name</th>
+                            <th>Telephone</th>
+                            <th>Email</th>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Registration Date</th>
+                        </tr>
                     </thead>
                     <tbody>
-                        {filteredVehicles.map((vehicle) => (
-                            <tr
-                                key={vehicle.lisence_plate}
-                                onClick={() => handleRowClick(vehicle.lisence_plate)}
-                                style={{cursor: "pointer"}}
-                                tabIndex="0"  // Makes the row focusable for keyboard users
-                                onKeyPress={(e) => e.key === 'Enter' && handleRowClick(vehicle.lisence_plate)}  // Trigger click on 'Enter'
-                            >
-                                <td>{vehicle.lisence_plate}</td>
-                                <td>{vehicle.brand}</td>
-                                <td>{vehicle.model}</td>
-                                <td>{vehicle.vehicle_type}</td>
-                                <td>{vehicle.owner_id}</td>
-
-                                <td>{formatDate(vehicle.registration_date)}</td>
-
-                                {/*<td>{vehicle.created_by}</td>*/}
-                                {/*<td>{vehicle.modified_by || '-'}</td>*/}
-                                {/*<td>{formatDate(vehicle.modification_time)}</td>*/}
-
-                            </tr>
-                        ))}
+                        {filteredVehicles.map((vehicle) => {
+                            const owner = owners[vehicle.owner_id] || {};  // Get owner info
+                            return (
+                                <tr
+                                    key={vehicle.lisence_plate}
+                                    onClick={() => handleRowClick(vehicle.lisence_plate)}
+                                    style={{ cursor: "pointer" }}
+                                    tabIndex="0"  // Makes the row focusable for keyboard users
+                                    onKeyPress={(e) => e.key === 'Enter' && handleRowClick(vehicle.lisence_plate)}  // Trigger click on 'Enter'
+                                >
+                                    <td>{vehicle.lisence_plate}</td>
+                                    <td>{vehicle.owner_id}</td>
+                                    <td>{owner.first_name || 'N/A'}</td>
+                                    <td>{owner.last_name || 'N/A'}</td>
+                                    <td>{owner.phone_number || 'N/A'}</td>
+                                    <td>{owner.email || 'N/A'}</td>
+                                    <td>{vehicle.brand}</td>
+                                    <td>{vehicle.model}</td>
+                                    <td>{formatDate(vehicle.registration_date)}</td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </Table>
             )}

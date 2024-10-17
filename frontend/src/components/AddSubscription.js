@@ -223,13 +223,13 @@ const AddSubscription = () => {
                 <Row>
                     <Col md={3}>
                         <Form.Group controlId="formOwnerId" className="mb-3">
-                            <Form.Label>Owner ID:</Form.Label>
+                            <Form.Label>DNI:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerId}
                                 onChange={handleOwnerIdChange}
                                 required
-                                placeholder="Enter Owner ID"
+                                placeholder="Enter DNI"
                             />
                         </Form.Group>
                     </Col>

@@ -84,10 +84,10 @@ const OwnerHistoryList = () => {
                 <Table striped bordered hover responsive>
                     <thead>
                         <tr>
-                            <th>History ID</th>
                             <th>DNI</th>
                             <th>First Name</th>
                             <th>Last Name</th>
+                            <th>Telephone</th>
                             <th>Email</th>
                             <th>Registration Date</th>
                         </tr>
@@ -95,10 +95,10 @@ const OwnerHistoryList = () => {
                     <tbody>
                         {filteredHistories.map((history) => (
                             <tr key={history.history_id} onClick={() => handleRowClick(history.history_id)} style={{ cursor: 'pointer' }}>
-                                <td>{history.history_id}</td>
                                 <td>{history.dni}</td>
                                 <td>{history.first_name}</td>
                                 <td>{history.last_name || 'N/A'}</td>
+                                <td>{history.phone_number}</td>
                                 <td>{history.email}</td>
                                 <td>{formatDate(history.registration_date)}</td>
                             </tr>

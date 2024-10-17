@@ -111,7 +111,7 @@ const CancellationDetail = () => {
                     <Row>
                         <Col md={6}>
                             <Card.Text><strong>ID:</strong> {cancellation.id}</Card.Text>
-                            <Card.Text><strong>Owner ID:</strong> {cancellation.owner_id}</Card.Text>
+                            <Card.Text><strong>DNI:</strong> {cancellation.owner_id}</Card.Text>
                             <Card.Text><strong>Subscription Type:</strong> {getSubscriptionTypeName(cancellation.subscription_type_id)}</Card.Text>
                             <Card.Text><strong>Access Card:</strong> {cancellation.access_card || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 1:</strong> {cancellation.lisence_plate1 || 'N/A'}</Card.Text>

@@ -1,25 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { fetchSubscriptionHistories } from '../services/subscriptionHistoryService';
-import { getSubscriptionTypes } from '../services/subscriptionService'; // Assuming this service fetches subscription types
+import { getSubscriptionTypes } from '../services/subscriptionService';
 import { Table, Spinner, Alert, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { fetchOwnerByDNI } from "../services/getOwnerService";
 
 const SubscriptionHistoryList = () => {
     const [subscriptionHistories, setSubscriptionHistories] = useState([]);
-    const [subscriptionTypes, setSubscriptionTypes] = useState([]); // State for subscription types
+    const [owners, setOwners] = useState({});
+    const [subscriptionTypes, setSubscriptionTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchQuery, setSearchQuery] = useState(''); // State for search input
-    const navigate = useNavigate(); // Hook to navigate to the detail page
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
+
+    const fetchOwnerInfo = async (ownerId) => {
+        try {
+            const ownerData = await fetchOwnerByDNI(ownerId);
+            setOwners(prevOwners => ({
+                ...prevOwners,
+                [ownerId]: ownerData // Store owner data by ID
+            }));
+        } catch (err) {
+            console.error('Failed to fetch owner info:', err.message);
+        }
+    };
 
     useEffect(() => {
         const getSubscriptionData = async () => {
             try {
-                // Fetch both subscription histories and types in parallel
                 const [histories, types] = await Promise.all([
                     fetchSubscriptionHistories(),
                     getSubscriptionTypes(),
                 ]);
+
+                histories.forEach(history => fetchOwnerInfo(history.owner_id));
                 setSubscriptionHistories(histories);
                 setSubscriptionTypes(types);
             } catch (err) {
@@ -33,32 +48,20 @@ const SubscriptionHistoryList = () => {
     }, []);
 
     const handleSearchChange = (event) => {
-        setSearchQuery(event.target.value); // Update search query state
+        setSearchQuery(event.target.value);
     };
 
     const filteredHistories = subscriptionHistories.filter(history => {
         const ownerIdMatch = history.owner_id.toString().toLowerCase().includes(searchQuery.toLowerCase());
         const licensePlateMatch = [history.lisence_plate1, history.lisence_plate2, history.lisence_plate3]
             .some(plate => plate && plate.toLowerCase().includes(searchQuery.toLowerCase()));
-        return ownerIdMatch || licensePlateMatch; // Filter by owner ID or license plates
+        return ownerIdMatch || licensePlateMatch;
     });
 
     const getSubscriptionTypeName = (typeId) => {
         const subType = subscriptionTypes.find(type => type.id === typeId);
-        return subType ? subType.name : 'Unknown'; // Return subscription type name or 'Unknown' if not found
+        return subType ? subType.name : 'Unknown';
     };
-
-    if (loading) {
-        return (
-            <div className="text-center">
-                <Spinner animation="border" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return <Alert variant="danger">Error: {error}</Alert>;
-    }
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -75,8 +78,20 @@ const SubscriptionHistoryList = () => {
     };
 
     const handleRowClick = (historyId) => {
-        navigate(`/subscription-history/${historyId}`); // Redirect to details page
+        navigate(`/subscription-history/${historyId}`);
     };
+
+    if (loading) {
+        return (
+            <div className="text-center">
+                <Spinner animation="border" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return <Alert variant="danger">Error: {error}</Alert>;
+    }
 
     return (
         <div>
@@ -87,7 +102,7 @@ const SubscriptionHistoryList = () => {
                         type="text"
                         placeholder="Search by Owner ID or License Plate..."
                         value={searchQuery}
-                        onChange={handleSearchChange} // Handle input change
+                        onChange={handleSearchChange}
                     />
                 </Form.Group>
             </Form>
@@ -97,30 +112,33 @@ const SubscriptionHistoryList = () => {
                 <Table striped bordered hover responsive>
                     <thead>
                         <tr>
-                            <th>History ID</th>
-                            <th>Owner ID</th>
-                            <th>Subscription Type</th> {/* Changed from Subscription Type ID to Subscription Type */}
-                            <th>Access Card</th>
-                            <th>License Plate 1</th>
-                            <th>License Plate 2</th>
-                            <th>License Plate 3</th>
+
+                            <th>DNI</th>
+                            <th>Name</th>
+                            <th>Last Name</th>
+                            <th>Subscription Type</th>
+                            <th>Email</th>
+                            <th>Telephone</th>
+                            <th>Observations</th>
                             <th>Registration Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredHistories.map((history) => (
-                            <tr key={history.history_id} onClick={() => handleRowClick(history.history_id)} style={{ cursor: 'pointer' }}>
-                                <td>{history.history_id}</td>
-                                <td>{history.owner_id}</td>
-                                {/* Display subscription type name instead of ID */}
-                                <td>{getSubscriptionTypeName(history.subscription_type_id)}</td>
-                                <td>{history.access_card}</td>
-                                <td>{history.lisence_plate1}</td>
-                                <td>{history.lisence_plate2 || 'N/A'}</td>
-                                <td>{history.lisence_plate3 || 'N/A'}</td>
-                                <td>{formatDate(history.registration_date)}</td>
-                            </tr>
-                        ))}
+                        {filteredHistories.map(history => {
+                            const owner = owners[history.owner_id] || {}; // Fetch owner info
+                            return (
+                                <tr key={history.history_id} onClick={() => handleRowClick(history.history_id)} style={{ cursor: 'pointer' }}>
+                                    <td>{history.owner_id}</td>
+                                    <td>{owner.first_name}</td> {/* Display full name */}
+                                    <td>{owner.last_name}</td>
+                                    <td>{getSubscriptionTypeName(history.subscription_type_id)}</td>
+                                   <td>{owner.email}</td>
+                                    <td>{owner.phone_number}</td>
+                                    <td>{history.observations}</td>
+                                    <td>{formatDate(history.registration_date)}</td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </Table>
             )}

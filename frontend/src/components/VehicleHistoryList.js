@@ -2,19 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { fetchVehicleHistories } from '../services/vehicleHistoryService';
 import { Table, Spinner, Alert, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { fetchOwnerByDNI } from "../services/getOwnerService";
 
 const VehicleHistoryList = () => {
     const [vehicleHistories, setVehicleHistories] = useState([]);
+    const [owners, setOwners] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [searchQuery, setSearchQuery] = useState(''); // State for search query
-    const navigate = useNavigate(); // Hook to navigate to the detail page
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
+
+    const fetchOwnerInfo = async (ownerId) => {
+        try {
+            const ownerData = await fetchOwnerByDNI(ownerId);
+            setOwners(prevOwners => ({
+                ...prevOwners,
+                [ownerId]: ownerData // Store owner data by ID
+            }));
+        } catch (err) {
+            console.error('Failed to fetch owner info:', err.message);
+        }
+    };
 
     useEffect(() => {
         const getVehicleHistories = async () => {
             try {
                 const histories = await fetchVehicleHistories();
                 setVehicleHistories(histories);
+
+                // Fetch owner data for each vehicle history
+                const ownerIds = histories.map(history => history.owner_id);
+                await Promise.all(ownerIds.map(fetchOwnerInfo)); // Fetch all owner data in parallel
+
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -52,10 +71,9 @@ const VehicleHistoryList = () => {
     };
 
     const handleRowClick = (historyId) => {
-        navigate(`/vehicle-history/${historyId}`); // Redirect to details page
+        navigate(`/vehicle-history/${historyId}`);
     };
 
-    // Filter vehicle histories based on the search query
     const filteredHistories = vehicleHistories.filter((history) => {
         const { owner_id, lisence_plate } = history;
         const lowerSearchQuery = searchQuery.toLowerCase();
@@ -83,29 +101,36 @@ const VehicleHistoryList = () => {
             ) : (
                 <Table striped bordered hover responsive>
                     <thead>
-                        <tr>
-                            <th>History ID</th>
-                            <th>License Plate</th>
-                            <th>Brand</th>
-                            <th>Model</th>
-                            <th>Vehicle Type</th>
-                            <th>Owner ID</th>
-                            <th>Registration Date</th>
-                        </tr>
+                    <tr>
+                        <th>License Plate</th>
+                        <th>DNI</th>
+                        <th>Name</th>
+                        <th>Last Name</th>
+                        <th>Telephone</th>
+                        <th>Email</th>
+                        <th>Brand</th>
+                        <th>Model</th>
+                        <th>Registration Date</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {filteredHistories.map((history) => (
-                            <tr key={history.history_id} onClick={() => handleRowClick(history.history_id)}
-                                style={{ cursor: 'pointer' }}>
-                                <td>{history.history_id}</td>
-                                <td>{history.lisence_plate}</td>
-                                <td>{history.brand}</td>
-                                <td>{history.model || 'N/A'}</td>
-                                <td>{history.vehicle_type}</td>
-                                <td>{history.owner_id}</td>
-                                <td>{formatDate(history.registration_date)}</td>
-                            </tr>
-                        ))}
+                        {filteredHistories.map((history) => {
+                            const owner = owners[history.owner_id] || {}; // Retrieve owner data from state
+                            return (
+                                <tr key={history.history_id} onClick={() => handleRowClick(history.history_id)}
+                                    style={{cursor: 'pointer'}}>
+                                    <td>{history.lisence_plate}</td>
+                                    <td>{history.owner_id}</td>
+                                    <td>{owner.first_name || 'N/A'} </td>
+                                    <td>{owner.last_name || ''}</td>
+                                    <td>{owner.phone_number || 'N/A'}</td>
+                                    <td>{owner.email || 'N/A'}</td>
+                                    <td>{history.brand}</td>
+                                    <td>{history.model || 'N/A'}</td>
+                                    <td>{formatDate(history.registration_date)}</td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </Table>
             )}

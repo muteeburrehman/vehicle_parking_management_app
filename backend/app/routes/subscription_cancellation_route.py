@@ -39,6 +39,9 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
     if request.modified_by:
         subscription.modified_by = request.modified_by
 
+    # Update the observation field
+    subscription.observations = request.observations
+
     # Handle documents based on its type
     if isinstance(request.documents, str):
         documents = request.documents.split(',')
@@ -62,7 +65,7 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
         tique_x_park=request.tique_x_park,
         documents=','.join(documents) if documents else None,
         remote_control_number=request.remote_control_number,
-        observations=subscription.observations,
+        observations=request.observations,  # Use the new observation from the request
         registration_date=subscription.registration_date,
         parking_spot=subscription.parking_spot,
         modification_time=subscription.modification_time,
