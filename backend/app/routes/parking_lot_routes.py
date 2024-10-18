@@ -1,102 +1,112 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict
 from backend.app.db.database import get_db
 
-from backend.app.models.models import ParkingLotConfig, Subscription_types, Subscriptions
+from backend.app.models.models import ParkingLot, Subscription_types, Subscriptions
+from backend.app.schemas.subscription import Subscription_Types_Response
 from backend.app.queries.subscription import get_subscriptions_query
-from backend.app.schemas.parking_lot_config import ParkingLotConfigCreate, ParkingLotConfigResponse, \
+
+from backend.app.schemas.parking_lot_config import ParkingLotCreate, ParkingLotResponse, \
     ParkingLotStatsResponse, ParkingLotStats
 
 router = APIRouter()
 
 
-@router.post("/parking-lot-config/", response_model=ParkingLotConfigResponse)
-def create_or_update_parking_lot_config(config: ParkingLotConfigCreate, db: Session = Depends(get_db)):
-    existing_config = db.query(ParkingLotConfig).first()
-    if existing_config:
-        for key, value in config.dict().items():
-            setattr(existing_config, key, value)
-        db_config = existing_config
-    else:
-        db_config = ParkingLotConfig(**config.dict())
-        db.add(db_config)
-
+@router.post("/parking-lot-config/", response_model=ParkingLotResponse)
+async def create_parking_lot_config(config: ParkingLotCreate, db: Session = Depends(get_db)):
+    """
+    Create a new parking lot configuration with validation.
+    """
+    db_config = ParkingLot(**config.dict())
+    db.add(db_config)
     db.commit()
     db.refresh(db_config)
     return db_config
 
-@router.get("/parking-lot-config/", response_model=List[ParkingLotConfigResponse])
-def get_parking_lot_configs(db: Session = Depends(get_db)):
-    return db.query(ParkingLotConfig).all()
 
-@router.get("/parking-lot-config/", response_model=ParkingLotConfigResponse)
-def get_parking_lot_config(db: Session = Depends(get_db)):
-    db_config = db.query(ParkingLotConfig).first()
-    if not db_config:
-        raise HTTPException(status_code=404, detail="Parking lot configuration not found")
-    return db_config
+def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: int):
+    subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
+    if not subscription_type:
+        raise HTTPException(status_code=400, detail=f"Subscription type with ID {subscription_type_id} does not exist.")
 
+    parking_lot_name = subscription_type.name.split()[0]  # Assumes the parking lot name is the first word in the subscription type name
+    parking_lot = db.query(ParkingLot).filter(ParkingLot.name == parking_lot_name).first()
+    if not parking_lot:
+        raise HTTPException(status_code=400, detail=f"Parking lot {parking_lot_name} does not exist.")
 
-@router.get("/parking-lot-stats", response_model=ParkingLotStatsResponse)
+    if "CAR" in subscription_type.name:
+        parking_lot.total_car_spaces += change
+    elif "Motorcycle" in subscription_type.name:
+        parking_lot.total_motorcycle_spaces += change
+    else:
+        raise HTTPException(status_code=400, detail="Unknown vehicle type in subscription.")
+
+    db.commit()
+
+# In the file containing the get_parking_lot_stats function (likely parking_lot_config.py)
+
+@router.get("/parking-lot-stats", response_model=Dict[str, ParkingLotStats])
 def get_parking_lot_stats(db: Session = Depends(get_db)):
-    config = db.query(ParkingLotConfig).first()
-    if not config:
-        raise HTTPException(status_code=404, detail="No parking lot configuration found")
+    parking_lots = db.query(ParkingLot).all()
+    if not parking_lots:
+        raise HTTPException(status_code=404, detail="No parking lot configurations found")
 
-    subscriptions = db.query(Subscriptions).all()
-    subscription_types = db.query(Subscription_types).all()
+    stats = {}
+    for parking_lot in parking_lots:
+        subscription_types = db.query(Subscription_types).filter(
+            Subscription_types.name.startswith(parking_lot.name)
+        ).all()
 
-    # Count subscriptions
-    subscription_counts = {
-        "24H CAR": 0,
-        "24H Motorcycle": 0,
-        "12H CAR": 0,
-        "12H Motorcycle": 0,
-        "Other": 0
-    }
+        subscriptions = db.query(Subscriptions).join(Subscription_types).filter(
+            Subscription_types.name.startswith(parking_lot.name)
+        ).all()
 
-    for sub in subscriptions:
-        sub_type = next((st for st in subscription_types if st.id == sub.subscription_type_id), None)
-        if sub_type:
-            if "24H CAR" in sub_type.name:
-                subscription_counts["24H CAR"] += 1
-            elif "24H Motorcycle" in sub_type.name:
-                subscription_counts["24H Motorcycle"] += 1
-            elif "12H CAR" in sub_type.name:
-                subscription_counts["12H CAR"] += 1
-            elif "12H Motorcycle" in sub_type.name:
-                subscription_counts["12H Motorcycle"] += 1
-            else:
-                subscription_counts["Other"] += 1
+        occupied_car_spaces = sum(1 for sub in subscriptions if "CARS" in sub.subscription_type.name.upper())
+        occupied_motorcycle_spaces = sum(1 for sub in subscriptions if "MOTORCYCLE" in sub.subscription_type.name.upper())
 
-    # Calculate statistics
-    occupied_car_spaces = subscription_counts["24H CAR"] + subscription_counts["12H CAR"]
-    occupied_motorcycle_spaces = subscription_counts["24H Motorcycle"] + subscription_counts["12H Motorcycle"]
-    free_car_spaces = config.total_car_spaces - occupied_car_spaces
-    free_motorcycle_spaces = config.total_motorcycle_spaces - occupied_motorcycle_spaces
-    total_spaces = config.total_car_spaces + config.total_motorcycle_spaces
+        free_car_spaces = parking_lot.total_car_spaces - occupied_car_spaces
+        free_motorcycle_spaces = parking_lot.total_motorcycle_spaces - occupied_motorcycle_spaces
 
-    # Calculate percentages
-    total_subscriptions = sum(subscription_counts.values())
-    percentages = {k: (v / total_subscriptions * 100 if total_subscriptions else 0) for k, v in subscription_counts.items()}
+        if free_car_spaces < parking_lot.min_car_spaces or free_motorcycle_spaces < parking_lot.min_motorcycle_spaces:
+            status = 'critical'
+        elif free_car_spaces < (parking_lot.total_car_spaces * 0.2) or free_motorcycle_spaces < (parking_lot.total_motorcycle_spaces * 0.2):
+            status = 'warning'
+        else:
+            status = 'good'
 
-    stats = ParkingLotStats(
-        total_spaces=total_spaces,
-        occupied_car_spaces=occupied_car_spaces,
-        occupied_motorcycle_spaces=occupied_motorcycle_spaces,
-        free_car_spaces=free_car_spaces,
-        free_motorcycle_spaces=free_motorcycle_spaces,
-        subscription_counts=subscription_counts,
-        percentages=percentages
-    )
+        stats[parking_lot.name] = ParkingLotStats(
+            total_car_spaces=parking_lot.total_car_spaces,
+            total_motorcycle_spaces=parking_lot.total_motorcycle_spaces,
+            free_car_spaces=free_car_spaces,
+            free_motorcycle_spaces=free_motorcycle_spaces,
+            status=status
+        )
 
-    return ParkingLotStatsResponse(stats=stats)
+    return stats
+
+@router.get("/parking-lot-config", response_model=List[ParkingLotResponse])
+def get_all_parking_lots(db: Session = Depends(get_db)):
+    db_parking_lots = db.query(ParkingLot).all()
+    return [ParkingLotResponse.from_orm(lot) for lot in db_parking_lots]
 
 
-@router.put("/parking-lot-config/{config_id}", response_model=ParkingLotConfigResponse)
-def update_parking_lot_config(config_id: int, config: ParkingLotConfigCreate, db: Session = Depends(get_db)):
-    db_config = db.query(ParkingLotConfig).filter(ParkingLotConfig.id == config_id).first()
+@router.get("/subscription-types", response_model=List[Subscription_Types_Response])
+def get_subscription_types(db: Session = Depends(get_db)):
+    subscription_types = db.query(Subscription_types).filter(Subscription_types.name.contains("24H")).all()
+    return [Subscription_Types_Response.from_orm(st) for st in subscription_types]
+
+
+@router.put("/parking-lot-config/{config_id}", response_model=ParkingLotResponse)
+async def update_parking_lot_config(
+        config_id: int,
+        config: ParkingLotCreate,
+        db: Session = Depends(get_db)
+):
+    """
+    Update an existing parking lot configuration with validation.
+    """
+    db_config = db.query(ParkingLot).filter(ParkingLot.id == config_id).first()
     if not db_config:
         raise HTTPException(status_code=404, detail="Parking lot configuration not found")
 
@@ -105,4 +115,15 @@ def update_parking_lot_config(config_id: int, config: ParkingLotConfigCreate, db
 
     db.commit()
     db.refresh(db_config)
+    return db_config
+
+
+@router.get("/parking-lot-config/{config_id}", response_model=ParkingLotResponse)
+async def get_parking_lot_config(config_id: int, db: Session = Depends(get_db)):
+    """
+    Get a specific parking lot configuration.
+    """
+    db_config = db.query(ParkingLot).filter(ParkingLot.id == config_id).first()
+    if not db_config:
+        raise HTTPException(status_code=404, detail="Parking lot configuration not found")
     return db_config

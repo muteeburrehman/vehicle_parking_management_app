@@ -20,7 +20,8 @@ import pandas as pd
 from fastapi.responses import StreamingResponse
 
 from backend.app.db.database import get_db
-from backend.app.models.models import Subscription_types, Subscriptions, Subscription_history, Owners, Vehicles
+from backend.app.models.models import Subscription_types, Subscriptions, Subscription_history, Owners, Vehicles, \
+    ParkingLot
 from backend.app.queries.owner import get_owner_by_dni
 from backend.app.queries.vehicle import get_vehicle
 from backend.app.routes.owner_routes import UPLOAD_DIR
@@ -38,6 +39,7 @@ router = APIRouter()
 # UPLOAD_DIR = Path("C:/Users/Doom/Desktop/APP APARCAMIENTOS/car_parking_system/backend/app/subscription_files")
 UPLOAD_DIR = Path("/home/muteeb/Downloads/APP APARCAMIENTOS/car_parking_system/backend/app/subscription_files")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 # Create a new subscription type
 @router.post("/subscription_types/", response_model=Subscription_Types_Response)
@@ -113,11 +115,11 @@ def get_subscription_type(id: int, db: Session = Depends(get_db)):
 
 
 async def handle_document_updates(
-    subscription: Subscriptions,
-    new_documents: List[UploadFile],
-    remove_documents: List[str],
-    is_work_order_added: bool = False,
-    work_order_filename: Optional[str] = None
+        subscription: Subscriptions,
+        new_documents: List[UploadFile],
+        remove_documents: List[str],
+        is_work_order_added: bool = False,
+        work_order_filename: Optional[str] = None
 ) -> (Subscriptions, List[str]):
     current_documents = subscription.documents.split(',') if subscription.documents else []
     updated_documents = []
@@ -162,12 +164,14 @@ async def handle_document_updates(
 
     return subscription, history_documents
 
+
 @router.get("/subscription_files/{filename}")
 async def get_subscription_file(filename: str):
     file_path = UPLOAD_DIR / filename
     if not file_path.is_file():
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
+
 
 @router.post("/subscription/", response_model=SubscriptionResponse)
 async def create_subscription_endpoint(
@@ -187,176 +191,218 @@ async def create_subscription_endpoint(
         modification_time: Optional[str] = Form(None),
         db: Session = Depends(get_db),
 ):
-    print(f"Received request to create subscription for owner_id: {owner_id}")
-    print(f"Received {len(documents)} documents")
-    # 1. Check if owner_id exists
-    owner = db.query(Owners).filter(Owners.dni == owner_id).first()
-    if not owner:
-        raise HTTPException(status_code=400, detail=f"Owner with ID {owner_id} does not exist.")
+    try:
+        print(f"Received request to create subscription for owner_id: {owner_id}")
+        print(f"Received {len(documents)} documents")
 
-    # 2. Check if subscription_type_id exists
-    subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
-    if not subscription_type:
-        raise HTTPException(status_code=400, detail=f"Subscription type with ID {subscription_type_id} does not exist.")
+        # 1. Check if owner_id exists
+        owner = db.query(Owners).filter(Owners.dni == owner_id).first()
+        if not owner:
+            raise HTTPException(status_code=400, detail=f"Owner with ID {owner_id} does not exist.")
 
-    # 3. Validate lisence_plate1, lisence_plate2, and lisence_plate3 belong to the owner
-    def validate_license_plate(plate, plate_name):
-        if plate:
-            vehicle = db.query(Vehicles).filter(
-                Vehicles.lisence_plate == plate,
-                Vehicles.owner_id == owner_id  # Check for correct owner
-            ).first()
-            if not vehicle:
-                raise HTTPException(status_code=400,
-                                    detail=f"Vehicle with license plate {plate} does not belong to owner {owner_id}.")
+        # 2. Check if subscription_type_id exists
+        subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
+        if not subscription_type:
+            raise HTTPException(status_code=400, detail=f"Subscription type with ID {subscription_type_id} does not exist.")
 
-    # Validate the existence of each license plate
-    validate_license_plate(lisence_plate1, 'lisence_plate1')
-    validate_license_plate(lisence_plate2, 'lisence_plate2')
-    validate_license_plate(lisence_plate3, 'lisence_plate3')
+        # 3. Validate license plates
+        def validate_license_plate(plate, plate_name):
+            if plate:
+                vehicle = db.query(Vehicles).filter(
+                    Vehicles.lisence_plate == plate,
+                    Vehicles.owner_id == owner_id
+                ).first()
+                if not vehicle:
+                    raise HTTPException(status_code=400, detail=f"Vehicle with license plate {plate} does not belong to owner {owner_id}.")
 
-    # 4. Check if the lisence plates are already registered for the same subscription_type_id
-    def check_duplicate_license_plate(plate):
-        if plate:
-            existing_subscription = db.query(Subscriptions).filter(
-                Subscriptions.subscription_type_id == subscription_type_id,
-                (Subscriptions.lisence_plate1 == plate) |
-                (Subscriptions.lisence_plate2 == plate) |
-                (Subscriptions.lisence_plate3 == plate)
-            ).first()
-            if existing_subscription:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"License plate {plate} is already registered under subscription type {subscription_type_id}."
-                )
+        validate_license_plate(lisence_plate1, 'lisence_plate1')
+        validate_license_plate(lisence_plate2, 'lisence_plate2')
+        validate_license_plate(lisence_plate3, 'lisence_plate3')
 
-    # Check for duplicate license plates
-    check_duplicate_license_plate(lisence_plate1)
-    check_duplicate_license_plate(lisence_plate2)
-    check_duplicate_license_plate(lisence_plate3)
+        # 4. Check for duplicate license plates
+        def check_duplicate_license_plate(plate):
+            if plate:
+                existing_subscription = db.query(Subscriptions).filter(
+                    Subscriptions.subscription_type_id == subscription_type_id,
+                    (Subscriptions.lisence_plate1 == plate) |
+                    (Subscriptions.lisence_plate2 == plate) |
+                    (Subscriptions.lisence_plate3 == plate)
+                ).first()
+                if existing_subscription:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"License plate {plate} is already registered under subscription type {subscription_type_id}."
+                    )
 
-    # 5. Create a subscription record
-    subscription_data = SubscriptionCreate(
-        owner_id=owner_id,
-        subscription_type_id=subscription_type_id,
-        access_card=access_card,
-        lisence_plate1=lisence_plate1,
-        lisence_plate2=lisence_plate2,
-        lisence_plate3=lisence_plate3,
-        tique_x_park=tique_x_park,
-        remote_control_number=remote_control_number,
-        observations=observations,
-        parking_spot=parking_spot,
-        registration_date=datetime.now(),
-        created_by=created_by,
-        modified_by=modified_by,
-        modification_time=modification_time,
-    )
-    new_subscription = create_subscription_query(db, subscription_data)
+        check_duplicate_license_plate(lisence_plate1)
+        check_duplicate_license_plate(lisence_plate2)
+        check_duplicate_license_plate(lisence_plate3)
 
-    # For a new subscription, there are no old license plates
-    old_license_plates = {
-        'lisence_plate1': None,
-        'lisence_plate2': None,
-        'lisence_plate3': None
-    }
+        # 5. Create subscription record
+        subscription_data = SubscriptionCreate(
+            owner_id=owner_id,
+            subscription_type_id=subscription_type_id,
+            access_card=access_card,
+            lisence_plate1=lisence_plate1,
+            lisence_plate2=lisence_plate2,
+            lisence_plate3=lisence_plate3,
+            tique_x_park=tique_x_park,
+            remote_control_number=remote_control_number,
+            observations=observations,
+            parking_spot=parking_spot,
+            registration_date=datetime.now(),
+            created_by=created_by,
+            modified_by=modified_by,
+            modification_time=modification_time,
+        )
+        new_subscription = create_subscription_query(db, subscription_data)
 
-    # Generate work order PDF
-    work_order_filename = await generate_work_order_pdf(new_subscription, db, old_license_plates)
+        # 6. Update parking lot spaces
+        print(f"Updating parking lot spaces for subscription type ID: {subscription_type_id}")
+        print(f"Subscription type name: {subscription_type.name}")  # Add this line to log the subscription type name
+        update_parking_lot_spaces(db, subscription_type_id, -1)  # Decrease available spaces by 1
+        print("Parking lot spaces updated successfully")
 
-    # Handle document uploads
-    document_filenames = [work_order_filename]  # Start with work order filename only
-    for document in documents:
-        filename = f"{new_subscription.id}_{document.filename}"
-        file_location = UPLOAD_DIR / filename
-        try:
-            with open(file_location, "wb") as file:
-                content = await document.read()
-                file.write(content)
-            document_filenames.append(filename)  # Append only the filename
-        except IOError as e:
-            # Rollback transaction and raise exception
-            db.rollback()
-            raise HTTPException(status_code=500, detail=f"Could not write file: {filename}. Error: {str(e)}")
+        # For a new subscription, there are no old license plates
+        old_license_plates = {
+            'lisence_plate1': None,
+            'lisence_plate2': None,
+            'lisence_plate3': None
+        }
 
-    # Update subscription with document information
-    new_subscription.documents = ','.join(document_filenames) if document_filenames else None
-    db.commit()
+        # Generate work order PDF
+        work_order_filename = await generate_work_order_pdf(new_subscription, db, old_license_plates)
 
-    # Construct the response model with URLs
-    base_url = "http://localhost:8000/subscription_files/"  # Update as needed
-    document_urls = [urljoin(base_url, filename) for filename in document_filenames]
+        # Handle document uploads
+        document_filenames = [work_order_filename]  # Start with work order filename only
+        for document in documents:
+            filename = f"{new_subscription.id}_{document.filename}"
+            file_location = UPLOAD_DIR / filename
+            try:
+                with open(file_location, "wb") as file:
+                    content = await document.read()
+                    file.write(content)
+                document_filenames.append(filename)  # Append only the filename
+            except IOError as e:
+                # Rollback transaction and raise exception
+                db.rollback()
+                raise HTTPException(status_code=500, detail=f"Could not write file: {filename}. Error: {str(e)}")
 
-    # history entery
-    history_entery = Subscription_history(
-        id=new_subscription.id,
-        owner_id=new_subscription.owner_id,
-        subscription_type_id=new_subscription.subscription_type_id,
-        access_card=new_subscription.access_card,
-        lisence_plate1=new_subscription.lisence_plate1,
-        lisence_plate2=new_subscription.lisence_plate2,
-        lisence_plate3=new_subscription.lisence_plate3,
-        documents=','.join(document_urls),
-        tique_x_park=new_subscription.tique_x_park,
-        remote_control_number=new_subscription.remote_control_number,
-        observations=new_subscription.observations,
-        parking_spot=new_subscription.parking_spot,
-        registration_date=new_subscription.registration_date,
-        created_by=new_subscription.created_by,
-    )
-    db.add(history_entery)
-    db.commit()
-    db.refresh(history_entery)
+        # Update subscription with document information
+        new_subscription.documents = ','.join(document_filenames) if document_filenames else None
+        db.commit()
 
-    return SubscriptionResponse(
-        id=new_subscription.id,
-        owner_id=new_subscription.owner_id,
-        subscription_type_id=new_subscription.subscription_type_id,
-        access_card=new_subscription.access_card,
-        lisence_plate1=new_subscription.lisence_plate1,
-        lisence_plate2=new_subscription.lisence_plate2,
-        lisence_plate3=new_subscription.lisence_plate3,
-        documents=document_urls,
-        tique_x_park=new_subscription.tique_x_park,
-        remote_control_number=new_subscription.remote_control_number,
-        observations=new_subscription.observations,
-        parking_spot=new_subscription.parking_spot,
-        registration_date=new_subscription.registration_date,
-        created_by=created_by,
-        modified_by=modified_by,
-        modification_time=modification_time
-    )
+        # Construct the response model with URLs
+        base_url = "http://localhost:8000/subscription_files/"  # Update as needed
+        document_urls = [urljoin(base_url, filename) for filename in document_filenames]
+
+        # history entry
+        history_entry = Subscription_history(
+            id=new_subscription.id,
+            owner_id=new_subscription.owner_id,
+            subscription_type_id=new_subscription.subscription_type_id,
+            access_card=new_subscription.access_card,
+            lisence_plate1=new_subscription.lisence_plate1,
+            lisence_plate2=new_subscription.lisence_plate2,
+            lisence_plate3=new_subscription.lisence_plate3,
+            documents=','.join(document_urls),
+            tique_x_park=new_subscription.tique_x_park,
+            remote_control_number=new_subscription.remote_control_number,
+            observations=new_subscription.observations,
+            parking_spot=new_subscription.parking_spot,
+            registration_date=new_subscription.registration_date,
+            created_by=new_subscription.created_by,
+        )
+        db.add(history_entry)
+        db.commit()
+        db.refresh(history_entry)
+
+        return SubscriptionResponse(
+            id=new_subscription.id,
+            owner_id=new_subscription.owner_id,
+            subscription_type_id=new_subscription.subscription_type_id,
+            access_card=new_subscription.access_card,
+            lisence_plate1=new_subscription.lisence_plate1,
+            lisence_plate2=new_subscription.lisence_plate2,
+            lisence_plate3=new_subscription.lisence_plate3,
+            documents=document_urls,
+            tique_x_park=new_subscription.tique_x_park,
+            remote_control_number=new_subscription.remote_control_number,
+            observations=new_subscription.observations,
+            parking_spot=new_subscription.parking_spot,
+            registration_date=new_subscription.registration_date,
+            created_by=created_by,
+            modified_by=modified_by,
+            modification_time=modification_time
+        )
+    except HTTPException as http_exc:
+        # Re-raise HTTP exceptions as they are already properly formatted
+        raise http_exc
+    except Exception as e:
+        # Log the exception for debugging
+        print(f"Error in create_subscription_endpoint: {str(e)}")
+        # Raise a generic HTTP exception
+        raise HTTPException(status_code=500, detail="An unexpected error occurred while processing the subscription.")
 
 
 
+def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: int):
+    try:
+        subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
+        if not subscription_type:
+            raise HTTPException(status_code=400,
+                                detail=f"Subscription type with ID {subscription_type_id} does not exist.")
 
+        # Extract parking lot name (assuming it's before " - ")
+        parking_lot_name = subscription_type.name.split(" - ")[0].strip()
+        print(f"Extracted parking lot name: {parking_lot_name}")  # Debugging line
 
+        parking_lot = db.query(ParkingLot).filter(ParkingLot.name == parking_lot_name).first()
+        if not parking_lot:
+            raise HTTPException(status_code=400, detail=f"Parking lot '{parking_lot_name}' does not exist.")
+
+        # Check for CARS or MOTORCYCLE in the subscription type name
+        if "CARS" in subscription_type.name.upper():
+            parking_lot.total_car_spaces += change
+            print(f"Updated car spaces for {parking_lot.name}: {parking_lot.total_car_spaces}")
+        elif "MOTORCYCLE" in subscription_type.name.upper():
+            parking_lot.total_motorcycle_spaces += change
+            print(f"Updated motorcycle spaces for {parking_lot.name}: {parking_lot.total_motorcycle_spaces}")
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown vehicle type in subscription: {subscription_type.name}")
+
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error in update_parking_lot_spaces: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An error occurred while updating parking lot spaces: {str(e)}")
 
 # Set up Jinja2 environment
 # template_dir = r'C:\Users\Doom\Desktop\APP APARCAMIENTOS\car_parking_system\backend\app\templates'
 template_dir = '/home/muteeb/Downloads/APP APARCAMIENTOS/car_parking_system/backend/app/templates'
 env = Environment(loader=FileSystemLoader(template_dir))
 
+
 @router.put("/subscription/{id}", response_model=SubscriptionResponse)
 async def edit_subscription_endpoint(
-    id: int,
-    owner_id: Optional[str] = Form(None),
-    subscription_type_id: Optional[int] = Form(None),
-    access_card: Optional[str] = Form(None),
-    lisence_plate1: Optional[str] = Form(None),
-    lisence_plate2: Optional[str] = Form(None),
-    lisence_plate3: Optional[str] = Form(None),
-    new_documents: List[UploadFile] = File([]),
-    remove_documents: List[str] = Form([]),
-    tique_x_park: Optional[str] = Form(None),
-    remote_control_number: Optional[str] = Form(None),
-    observations: Optional[str] = Form(None),
-    parking_spot: Optional[str] = Form(None),
-    created_by: Optional[str] = Form(None),
-    modified_by: Optional[str] = Form(None),
-    modification_time: Optional[str] = Form(None),
-    existing_documents: list[str] = Form(None),
-    db: Session = Depends(get_db)
+        id: int,
+        owner_id: Optional[str] = Form(None),
+        subscription_type_id: Optional[int] = Form(None),
+        access_card: Optional[str] = Form(None),
+        lisence_plate1: Optional[str] = Form(None),
+        lisence_plate2: Optional[str] = Form(None),
+        lisence_plate3: Optional[str] = Form(None),
+        new_documents: List[UploadFile] = File([]),
+        remove_documents: List[str] = Form([]),
+        tique_x_park: Optional[str] = Form(None),
+        remote_control_number: Optional[str] = Form(None),
+        observations: Optional[str] = Form(None),
+        parking_spot: Optional[str] = Form(None),
+        created_by: Optional[str] = Form(None),
+        modified_by: Optional[str] = Form(None),
+        modification_time: Optional[str] = Form(None),
+        existing_documents: list[str] = Form(None),
+        db: Session = Depends(get_db)
 ):
     # Fetch the subscription record
     subscription = db.query(Subscriptions).filter(Subscriptions.id == id).first()
@@ -408,7 +454,8 @@ async def edit_subscription_endpoint(
     if subscription_type_id is not None and subscription_type_id != subscription.subscription_type_id:
         subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
         if not subscription_type:
-            raise HTTPException(status_code=400, detail=f"Subscription type with ID {subscription_type_id} does not exist.")
+            raise HTTPException(status_code=400,
+                                detail=f"Subscription type with ID {subscription_type_id} does not exist.")
         update_field('subscription_type_id', subscription_type_id)
 
     # Handle modification_time
@@ -435,7 +482,8 @@ async def edit_subscription_endpoint(
                         Vehicles.owner_id == subscription.owner_id
                     ).first()
                     if not vehicle:
-                        raise HTTPException(status_code=400, detail=f"Vehicle with license plate {plate} does not exist for owner {subscription.owner_id}.")
+                        raise HTTPException(status_code=400,
+                                            detail=f"Vehicle with license plate {plate} does not exist for owner {subscription.owner_id}.")
                     update_field(plate_field, plate)
 
     validate_license_plate(lisence_plate1, 'lisence_plate1')
@@ -512,6 +560,7 @@ async def edit_subscription_endpoint(
     )
 
     return response
+
 
 async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_license_plates: dict):
     # Fetch owner information
@@ -596,7 +645,6 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
         f.write(pdf)
 
     return filename  # Return only the filename
-
 
 
 @router.get("/subscription/{subscription_id}", response_model=SubscriptionResponse)

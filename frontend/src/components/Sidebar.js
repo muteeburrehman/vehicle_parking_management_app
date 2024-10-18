@@ -25,22 +25,21 @@ const Sidebar = () => {
     { to: "/", icon: "columns", text: "Owners List" },
     isSuperUser && { to: "/add-new-user", icon: "user-plus", text: "Add User" },
     { to: "/owner-registration", icon: "user-plus", text: "Owner Registration" },
-    {to:"/owner_histories", icon: "columns", text: "Owners History List"},
+    { to: "/owner_histories", icon: "columns", text: "Owners History List" },
     { to: "/vehicles", icon: "columns", text: "Vehicles List" },
-      {to:"/vehicle_histories", icon: "columns", text: "Vehicle History List"},
+    { to: "/vehicle_histories", icon: "columns", text: "Vehicle History List" },
+      isSuperUser && { to: "/parking-lots", icon: "columns", text: "Parking Lot List", end: true },
+    isSuperUser && { to: "/parking-lot/add", icon: "user-plus", text: "Add Parking Lot" },
+    isSuperUser && { to: "/parking-lot-stats", icon: "chart-line", text: "Parking Lot Stats" },
     isSuperUser && { to: "/add-subscription-type", icon: "user-plus", text: "Subscription Type" },
     isSuperUser && { to: "/subscription-type-list", icon: "columns", text: "Subscription Type List" },
-      isSuperUser && {to:"/parking-lot-config", icon: "user-plus", text: "Parking Lot Config "},
-      isSuperUser && {to:"/parking-lot-stats", icon:"chart-line", text: "Parking Lot Stats" },
     { to: "/add-subscription", icon: "user-plus", text: "Subscription" },
     { to: "/subscription-list", icon: "columns", text: "Subscription List" },
     { to: "/subscription_histories", icon: "columns", text: "Subscription Histories" },
-    // { to: "/vehicle_counts", icon: "chart-line", text: "Vehicle Counts" },
     { to: "/cancel-subscription-list", icon: "columns", text: "Canceled Subscriptions List" },
   ].filter(Boolean);
 
   return (
-
     <div style={{ display: 'flex', height: '100vh', overflow: 'scroll initial' }}>
       <CDBSidebar textColor="#fff" backgroundColor="#212529">
         <CDBSidebarHeader prefix={<i className="fa fa-bars fa-large"></i>}>
@@ -51,9 +50,14 @@ const Sidebar = () => {
         </CDBSidebarHeader>
 
         <CDBSidebarContent className="sidebar-content">
-        <CDBSidebarMenu>
+          <CDBSidebarMenu>
             {menuItems.map((item, index) => (
-              <NavLink key={index} to={item.to} className={({ isActive }) => (isActive ? 'activeClicked' : '')}>
+              <NavLink
+                key={index}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) => (isActive ? 'activeClicked' : '')}
+              >
                 <CDBSidebarMenuItem icon={item.icon}>{item.text}</CDBSidebarMenuItem>
               </NavLink>
             ))}

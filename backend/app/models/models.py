@@ -109,6 +109,9 @@ class Subscription_types(Base):
     price = Column(Integer, nullable=False)
     parking_code = Column(String, nullable=False)
 
+    # Add this line to create a relationship with Subscriptions
+    subscriptions = relationship("Subscriptions", back_populates="subscription_type")
+
 
 class Subscriptions(Base):
     __tablename__ = "subscriptions"
@@ -128,6 +131,9 @@ class Subscriptions(Base):
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
     modification_time = Column(DateTime, nullable=True)
+
+    # Add this line to create a relationship with Subscription_types
+    subscription_type = relationship("Subscription_types", back_populates="subscriptions")
 
 
 class Subscription_history(Base):
@@ -172,9 +178,12 @@ class Cancellations(Base):
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
 
-class ParkingLotConfig(Base):
+class ParkingLot(Base):
     __tablename__ = "parking_lot_config"
 
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True)
     total_car_spaces = Column(Integer, nullable=False)
     total_motorcycle_spaces = Column(Integer, nullable=False)
+    min_car_spaces = Column(Integer, nullable=False)
+    min_motorcycle_spaces = Column(Integer, nullable=False)

@@ -38,8 +38,10 @@ import OwnerHistoryList from "./components/OwnerHistoryList";
 import VehicleHistoryList from "./components/VehicleHistoryList";
 import OwnerHistoryDetail from "./components/OwnerHistoryDetail";
 import VehicleHistoryDetail from "./components/VehicleHistoryDetail";
-import ParkingLotConfigForm from "./components/ParkingLotConfigForm";
 import ParkingLotStats from "./components/ParkingLotStats";
+import AddParkingLotForm from "./components/AddParkingLotForm";
+import UpdateParkingLotForm from "./components/UpdateParkingLotForm";
+import ParkingLotList from "./components/ParkingLotList";
 
 const NotFound = () => (
     <Container className="mt-5">
@@ -182,12 +184,29 @@ function App() {
                                     </ProtectedRoute>
                                 }/>
 
-                                <Route path="/parking-lot-config" element={
+                                <Route path="/parking-lots/add" element={
                                     <ProtectedRoute>
-                                        <ParkingLotConfigForm/>
+                                        <AddParkingLotForm/>
                                     </ProtectedRoute>
                                 }/>
 
+                                <Route path="/parking-lots" element={
+                                    <ProtectedRoute>
+                                        <ParkingLotList/>
+                                    </ProtectedRoute>
+                                }/>
+
+                                 <Route path="/parking-lot/edit/:id" element={
+                                    <ProtectedRoute>
+                                        <UpdateParkingLotForm/>
+                                    </ProtectedRoute>
+                                }/>
+
+                                 <Route path="/parking-lot/add" element={
+                                    <ProtectedRoute>
+                                        <AddParkingLotForm/>
+                                    </ProtectedRoute>
+                                }/>
 
                                 <Route path="/parking-lot-stats" element={
                                     <ProtectedRoute>
@@ -195,7 +214,8 @@ function App() {
                                     </ProtectedRoute>
                                 }/>
 
-                                <Route path="*" element={<NotFound/>}/>
+                                <Route path="*" element={<NotFound/>} />
+
                             </Routes>
                         </div>
                     </div>
