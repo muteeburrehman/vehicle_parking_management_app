@@ -9,6 +9,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const ParkingLotStats = () => {
   const [stats, setStats] = useState({});
   const [subscriptionTypes, setSubscriptionTypes] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,12 +21,14 @@ const ParkingLotStats = () => {
         setSubscriptionTypes(typesData);
       } catch (error) {
         console.error('Error fetching data:', error);
+        setError('Failed to fetch parking lot data. Please try again later.');
       }
     };
 
     fetchData();
   }, []);
 
+  if (error) return <div className="error">{error}</div>;
   if (Object.keys(stats).length === 0 || !subscriptionTypes.length) return <div className="loading">Loading...</div>;
 
   const createChartData = (parkingLotName, vehicleType) => {
@@ -36,16 +39,23 @@ const ParkingLotStats = () => {
       type.name.includes(parkingLotName) && type.name.includes(vehicleType)
     );
 
-    const labels = relevantSubscriptions.map(sub => sub.name);
-    const data = relevantSubscriptions.map(sub => parkingLotStats.subscription_counts[sub.name] || 0);
+    const labels = [];
+    const data = [];
 
-    data.reduce((a, b) => a + b, 0);
+    relevantSubscriptions.forEach(sub => {
+      const count = parkingLotStats.subscription_counts?.[sub.name] || 0;
+      if (count > 0) {
+        labels.push(sub.name);
+        data.push(count);
+      }
+    });
+
     const freeSpaces = vehicleType === 'CAR' ?
       parkingLotStats.free_car_spaces :
       parkingLotStats.free_motorcycle_spaces;
 
-    data.push(freeSpaces);
     labels.push('Free Spaces');
+    data.push(freeSpaces);
 
     return {
       labels,
@@ -65,7 +75,7 @@ const ParkingLotStats = () => {
     return subscriptionTypes
       .filter(type => type.name.includes(parkingLotName) && type.name.includes(vehicleType))
       .reduce((total, sub) => {
-        const count = parkingLotStats.subscription_counts[sub.name] || 0;
+        const count = parkingLotStats.subscription_counts?.[sub.name] || 0;
         return total + (count * sub.price);
       }, 0);
   };
@@ -82,7 +92,8 @@ const ParkingLotStats = () => {
             <p>Total Motorcycle Spaces: {parkingLotStats.total_motorcycle_spaces}</p>
             <p>Free Car Spaces: {parkingLotStats.free_car_spaces}</p>
             <p>Free Motorcycle Spaces: {parkingLotStats.free_motorcycle_spaces}</p>
-            <p>Occupied Spaces: {parkingLotStats.total_car_spaces - parkingLotStats.free_car_spaces}</p> {/* Display occupied spaces */}
+            <p>Occupied Car Spaces: {parkingLotStats.total_car_spaces - parkingLotStats.free_car_spaces}</p>
+            <p>Occupied Motorcycle Spaces: {parkingLotStats.total_motorcycle_spaces - parkingLotStats.free_motorcycle_spaces}</p>
           </div>
 
           <div className="chart-section">
@@ -103,9 +114,9 @@ const ParkingLotStats = () => {
 
           <div className="stats-section">
             <h4>Subscription Counts</h4>
-            {Object.entries(parkingLotStats.subscription_counts).map(([type, count]) => (
+            {Object.entries(parkingLotStats.subscription_counts || {}).map(([type, count]) => (
               <p key={type}>
-                {type}: {count} ({parkingLotStats.percentages[type].toFixed(2)}%)
+                {type}: {count} ({(parkingLotStats.percentages?.[type] || 0).toFixed(2)}%)
               </p>
             ))}
           </div>

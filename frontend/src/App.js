@@ -40,8 +40,8 @@ import OwnerHistoryDetail from "./components/OwnerHistoryDetail";
 import VehicleHistoryDetail from "./components/VehicleHistoryDetail";
 import ParkingLotStats from "./components/ParkingLotStats";
 import AddParkingLotForm from "./components/AddParkingLotForm";
-import UpdateParkingLotForm from "./components/UpdateParkingLotForm";
 import ParkingLotList from "./components/ParkingLotList";
+import ParkingLotListAndEdit from "./components/ParkingLotListAndEdit";
 
 const NotFound = () => (
     <Container className="mt-5">
@@ -196,9 +196,15 @@ function App() {
                                     </ProtectedRoute>
                                 }/>
 
-                                 <Route path="/parking-lot/edit/:id" element={
+                                {/* <Route path="/parking-lot/edit/:id" element={*/}
+                                {/*    <ProtectedRoute>*/}
+                                {/*        <UpdateParkingLotForm/>*/}
+                                {/*    </ProtectedRoute>*/}
+                                {/*}/>*/}
+
+                                <Route path="/parking-lot-list" element={
                                     <ProtectedRoute>
-                                        <UpdateParkingLotForm/>
+                                        <ParkingLotListAndEdit/>
                                     </ProtectedRoute>
                                 }/>
 
