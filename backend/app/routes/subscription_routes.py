@@ -361,15 +361,15 @@ def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: in
         if not parking_lot:
             raise HTTPException(status_code=400, detail=f"Parking lot '{parking_lot_name}' does not exist.")
 
-        # Check for CARS or MOTORCYCLE in the subscription type name
-        if "CARS" in subscription_type.name.upper():
+        # Check for 24H for cars or 24H MOTOS for motorcycles in the subscription type name
+        if "24H" in subscription_type.name.upper() and "MOTOS" not in subscription_type.name.upper():
             parking_lot.total_car_spaces += change
-            print(f"Updated car spaces for {parking_lot.name}: {parking_lot.total_car_spaces}")
-        elif "MOTORCYCLE" in subscription_type.name.upper():
+            print(f"Updated 24H car spaces for {parking_lot.name}: {parking_lot.total_car_spaces}")
+        elif "24H MOTOS" in subscription_type.name.upper():
             parking_lot.total_motorcycle_spaces += change
-            print(f"Updated motorcycle spaces for {parking_lot.name}: {parking_lot.total_motorcycle_spaces}")
+            print(f"Updated 24H motorcycle spaces for {parking_lot.name}: {parking_lot.total_motorcycle_spaces}")
         else:
-            raise HTTPException(status_code=400, detail=f"Unknown vehicle type in subscription: {subscription_type.name}")
+            print(f"Subscription type '{subscription_type.name}' does not affect car or motorcycle space counts")
 
         db.commit()
     except Exception as e:

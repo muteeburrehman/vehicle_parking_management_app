@@ -35,15 +35,16 @@ def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: in
     if not parking_lot:
         raise HTTPException(status_code=400, detail=f"Parking lot {parking_lot_name} does not exist.")
 
-    if "CAR" in subscription_type.name:
+    if "24H" in subscription_type.name.upper() and "MOTOS" not in subscription_type.name.upper():
         parking_lot.total_car_spaces += change
-    elif "Motorcycle" in subscription_type.name:
+        print(f"Updated 24H car spaces for {parking_lot.name}: {parking_lot.total_car_spaces}")
+    elif "24H MOTOS" in subscription_type.name.upper():
         parking_lot.total_motorcycle_spaces += change
+        print(f"Updated 24H motorcycle spaces for {parking_lot.name}: {parking_lot.total_motorcycle_spaces}")
     else:
-        raise HTTPException(status_code=400, detail="Unknown vehicle type in subscription.")
+        print(f"Subscription type '{subscription_type.name}' does not affect car or motorcycle space counts")
 
     db.commit()
-
 # In the file containing the get_parking_lot_stats function (likely parking_lot_config.py)
 
 @router.get("/parking-lot-stats", response_model=Dict[str, ParkingLotStats])
@@ -62,8 +63,8 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
             Subscription_types.name.startswith(parking_lot.name)
         ).all()
 
-        occupied_car_spaces = sum(1 for sub in subscriptions if "CARS" in sub.subscription_type.name.upper())
-        occupied_motorcycle_spaces = sum(1 for sub in subscriptions if "MOTORCYCLE" in sub.subscription_type.name.upper())
+        occupied_car_spaces = sum(1 for sub in subscriptions if "24H" in sub.subscription_type.name.upper() and "MOTOS" not in sub.subscription_type.name.upper())
+        occupied_motorcycle_spaces = sum(1 for sub in subscriptions if "24H MOTOS" in sub.subscription_type.name.upper())
 
         free_car_spaces = parking_lot.total_car_spaces - occupied_car_spaces
         free_motorcycle_spaces = parking_lot.total_motorcycle_spaces - occupied_motorcycle_spaces

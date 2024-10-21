@@ -28,16 +28,16 @@ const Sidebar = () => {
     { to: "/owner_histories", icon: "columns", text: "Owners History List" },
     { to: "/vehicles", icon: "columns", text: "Vehicles List" },
     { to: "/vehicle_histories", icon: "columns", text: "Vehicle History List" },
-      isSuperUser && { to: "/parking-lots", icon: "columns", text: "Parking Lots Count", end: true },
-      isSuperUser && {to:"/parking-lot-list", icon: "columns", text:"Parking Lot Edit"},
-    isSuperUser && { to: "/parking-lot/add", icon: "user-plus", text: "Add Parking Lot" },
-    isSuperUser && { to: "/parking-lot-stats", icon: "chart-line", text: "Parking Lot Stats" },
     isSuperUser && { to: "/add-subscription-type", icon: "user-plus", text: "Subscription Type" },
     isSuperUser && { to: "/subscription-type-list", icon: "columns", text: "Subscription Type List" },
     { to: "/add-subscription", icon: "user-plus", text: "Subscription" },
     { to: "/subscription-list", icon: "columns", text: "Subscription List" },
     { to: "/subscription_histories", icon: "columns", text: "Subscription Histories" },
     { to: "/cancel-subscription-list", icon: "columns", text: "Canceled Subscriptions List" },
+         isSuperUser && { to: "/parking-lots", icon: "columns", text: "Parking Lots Count", end: true },
+      isSuperUser && { to: "/parking-lot/add", icon: "user-plus", text: "Add Parking Lot" },
+      isSuperUser && {to:"/parking-lot-list", icon: "columns", text:"Parking Lot Edit"},
+    isSuperUser && { to: "/parking-lot-stats", icon: "chart-line", text: "Parking Lot Stats" },
   ].filter(Boolean);
 
   return (
