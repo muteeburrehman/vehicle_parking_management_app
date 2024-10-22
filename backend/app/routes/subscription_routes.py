@@ -32,12 +32,13 @@ from backend.app.queries.subscription import create_subscription_type_query, get
     get_subscription_type_by_id_query, create_subscription_query, get_subscription_by_id_query, get_subscriptions_query, \
     get_subscription_by_id
 
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 router = APIRouter()
 
 # UPLOAD_DIR = Path("C:/Users/Doom/Desktop/APP APARCAMIENTOS/car_parking_system/backend/app/subscription_files")
-UPLOAD_DIR = Path("/home/muteeb/Downloads/APP APARCAMIENTOS/car_parking_system/backend/app/subscription_files")
+base_path = os.getcwd()
+UPLOAD_DIR = PosixPath(base_path) / "subscription_files"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -379,7 +380,7 @@ def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: in
 
 # Set up Jinja2 environment
 # template_dir = r'C:\Users\Doom\Desktop\APP APARCAMIENTOS\car_parking_system\backend\app\templates'
-template_dir = '/home/muteeb/Downloads/APP APARCAMIENTOS/car_parking_system/backend/app/templates'
+template_dir = PosixPath(base_path) / "templates"
 env = Environment(loader=FileSystemLoader(template_dir))
 
 
