@@ -19,10 +19,20 @@
   flex-direction: column;
 }
 
-.total {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 10px 0;
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.total, .total-billing {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.total-billing {
+  color: #2c5282;
 }
 
 .chart-container {
@@ -47,8 +57,16 @@
 .breakdown-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid #eee;
+}
+
+.breakdown-info {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  margin-right: 16px;
 }
 
 .name {
@@ -58,6 +76,12 @@
 
 .stats {
   white-space: nowrap;
+  color: #666;
+}
+
+.billing {
+  font-weight: 600;
+  color: #2c5282;
 }
 
 h3 {

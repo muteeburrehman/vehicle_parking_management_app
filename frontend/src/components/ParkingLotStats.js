@@ -15,7 +15,6 @@ const ParkingLotStats = () => {
       try {
         const statsData = await parkingLotService.getParkingLotStatistics();
         setStats(statsData);
-        console.log('Fetched stats:', statsData); // Debug log
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch parking lot data. Please try again later.');
@@ -26,7 +25,6 @@ const ParkingLotStats = () => {
   }, []);
 
   const createChartData = (breakdown) => {
-    // Only create chart data if there are subscriptions
     if (breakdown.some(item => item.count > 0)) {
       return {
         labels: breakdown.map(item => item.name),
@@ -39,6 +37,13 @@ const ParkingLotStats = () => {
       };
     }
     return null;
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
 
   const renderPieChart = (breakdown) => {
@@ -76,15 +81,25 @@ const ParkingLotStats = () => {
         {Object.entries(stats).map(([parkingLotName, data]) => (
           <div key={parkingLotName} className="stats-card">
             <h3>{parkingLotName}</h3>
-            <p className="total">Total: {data.total_subscriptions}</p>
+            <div className="summary">
+              <p className="total">Total Subscriptions: {data.total_subscriptions}</p>
+              <p className="total-billing">
+                Expected Monthly Billing: {formatCurrency(data.total_expected_billing)}
+              </p>
+            </div>
             {renderPieChart(data.subscription_breakdown)}
             <div className="breakdown">
               {data.subscription_breakdown.map(item => (
                 <div key={item.name} className="breakdown-row">
-                  <span className="name">{item.name}</span>
-                  <span className="stats">
-                    {item.percentage}% ({item.count})
-                  </span>
+                  <div className="breakdown-info">
+                    <span className="name">{item.name}</span>
+                    <span className="stats">
+                      {item.percentage}% ({item.count})
+                    </span>
+                  </div>
+                  <div className="billing">
+                    {formatCurrency(item.total_billing)}
+                  </div>
                 </div>
               ))}
             </div>

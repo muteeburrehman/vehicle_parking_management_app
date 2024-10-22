@@ -7,9 +7,11 @@ from backend.app.models.models import ParkingLot, Subscription_types, Subscripti
 
 router = APIRouter()
 
+
 class ParkingLotStat(BaseModel):
     total_subscriptions: int
-    subscription_breakdown: List[dict]  # [{name: str, count: int, percentage: float}]
+    total_expected_billing: float  # New field for total billing
+    subscription_breakdown: List[dict]  # [{name: str, count: int, percentage: float, total_billing: float}]
 
 @router.get("/parking-lot-statistics", response_model=Dict[str, ParkingLotStat])
 def get_parking_lot_stats(db: Session = Depends(get_db)):
@@ -26,8 +28,8 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
             .all()
         )
 
-        # Initialize counts for all subscription types
-        subscription_counts = {st.name: 0 for st in subscription_types}
+        # Initialize counts and billing for all subscription types
+        subscription_data = {st.name: {"count": 0, "price": st.price} for st in subscription_types}
 
         # Count active subscriptions
         subscriptions = (
@@ -38,20 +40,23 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
         )
 
         total = len(subscriptions)
+        total_billing = 0
 
-        # Count subscriptions by type
+        # Count subscriptions by type and calculate billing
         for sub in subscriptions:
             sub_name = sub.subscription_type.name
-            subscription_counts[sub_name] += 1
+            subscription_data[sub_name]["count"] += 1
+            total_billing += subscription_data[sub_name]["price"]
 
-        # Calculate percentages
+        # Calculate percentages and create breakdown
         breakdown = [
             {
                 "name": sub_name,
-                "count": count,
-                "percentage": round((count / total * 100), 2) if total > 0 else 0
+                "count": data["count"],
+                "percentage": round((data["count"] / total * 100), 2) if total > 0 else 0,
+                "total_billing": data["count"] * data["price"]
             }
-            for sub_name, count in subscription_counts.items()
+            for sub_name, data in subscription_data.items()
         ]
 
         # Sort breakdown by count (descending)
@@ -59,6 +64,7 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
 
         stats[parking_lot.name] = ParkingLotStat(
             total_subscriptions=total,
+            total_expected_billing=total_billing,
             subscription_breakdown=breakdown
         )
 
