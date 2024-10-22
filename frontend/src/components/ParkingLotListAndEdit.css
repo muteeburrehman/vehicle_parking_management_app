@@ -1,0 +1,42 @@
+/* Parking lot list custom styles */
+.lot-list .lot-item {
+  padding: 1rem;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.lot-item:hover {
+  background-color: #f0f0f0;
+}
+
+.active-lot {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Card styling */
+.card {
+  border-radius: 10px;
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Form styling */
+form .form-control {
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+/* Button styling */
+button {
+  font-size: 1.1rem;
+  padding: 0.7rem;
+}
+
+/* Alert styling */
+.alert {
+  font-size: 1.1rem;
+}

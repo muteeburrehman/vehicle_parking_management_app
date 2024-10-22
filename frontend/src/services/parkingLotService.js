@@ -43,6 +43,16 @@ export const parkingLotService = {
     }
   },
 
+  getParkingLotStatistics: async () => {
+    try{
+      const response = await axios.get(`${API_URL}/parking-lot-statistics`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting statistics:', error);
+      throw error;
+    }
+  },
+
   getSubscriptionTypes: async () => {
     try {
       const response = await axios.get(`${API_URL}/subscription-types`);

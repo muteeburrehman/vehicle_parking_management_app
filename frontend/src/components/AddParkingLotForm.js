@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { parkingLotService } from '../services/parkingLotService';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 const AddParkingLotForm = () => {
   const [config, setConfig] = useState({
@@ -10,6 +11,10 @@ const AddParkingLotForm = () => {
     min_car_spaces: 0,
     min_motorcycle_spaces: 0,
   });
+
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,10 +28,17 @@ const AddParkingLotForm = () => {
     e.preventDefault();
     try {
       await parkingLotService.createParkingLotConfig(config);
-      alert('Parking lot configuration added successfully!');
-      // Reset form or redirect to list page
+      setSuccess('Parking lot configuration added successfully!');
+      setError('');
+
+      // Hide the success message after 2 seconds and navigate to /parking-lots
+      setTimeout(() => {
+        setSuccess('');
+        navigate('/parking-lots');
+      }, 2000);
     } catch (error) {
-      alert('Error adding parking lot configuration');
+      setError('Error adding parking lot configuration');
+      setSuccess('');
     }
   };
 
@@ -35,6 +47,10 @@ const AddParkingLotForm = () => {
       <Row className="justify-content-md-center">
         <Col md={6}>
           <h2 className="text-center mb-4">Add New Parking Lot</h2>
+
+          {success && <Alert variant="success">{success}</Alert>}
+          {error && <Alert variant="danger">{error}</Alert>}
+
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="name">
               <Form.Label>Parking Lot Name</Form.Label>
