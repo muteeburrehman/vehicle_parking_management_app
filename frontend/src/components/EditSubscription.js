@@ -42,6 +42,7 @@ const EditSubscription = () => {
         lisence_plate3: '',
         tique_x_park: '',
         remote_control_number: '',
+        effective_date: '',
         observations: '',
         parking_spot: '',
         created_by: '',
@@ -77,12 +78,25 @@ const EditSubscription = () => {
             if (id) {
                 try {
                     const data = await fetchSubscriptionById(id);
-                    setFormData(data);
+                    // console.log('Raw subscription data:', data);
 
-                    // Convert modification time to the desired format
+                    // Format the effective date
+                    const formattedDate = data.effective_date ?
+                        data.effective_date.split('T')[0] : ''; // This will convert "2024-10-10T00:00:00" to "2024-10-10"
+
+                    // Create a formatted data object with all fields
+                    const formattedData = {
+                        ...data,
+                        effective_date: formattedDate
+                    };
+
+                    // console.log('Formatted data:', formattedData);
+                    setFormData(formattedData);
+
+                    // Rest of your code...
                     if (data.modification_time) {
-                        const formattedDate = formatModificationTime(data.modification_time);
-                        setModificationTime(formattedDate);
+                        const formattedModTime = formatModificationTime(data.modification_time);
+                        setModificationTime(formattedModTime);
                     } else {
                         setModificationTime('');
                     }
@@ -170,7 +184,7 @@ const EditSubscription = () => {
         setIsModified(true);
     };
 
-const handleDocumentChange = (e) => {
+    const handleDocumentChange = (e) => {
         const files = Array.from(e.target.files); // Get selected files as an array
 
         // Filter out files that are already in the list based on name and size
@@ -200,7 +214,7 @@ const handleDocumentChange = (e) => {
         }
     };
 
- useEffect(() => {
+    useEffect(() => {
         return () => {
             // Cleanup URLs to prevent memory leaks
             documentPreviews.forEach(preview => {
@@ -268,6 +282,7 @@ const handleDocumentChange = (e) => {
                 lisence_plate1: formData.lisence_plate1 || '',
                 lisence_plate2: formData.lisence_plate2 || '',
                 lisence_plate3: formData.lisence_plate3 || '',
+                effective_date: formData.effective_date || '',
                 new_documents: newDocuments,
                 remove_documents: removedDocuments,
                 existing_documents: existingDocuments,
@@ -431,7 +446,21 @@ const handleDocumentChange = (e) => {
 
                         </Form.Group>
                     </Col>
-                    <Col md={6}>
+
+                    <Col md={3}>
+                        <Form.Group controlId="effective_date" className="mb-3">
+                            <Form.Label>Effective Date</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="effective_date"
+                                value={formData.effective_date || ''}
+                                onChange={handleChange}
+                                readOnly={isUser}
+                                onFocus={(e) => console.log('Effective date field value:', e.target.value)}
+                            />
+                        </Form.Group>
+                    </Col>
+                    <Col md={3}>
                         <Form.Group controlId="access_card" className="mb-3">
 
                             <Form.Label>Access Card:</Form.Label>

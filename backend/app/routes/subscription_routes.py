@@ -1,5 +1,6 @@
 import os
 import uuid
+from bdb import effective
 from datetime import datetime
 from os import remove
 from typing import List, Optional
@@ -173,7 +174,18 @@ async def get_subscription_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
 
-
+def convert_str_to_datetime(date_str: Optional[str]) -> Optional[datetime]:
+    """Convert string date to datetime object."""
+    if not date_str:
+        return None
+    try:
+        # Assuming date string comes in format 'YYYY-MM-DD'
+        return datetime.strptime(date_str, '%Y-%m-%d')
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid date format for effective_date. Expected YYYY-MM-DD, got: {date_str}"
+        )
 @router.post("/subscription/", response_model=SubscriptionResponse)
 async def create_subscription_endpoint(
         owner_id: str = Form(...),
@@ -186,6 +198,7 @@ async def create_subscription_endpoint(
         tique_x_park: Optional[str] = Form(None),
         remote_control_number: Optional[str] = Form(None),
         observations: Optional[str] = Form(None),
+        effective_date: Optional[str] = Form(None),
         parking_spot: Optional[str] = Form(None),
         created_by: str = Form(...),
         modified_by: str = Form(None),
@@ -195,6 +208,9 @@ async def create_subscription_endpoint(
     try:
         print(f"Received request to create subscription for owner_id: {owner_id}")
         print(f"Received {len(documents)} documents")
+
+        # Convert effective_date string to datetime
+        effective_datetime = convert_str_to_datetime(effective_date)
 
         # 1. Check if owner_id exists
         owner = db.query(Owners).filter(Owners.dni == owner_id).first()
@@ -250,6 +266,7 @@ async def create_subscription_endpoint(
             tique_x_park=tique_x_park,
             remote_control_number=remote_control_number,
             observations=observations,
+            effective_date=effective_datetime,  # Use converted datetime
             parking_spot=parking_spot,
             registration_date=datetime.now(),
             created_by=created_by,
@@ -310,6 +327,7 @@ async def create_subscription_endpoint(
             tique_x_park=new_subscription.tique_x_park,
             remote_control_number=new_subscription.remote_control_number,
             observations=new_subscription.observations,
+            effective_date= new_subscription.effective_date,
             parking_spot=new_subscription.parking_spot,
             registration_date=new_subscription.registration_date,
             created_by=new_subscription.created_by,
@@ -330,6 +348,7 @@ async def create_subscription_endpoint(
             tique_x_park=new_subscription.tique_x_park,
             remote_control_number=new_subscription.remote_control_number,
             observations=new_subscription.observations,
+            effective_date= new_subscription.effective_date,
             parking_spot=new_subscription.parking_spot,
             registration_date=new_subscription.registration_date,
             created_by=created_by,
@@ -387,180 +406,253 @@ env = Environment(loader=FileSystemLoader(template_dir))
 @router.put("/subscription/{id}", response_model=SubscriptionResponse)
 async def edit_subscription_endpoint(
         id: int,
-        owner_id: Optional[str] = Form(None),
-        subscription_type_id: Optional[int] = Form(None),
-        access_card: Optional[str] = Form(None),
-        lisence_plate1: Optional[str] = Form(None),
-        lisence_plate2: Optional[str] = Form(None),
-        lisence_plate3: Optional[str] = Form(None),
-        new_documents: List[UploadFile] = File([]),
-        remove_documents: List[str] = Form([]),
-        tique_x_park: Optional[str] = Form(None),
-        remote_control_number: Optional[str] = Form(None),
-        observations: Optional[str] = Form(None),
-        parking_spot: Optional[str] = Form(None),
-        created_by: Optional[str] = Form(None),
-        modified_by: Optional[str] = Form(None),
-        modification_time: Optional[str] = Form(None),
-        existing_documents: list[str] = Form(None),
+        owner_id: Optional[str] = Form(default=None),
+        subscription_type_id: Optional[int] = Form(default=None),
+        access_card: Optional[str] = Form(default=None),
+        lisence_plate1: Optional[str] = Form(default=None),
+        lisence_plate2: Optional[str] = Form(default=None),
+        lisence_plate3: Optional[str] = Form(default=None),
+        new_documents: List[UploadFile] = File(default=[]),
+        remove_documents: List[str] = Form(default=[]),
+        tique_x_park: Optional[str] = Form(default=None),
+        remote_control_number: Optional[str] = Form(default=None),
+        observations: Optional[str] = Form(default=None),
+        effective_date: Optional[str] = Form(default=None),
+        parking_spot: Optional[str] = Form(default=None),
+        created_by: Optional[str] = Form(default=None),
+        modified_by: Optional[str] = Form(default=None),
+        modification_time: Optional[str] = Form(default=None),
+        existing_documents: Optional[List[str]] = Form(default=None),
         db: Session = Depends(get_db)
 ):
-    # Fetch the subscription record
-    subscription = db.query(Subscriptions).filter(Subscriptions.id == id).first()
-    if not subscription:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+    try:
+        # Fetch the subscription record
+        subscription = db.query(Subscriptions).filter(Subscriptions.id == id).first()
+        if not subscription:
+            raise HTTPException(status_code=404, detail="Subscription not found")
 
-    # Track changes
-    changes = []
-    old_license_plates = {
-        'lisence_plate1': subscription.lisence_plate1,
-        'lisence_plate2': subscription.lisence_plate2,
-        'lisence_plate3': subscription.lisence_plate3
-    }
+        # Track changes
+        changes = []
+        old_license_plates = {
+            'lisence_plate1': subscription.lisence_plate1,
+            'lisence_plate2': subscription.lisence_plate2,
+            'lisence_plate3': subscription.lisence_plate3
+        }
 
-    # Function to update a field and track changes
-    def update_field(field_name, new_value):
-        old_value = getattr(subscription, field_name)
-        if new_value is not None and old_value != new_value:
-            setattr(subscription, field_name, new_value)
-            changes.append((field_name, old_value, new_value))
-            # Only update modification_time here if there's an actual change
-            subscription.modification_time = datetime.now()
-            print(f"Updated {field_name}: {new_value}")
-
-    # Update fields
-    update_field('tique_x_park', tique_x_park)
-    update_field('remote_control_number', remote_control_number)
-    update_field('observations', observations)
-    update_field('parking_spot', parking_spot)
-    # Update modified_by
-    update_field('modified_by', modified_by)
-
-    # Handle existing documents
-    existing_documents_set = set(existing_documents) if existing_documents else set()
-    if subscription.documents:
-        subscription_docs = set(subscription.documents.split(","))
-        remove_documents = list(subscription_docs - existing_documents_set)
-    else:
-        remove_documents = []
-
-    # Validate and update owner_id
-    if owner_id is not None and owner_id != subscription.owner_id:
-        owner = db.query(Owners).filter(Owners.dni == owner_id).first()
-        if not owner:
-            raise HTTPException(status_code=400, detail=f"Owner with ID {owner_id} does not exist.")
-        update_field('owner_id', owner_id)
-
-    # Validate and update subscription_type_id
-    if subscription_type_id is not None and subscription_type_id != subscription.subscription_type_id:
-        subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
-        if not subscription_type:
-            raise HTTPException(status_code=400,
-                                detail=f"Subscription type with ID {subscription_type_id} does not exist.")
-        update_field('subscription_type_id', subscription_type_id)
-
-    # Handle modification_time
-    if modification_time:
-        try:
-            new_modification_time = datetime.strptime(modification_time, "%m/%d/%Y, %H:%M:%S")
-            update_field('modification_time', new_modification_time)
-        except ValueError:
-            print(f"Error parsing modification_time: {modification_time}")
-            update_field('modification_time', datetime.now())
-    else:
-        update_field('modification_time', datetime.now())
-
-    # Validate and update license plates
-    def validate_license_plate(plate, plate_field):
-        if plate is not None:
-            if plate == "":
-                update_field(plate_field, None)
-            else:
-                plate = plate.strip().upper()
-                if plate != getattr(subscription, plate_field):
-                    vehicle = db.query(Vehicles).filter(
-                        func.upper(Vehicles.lisence_plate) == plate,
-                        Vehicles.owner_id == subscription.owner_id
-                    ).first()
-                    if not vehicle:
-                        raise HTTPException(status_code=400,
-                                            detail=f"Vehicle with license plate {plate} does not exist for owner {subscription.owner_id}.")
-                    update_field(plate_field, plate)
-
-    validate_license_plate(lisence_plate1, 'lisence_plate1')
-    validate_license_plate(lisence_plate2, 'lisence_plate2')
-    validate_license_plate(lisence_plate3, 'lisence_plate3')
-
-    # Update access_card
-    update_field('access_card', access_card)
-
-    # Handle document updates
-    # Handle document removals
-    for filename in remove_documents:
-        file_path = UPLOAD_DIR / filename
-        if file_path.is_file():
+        # Function to update a field and track changes
+        def update_field(field_name, new_value):
             try:
-                file_path.unlink()  # Deletes the file
+                old_value = getattr(subscription, field_name)
+                if new_value is not None and old_value != new_value:
+                    setattr(subscription, field_name, new_value)
+                    changes.append((field_name, old_value, new_value))
+                    subscription.modification_time = datetime.now()
+                    print(f"Updated {field_name}: {new_value}")
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Could not delete file: {filename}. Error: {str(e)}")
-        # Remove the filename from the subscription's documents
+                print(f"Error updating {field_name}: {str(e)}")
+                raise HTTPException(status_code=400, detail=f"Error updating {field_name}: {str(e)}")
+
+        # Update fields with proper error handling
+        if tique_x_park is not None:
+            update_field('tique_x_park', tique_x_park.strip() if tique_x_park else None)
+
+        if remote_control_number is not None:
+            update_field('remote_control_number', remote_control_number.strip() if remote_control_number else None)
+
+        if observations is not None:
+            update_field('observations', observations.strip() if observations else None)
+
+        if parking_spot is not None:
+            update_field('parking_spot', parking_spot.strip() if parking_spot else None)
+
+        # Handle effective_date
+        if effective_date is not None:
+            try:
+                converted_date = convert_str_to_datetime(effective_date)
+                update_field('effective_date', converted_date)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid effective_date format: {str(e)}")
+
+        # Update modified_by
+        if modified_by is not None:
+            update_field('modified_by', modified_by)
+
+        # Handle existing documents with proper error handling
+        if existing_documents:
+            existing_documents_set = set(existing_documents)
+            if subscription.documents:
+                subscription_docs = set(subscription.documents.split(","))
+                remove_documents = list(subscription_docs - existing_documents_set)
+        else:
+            remove_documents = []
+
+        # Validate and update owner_id
+        if owner_id is not None:
+            owner = db.query(Owners).filter(Owners.dni == owner_id).first()
+            if not owner:
+                raise HTTPException(status_code=400, detail=f"Owner with ID {owner_id} does not exist.")
+            update_field('owner_id', owner_id)
+
+        # Validate and update subscription_type_id
+        if subscription_type_id is not None:
+            subscription_type = db.query(Subscription_types).filter(
+                Subscription_types.id == subscription_type_id).first()
+            if not subscription_type:
+                raise HTTPException(status_code=400,
+                                    detail=f"Subscription type with ID {subscription_type_id} does not exist.")
+            update_field('subscription_type_id', subscription_type_id)
+
+        # Handle modification_time
+        if modification_time:
+            try:
+                new_modification_time = datetime.strptime(modification_time, "%m/%d/%Y, %H:%M:%S")
+                update_field('modification_time', new_modification_time)
+            except ValueError:
+                update_field('modification_time', datetime.now())
+        else:
+            update_field('modification_time', datetime.now())
+
+        # Validate and update license plates with better error handling
+        def validate_license_plate(plate, plate_field):
+            if plate is not None:
+                if plate == "":
+                    update_field(plate_field, None)
+                else:
+                    plate = plate.strip().upper()
+                    if plate != getattr(subscription, plate_field):
+                        vehicle = db.query(Vehicles).filter(
+                            func.upper(Vehicles.lisence_plate) == plate,
+                            Vehicles.owner_id == subscription.owner_id
+                        ).first()
+                        if not vehicle:
+                            raise HTTPException(
+                                status_code=400,
+                                detail=f"Vehicle with license plate {plate} does not exist for owner {subscription.owner_id}."
+                            )
+                        update_field(plate_field, plate)
+
+        validate_license_plate(lisence_plate1, 'lisence_plate1')
+        validate_license_plate(lisence_plate2, 'lisence_plate2')
+        validate_license_plate(lisence_plate3, 'lisence_plate3')
+
+        # Update access_card
+        if access_card is not None:
+            update_field('access_card', access_card.strip() if access_card else None)
+
+        # Handle document updates with proper error handling
+        if remove_documents:
+            for filename in remove_documents:
+                file_path = UPLOAD_DIR / filename
+                if file_path.is_file():
+                    try:
+                        file_path.unlink()
+                    except Exception as e:
+                        print(f"Error removing file {filename}: {str(e)}")
+                        continue
+
+                if subscription.documents:
+                    document_filenames = subscription.documents.split(",")
+                    if filename in document_filenames:
+                        document_filenames.remove(filename)
+                        subscription.documents = ','.join(document_filenames) if document_filenames else None
+
+        # Handle new document uploads
         document_filenames = subscription.documents.split(",") if subscription.documents else []
-        if filename in document_filenames:
-            document_filenames.remove(filename)
-        subscription.documents = ','.join(document_filenames) if document_filenames else None
-
-    # Handle new document uploads
-    for document in new_documents:
-        filename = f"{subscription.id}_{document.filename}"
-        file_location = UPLOAD_DIR / filename
-        try:
-            with open(file_location, "wb") as file:
+        for document in new_documents:
+            filename = f"{subscription.id}_{document.filename}"
+            file_location = UPLOAD_DIR / filename
+            try:
                 content = await document.read()
-                file.write(content)
-            document_filenames = subscription.documents.split(",") if subscription.documents else []
-            document_filenames.append(filename)
+                with open(file_location, "wb") as file:
+                    file.write(content)
+                document_filenames.append(filename)
+            except Exception as e:
+                print(f"Error uploading file {filename}: {str(e)}")
+                continue
+
+        if document_filenames:
             subscription.documents = ','.join(document_filenames)
-        except IOError as e:
+
+        # Generate work order if needed
+        if changes or new_documents or remove_documents:
+            try:
+                work_order_filename = await generate_work_order_pdf(subscription, db, old_license_plates)
+                if subscription.documents:
+                    document_filenames = subscription.documents.split(",")
+                    if work_order_filename not in document_filenames:
+                        document_filenames.append(work_order_filename)
+                        subscription.documents = ','.join(document_filenames)
+                else:
+                    subscription.documents = work_order_filename
+            except Exception as e:
+                print(f"Error generating work order: {str(e)}")
+
+        # Commit changes
+        try:
+            db.commit()
+            db.refresh(subscription)
+        except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=f"Could not write file: {filename}. Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error saving changes: {str(e)}")
 
-    # Optionally regenerate work order PDF if critical fields changed or documents updated
-    if changes or new_documents or remove_documents:
-        work_order_filename = await generate_work_order_pdf(subscription, db, old_license_plates)
-        if work_order_filename not in subscription.documents.split(","):
-            document_filenames.append(work_order_filename)
-            subscription.documents = ','.join(document_filenames)
+        # Construct the response
+        base_url = "http://localhost:8000/subscription_files/"
+        document_urls = []
+        if subscription.documents:
+            document_filenames = subscription.documents.split(",")
+            document_urls = [urljoin(base_url, filename) for filename in document_filenames]
 
-    # Commit changes
-    db.commit()
-    db.refresh(subscription)
+            # If there are valid changes, log them in Subscription_history
+            if changes or new_documents or remove_documents:
+                history_entry = Subscription_history(
+                    id=subscription.id,
+                    owner_id=subscription.owner_id,
+                    subscription_type_id=subscription.subscription_type_id,
+                    access_card=subscription.access_card,
+                    lisence_plate1=subscription.lisence_plate1 or "",
+                    lisence_plate2=subscription.lisence_plate2 or "",
+                    lisence_plate3=subscription.lisence_plate3 or "",
+                    documents=','.join(document_urls),
+                    tique_x_park=subscription.tique_x_park,
+                    remote_control_number=subscription.remote_control_number,
+                    observations=subscription.observations,
+                    registration_date=subscription.registration_date,
+                    parking_spot=subscription.parking_spot,
+                    modification_time=subscription.modification_time,
+                    created_by=subscription.created_by,
+                    modified_by=subscription.modified_by
+                )
+                db.add(history_entry)
 
-    # Construct the response model with URLs
-    base_url = "http://localhost:8000/subscription_files/"  # Update as needed
-    document_filenames = subscription.documents.split(",") if subscription.documents else []
-    document_urls = [urljoin(base_url, filename) for filename in document_filenames]
+            # Commit changes
+            db.commit()
+            db.refresh(subscription)
 
-    # Construct the response model
-    response = SubscriptionResponse(
-        id=subscription.id,
-        owner_id=subscription.owner_id,
-        subscription_type_id=subscription.subscription_type_id,
-        access_card=subscription.access_card,
-        lisence_plate1=subscription.lisence_plate1,
-        lisence_plate2=subscription.lisence_plate2,
-        lisence_plate3=subscription.lisence_plate3,
-        documents=document_urls,
-        tique_x_park=subscription.tique_x_park,
-        remote_control_number=subscription.remote_control_number,
-        observations=subscription.observations,
-        registration_date=subscription.registration_date,
-        parking_spot=subscription.parking_spot,
-        created_by=subscription.created_by,
-        modified_by=subscription.modified_by,
-        modification_time=subscription.modification_time
-    )
+        return SubscriptionResponse(
+            id=subscription.id,
+            owner_id=subscription.owner_id,
+            subscription_type_id=subscription.subscription_type_id,
+            access_card=subscription.access_card,
+            lisence_plate1=subscription.lisence_plate1,
+            lisence_plate2=subscription.lisence_plate2,
+            lisence_plate3=subscription.lisence_plate3,
+            documents=document_urls,
+            tique_x_park=subscription.tique_x_park,
+            remote_control_number=subscription.remote_control_number,
+            observations=subscription.observations,
+            registration_date=subscription.registration_date,
+            effective_date=subscription.effective_date,
+            parking_spot=subscription.parking_spot,
+            created_by=subscription.created_by,
+            modified_by=subscription.modified_by,
+            modification_time=subscription.modification_time
+        )
 
-    return response
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
 
 
 async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_license_plates: dict):
@@ -592,9 +684,9 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
     # Prepare data for the template
     template_data = {
         'order_no': f"{subscription.id}/24",
-        'date': datetime.now().strftime('%m/%d/%Y'),
+        'date': datetime.now().strftime('%m/%d/%Y') or '',
         'vehicle_type': vehicle.vehicle_type.upper(),
-        'effective_date': datetime.now().strftime('%b. %Y').upper(),
+        'effective_date': subscription.effective_date or '',
         'name_surname': f"{owner.first_name} {owner.last_name}",
         'phone': owner.phone_number,
         'email': owner.email,
@@ -670,6 +762,7 @@ def get_subscription_endpoint(
         'tique_x_park': subscription.tique_x_park,
         'remote_control_number': subscription.remote_control_number,
         'observations': subscription.observations,
+         'effective_date': subscription.effective_date,
         'parking_spot': subscription.parking_spot,
         'registration_date': subscription.registration_date,
         'created_by': subscription.created_by,
@@ -710,6 +803,7 @@ async def export_subscriptions(
         'observations': 'Observaciones',
         'parking_spot': 'Puesto de Estacionamiento',
         'registration_date': 'Fecha de Registro',
+        'effective_date': 'Fecha de Efecto',
         'created_by': 'Creado Por',
         'modified_by': 'Modificado Por',
         'modification_time': 'Hora de Modificación',
@@ -737,6 +831,7 @@ async def export_subscriptions(
             'observations': subscription.observations,
             'parking_spot': subscription.parking_spot,
             'registration_date': subscription.registration_date,
+            'effective_date': subscription.effective_date,
             'created_by': subscription.created_by,
             'modified_by': subscription.modified_by,
             'modification_time': subscription.modification_time,

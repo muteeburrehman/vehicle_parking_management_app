@@ -1,3 +1,4 @@
+from bdb import effective
 from datetime import datetime
 from typing import List
 
@@ -10,7 +11,6 @@ from backend.app.models.models import Subscriptions, Subscription_history, Cance
 from backend.app.schemas.subscription_cancellation import CancellationResponse, CancellationCreate
 
 router = APIRouter()
-
 
 
 @router.post("/subscriptions/cancel", response_model=CancellationResponse)
@@ -29,13 +29,16 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Subscription not found")
 
     # Validate license plates to cancel
-    plates_to_cancel = [plate for plate in [request.lisence_plate1, request.lisence_plate2, request.lisence_plate3] if plate]
+    plates_to_cancel = [plate for plate in [request.lisence_plate1, request.lisence_plate2, request.lisence_plate3] if
+                        plate]
     for plate in plates_to_cancel:
         if plate not in [subscription.lisence_plate1, subscription.lisence_plate2, subscription.lisence_plate3]:
             raise HTTPException(status_code=404, detail=f"License plate {plate} not found in subscription")
 
-    # Set modification_time to current local time if not provided
-    subscription.modification_time = datetime.now()
+    # Set modification_time to current local time
+    current_time = datetime.now()
+    subscription.modification_time = current_time
+
     if request.modified_by:
         subscription.modified_by = request.modified_by
 
@@ -59,18 +62,19 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
         subscription_id=subscription.id,
         subscription_type_id=subscription.subscription_type_id,
         access_card=subscription.access_card,
+        effective_date=request.effective_date,  # Use the validated date from request
         lisence_plate1=request.lisence_plate1,
         lisence_plate2=request.lisence_plate2,
         lisence_plate3=request.lisence_plate3,
         tique_x_park=request.tique_x_park,
         documents=','.join(documents) if documents else None,
         remote_control_number=request.remote_control_number,
-        observations=request.observations,  # Use the new observation from the request
+        observations=request.observations,
         registration_date=subscription.registration_date,
         parking_spot=subscription.parking_spot,
-        modification_time=subscription.modification_time,
+        modification_time=current_time,
         created_by=subscription.created_by,
-        modified_by=subscription.modified_by
+        modified_by=request.modified_by or subscription.modified_by
     )
 
     db.add(cancelled_subscription)
@@ -88,11 +92,12 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
         tique_x_park=subscription.tique_x_park,
         remote_control_number=subscription.remote_control_number,
         observations=subscription.observations,
+        effective_date=subscription.effective_date,
         registration_date=subscription.registration_date,
         parking_spot=subscription.parking_spot,
-        modification_time=subscription.modification_time,
+        modification_time=current_time,
         created_by=subscription.created_by,
-        modified_by=subscription.modified_by
+        modified_by=request.modified_by or subscription.modified_by
     )
 
     db.add(subscription_history_entry)
@@ -106,7 +111,11 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
     if not any([subscription.lisence_plate1, subscription.lisence_plate2, subscription.lisence_plate3]):
         db.delete(subscription)
 
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     return CancellationResponse(
         id=cancelled_subscription.id,
@@ -120,14 +129,13 @@ def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_d
         tique_x_park=cancelled_subscription.tique_x_park,
         remote_control_number=cancelled_subscription.remote_control_number,
         observations=cancelled_subscription.observations,
+        effective_date=cancelled_subscription.effective_date,
         registration_date=cancelled_subscription.registration_date,
         parking_spot=cancelled_subscription.parking_spot,
         modification_time=cancelled_subscription.modification_time,
         created_by=cancelled_subscription.created_by,
         modified_by=cancelled_subscription.modified_by
     )
-
-
 @router.get("/subscriptions/cancellations/", response_model=List[CancellationResponse])
 def get_all_cancellations(db: Session = Depends(get_db)):
     cancellations = db.query(Cancellations).all()  # Fetch all cancellation records
@@ -147,6 +155,7 @@ def get_all_cancellations(db: Session = Depends(get_db)):
             documents=cancellation.documents,
             observations=cancellation.observations,
             registration_date=cancellation.registration_date,
+            effective_date=cancellation.effective_date,
             parking_spot=cancellation.parking_spot,
             created_by=cancellation.created_by,
             modified_by=cancellation.modified_by,
@@ -179,6 +188,7 @@ def get_cancellation(cancellation_id: int, db: Session = Depends(get_db)):
         documents=documents,  # Use the processed documents list
         observations=cancellation.observations,
         registration_date=cancellation.registration_date,
+        effective_date=cancellation.effective_date,
         parking_spot=cancellation.parking_spot,
         created_by=cancellation.created_by,
         modified_by=cancellation.modified_by,

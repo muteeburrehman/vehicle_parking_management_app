@@ -16,6 +16,7 @@ class SubscriptionHistoryCreate(BaseModel):
     tique_x_park: Optional[str]
     remote_control_number: Optional[str]
     observations: Optional[str]
+    effective_date: Optional[datetime]
     parking_spot: Optional[str]
     registration_date: Optional[datetime]
     modification_time: Optional[datetime] = None
@@ -38,6 +39,7 @@ class SubscriptionHistoryResponse(BaseModel):
     tique_x_park: Optional[str]
     remote_control_number: Optional[str]
     observations: Optional[str]
+    effective_date: Optional[datetime]
     registration_date: datetime
     parking_spot: Optional[str]
     modification_time: Optional[datetime] = None

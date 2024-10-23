@@ -21,6 +21,16 @@ const formatDateTime = (dateString) => {
         hour12: false,
     }).format(date);
 };
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(date);
+};
 
 const SubscriptionHistoryDetail = () => {
     const { historyId } = useParams();
@@ -112,6 +122,10 @@ const SubscriptionHistoryDetail = () => {
                                         <td><strong>Subscription Type:</strong></td>
                                         {/* Use getSubscriptionTypeName to resolve the subscription type name */}
                                         <td>{getSubscriptionTypeName(history.subscription_type_id)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Effective Date:</strong></td>
+                                        <td>{formatDate(history.effective_date)}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>Access Card:</strong></td>

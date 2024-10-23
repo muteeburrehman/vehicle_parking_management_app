@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useSubscription } from '../hooks/useSubscription';
-import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
-import { useNavigate } from "react-router-dom";
-import { fetchVehiclesByOwnerId } from '../services/getVehicleService'; // Adjust the import
-import { getSubscriptions } from "../services/subscriptionService";
-import { checkDniExists, fetchOwnerByDNI } from "../services/getOwnerService";
+import React, {useState, useEffect, useRef} from 'react';
+import {useSubscription} from '../hooks/useSubscription';
+import {Form, Button, Container, Row, Col, Alert} from 'react-bootstrap';
+import {useNavigate} from "react-router-dom";
+import {fetchVehiclesByOwnerId} from '../services/getVehicleService'; // Adjust the import
+import {getSubscriptions} from "../services/subscriptionService";
+import {checkDniExists, fetchOwnerByDNI} from "../services/getOwnerService";
 import useAuth from "../hooks/useAuth";
 import DocumentPreviewRow from "./DocumentPreviewRow";
 import pdfIcon from "../assets/icons/pdf_icon.svg";
 
 const AddSubscription = () => {
-    const { user } = useAuth();
-    const { addSubscription, loading, subscriptionTypes } = useSubscription();
+    const {user} = useAuth();
+    const {addSubscription, loading, subscriptionTypes} = useSubscription();
     const [ownerId, setOwnerId] = useState('');
     const [subscriptionTypeId, setSubscriptionTypeId] = useState('');
     const [accessCard, setAccessCard] = useState('');
@@ -24,6 +24,8 @@ const AddSubscription = () => {
     const [parkingSpot, setParkingSpot] = useState('');
     const [documents, setDocuments] = useState([]);
     const [availablePlates, setAvailablePlates] = useState([]);
+    const [effectiveDate, setEffectiveDate] = useState(''); // New state for effective date
+
 
     const [documentPreviews, setDocumentPreviews] = useState([]);
     const [subscriptionError, setSubscriptionError] = useState(null); // For validation error
@@ -182,6 +184,7 @@ const AddSubscription = () => {
             remote_control_number: remoteControlNumber || null,
             observations: observations || null,
             parking_spot: parkingSpot || null,
+            effective_date: effectiveDate, // Add effective date to the payload
             created_by: user.email,
             modified_by: ''
         };
@@ -202,7 +205,7 @@ const AddSubscription = () => {
             setRemoteControlNumber('');
             setObservations('');
             setParkingSpot('');
-
+            setEffectiveDate('');
             // Navigate back to the subscription list
             navigate('/subscription-list');
         } catch (error) {
@@ -276,6 +279,18 @@ const AddSubscription = () => {
                                 value={ownerInfo?.bank_account_number || ''}
                                 readOnly
                                 placeholder="Bank Account"
+                            />
+                        </Form.Group>
+                    </Col>
+
+                     <Col md={3}>
+                        <Form.Group controlId="formEffectiveDate" className="mb-3">
+                            <Form.Label>Effective Date:</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={effectiveDate}
+                                onChange={(e) => setEffectiveDate(e.target.value)}
+                                required
                             />
                         </Form.Group>
                     </Col>

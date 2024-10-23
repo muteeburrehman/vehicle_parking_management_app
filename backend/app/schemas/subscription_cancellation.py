@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 from typing import Optional, List
 
@@ -17,6 +17,7 @@ class CancellationCreate(BaseModel):
     tique_x_park: Optional[str]
     remote_control_number: Optional[str]
     observations: Optional[str]
+    effective_date: Optional[date]
     parking_spot: Optional[str]
     registration_date: Optional[datetime]
     modification_time: Optional[datetime]
@@ -39,6 +40,7 @@ class CancellationResponse(BaseModel):
     tique_x_park: Optional[str]
     remote_control_number: Optional[str]
     observations: Optional[str]
+    effective_date: Optional[date]
     registration_date: datetime
     parking_spot: Optional[str]
     modification_time: Optional[datetime]

@@ -61,6 +61,17 @@ const CancellationDetail = () => {
         });
     };
 
+    const formatdate = (dateString) => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(date);
+};
+
     const handleViewDocument = (index) => {
         const document = documentPreviews[index];
         if (document) {
@@ -114,6 +125,7 @@ const CancellationDetail = () => {
                             <Card.Text><strong>DNI:</strong> {cancellation.owner_id}</Card.Text>
                             <Card.Text><strong>Subscription Type:</strong> {getSubscriptionTypeName(cancellation.subscription_type_id)}</Card.Text>
                             <Card.Text><strong>Access Card:</strong> {cancellation.access_card || 'N/A'}</Card.Text>
+                            <Card.Text><strong>Effective Date:</strong> {formatdate(cancellation.effective_date) || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 1:</strong> {cancellation.lisence_plate1 || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 2:</strong> {cancellation.lisence_plate2 || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 3:</strong> {cancellation.lisence_plate3 || 'N/A'}</Card.Text>
