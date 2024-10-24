@@ -90,8 +90,8 @@
 
     <!-- Sección de encabezado -->
     <div class="form-section">
-        <span><strong>NÚMERO DE ORDEN:</strong> <span class="small-input">{{ order_no }}</span></span>
-        <span style="float: right;"><strong>APARCAMIENTO:</strong> <span class="small-input">{{parking_spot}}</span></span>
+        <span><strong>Nº DE ORDEN:</strong> <span class="small-input">{{ order_no }}</span></span>
+        <span style="float: right;"><strong>APARC:</strong> <span class="small-input">{{parking_spot}}</span></span>
     </div>
 
     <!-- Sección de fecha -->
@@ -103,14 +103,20 @@
     <div class="form-section">
         <table>
             <tr>
-                <th>INICIO</th>
-                <th>EFECTIVA</th>
-                <th>FINAL</th>
+                <th></th>
+                <th>T. VEHICULO</th>
+                <th>EFECTO</th>
+                <th></th>
+                <th>T. VEHICULO</th>
+                <th>EFECTO</th>
             </tr>
             <tr>
+                <td><strong>ALTA:</strong></td>
                 <td><strong>{{ vehicle_type }}</strong></td>
                 <td><strong>{{ effective_date }}</strong></td>
-                <td></td>
+                <td><strong>BAJA:</strong></td>
+                <td><strong>{{ vehicle_type }}</strong></td>
+                <td><strong>{{ effective_date }}</strong></td>
             </tr>
         </table>
     </div>
@@ -123,7 +129,7 @@
 
     <!-- Sección de matrícula, tarjeta y control remoto -->
     <div class="form-section">
-        <p><strong>NÚMERO DE MATRÍCULA:</strong> <span class="small-input">{{ license_plate }}</span>
+        <p><strong>Nº MATRÍCULA:</strong> <span class="small-input">{{ license_plate }}</span>
         &nbsp;&nbsp;&nbsp;&nbsp; <strong>TARJETA:</strong> <span class="small-input">{{ card }}</span>
         &nbsp;&nbsp;&nbsp;&nbsp; <strong>MANDO:</strong> <span class="small-input">{{ remote }}</span></p>
     </div>
@@ -153,8 +159,8 @@
 
   {% if has_license_plate_changes %}
     <h3>CAMBIO DE MATRÍCULA:</h3>
-    <p><strong>MATRÍCULA(S) ANTERIOR(ES):</strong> {{ old_license_plate }}</p>
-    <p><strong>MATRÍCULA(S) NUEVA(S):</strong> {{ new_license_plate }}</p>
+    <p><strong>MATRÍCULA DE BAJA:</strong> {{ old_license_plate }}</p>
+    <p><strong>MATRÍCULA DE ALTA:</strong> {{ new_license_plate }}</p>
     {% endif %}
 
     <!-- Sección de observaciones -->

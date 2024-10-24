@@ -686,7 +686,7 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
         'order_no': f"{subscription.id}/24",
         'date': datetime.now().strftime('%m/%d/%Y') or '',
         'vehicle_type': vehicle.vehicle_type.upper(),
-        'effective_date': subscription.effective_date or '',
+        'effective_date': subscription.effective_date.strftime('%m/%d/%Y') or '',
         'name_surname': f"{owner.first_name} {owner.last_name}",
         'phone': owner.phone_number,
         'email': owner.email,
