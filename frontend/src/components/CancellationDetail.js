@@ -129,6 +129,7 @@ const CancellationDetail = () => {
                             <Card.Text><strong>License Plate 1:</strong> {cancellation.lisence_plate1 || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 2:</strong> {cancellation.lisence_plate2 || 'N/A'}</Card.Text>
                             <Card.Text><strong>License Plate 3:</strong> {cancellation.lisence_plate3 || 'N/A'}</Card.Text>
+                            <Card.Text><strong>Parking Lot:</strong> {cancellation.parking_lot}</Card.Text>
                         </Col>
                         <Col md={6}>
                             <Card.Text><strong>Tique X Park:</strong> {cancellation.tique_x_park || 'N/A'}</Card.Text>

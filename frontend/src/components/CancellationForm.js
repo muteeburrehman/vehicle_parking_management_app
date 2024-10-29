@@ -10,6 +10,7 @@ const CancellationForm = () => {
   const [formData, setFormData] = useState({
     owner_id: '',
     subscription_type_id: 0,
+    parking_lot:'',
     access_card: '',
     lisence_plate1: '',
     lisence_plate2: '',
@@ -42,6 +43,7 @@ const CancellationForm = () => {
     const dataToSend = {
       ...formData,
       subscription_type_id: parseInt(formData.subscription_type_id, 10),
+      parking_lot: formData.parking_lot,
       lisence_plate1: formData.lisence_plate1 || null,
       lisence_plate2: formData.lisence_plate2 || null,
       lisence_plate3: formData.lisence_plate3 || null,
@@ -59,6 +61,7 @@ console.log(dataToSend)
     // Reset the form fields
     setFormData({
       owner_id: '',
+      parking_lot: '',
       subscription_type_id: 0,
       access_card: '',
       lisence_plate1: '',
@@ -115,6 +118,16 @@ console.log(dataToSend)
             value={formData.access_card}
             onChange={handleChange}
             readOnly
+          />
+        </Form.Group>
+        <Form.Group controlId="parking_lot" className="mb-3">
+          <Form.Label>Parking Lot:</Form.Label>
+          <Form.Control
+          type="text"
+          name="parking_lot"
+          value={formData.parking_lot}
+          onChange={handleChange}
+          readOnly
           />
         </Form.Group>
         {['lisence_plate1', 'lisence_plate2', 'lisence_plate3'].map((plate, index) => (

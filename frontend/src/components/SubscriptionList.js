@@ -89,7 +89,8 @@ const SubscriptionList = () => {
             'POLÍGONO 1': ['POLIGONO 1', 'POLÍGONO 1'],
             'POLÍGONO 2': ['POLIGONO 2', 'POLÍGONO 2'],
             'SAN JOSÉ': ['SAN JOSE', 'SAN JOSÉ'],
-            'TERRONES': ['TERRONES']
+            'TERRONES ARRIBA': ['TERRONES ARRIBA'],
+            'TERRONES ABAJO': ['TERRONES ABAJO'],
         };
 
         const filterComponents = normalizeString(filterString)
@@ -212,7 +213,8 @@ const SubscriptionList = () => {
         'POLÍGONO 1',
         'POLÍGONO 2',
         'SAN JOSÉ',
-        'TERRONES',
+        'TERRONES ARRIBA',
+        'TERRONES ABAJO',
         '24H',
         '12H',
         'AUTORIZADO',

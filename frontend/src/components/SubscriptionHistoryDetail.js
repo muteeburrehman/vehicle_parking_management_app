@@ -144,6 +144,10 @@ const SubscriptionHistoryDetail = () => {
                                         <td>{history.lisence_plate3 || 'N/A'}</td>
                                     </tr>
                                     <tr>
+                                        <td><strong>Parking Lot:</strong></td>
+                                        <td>{history.parking_lot}</td>
+                                    </tr>
+                                    <tr>
                                         <td><strong>Tique X Park:</strong></td>
                                         <td>{history.tique_x_park}</td>
                                     </tr>

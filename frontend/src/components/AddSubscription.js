@@ -8,6 +8,7 @@ import {checkDniExists, fetchOwnerByDNI} from "../services/getOwnerService";
 import useAuth from "../hooks/useAuth";
 import DocumentPreviewRow from "./DocumentPreviewRow";
 import pdfIcon from "../assets/icons/pdf_icon.svg";
+import {parkingLotService} from "../services/parkingLotService";
 
 const AddSubscription = () => {
     const {user} = useAuth();
@@ -25,6 +26,10 @@ const AddSubscription = () => {
     const [documents, setDocuments] = useState([]);
     const [availablePlates, setAvailablePlates] = useState([]);
     const [effectiveDate, setEffectiveDate] = useState(''); // New state for effective date
+
+    const [parkingLots, setParkingLots] = useState([]);
+    const [selectedParkingLot, setSelectedParkingLot] = useState('');
+    const [filteredSubscriptionTypes, setFilteredSubscriptionTypes] = useState([]);
 
 
     const [documentPreviews, setDocumentPreviews] = useState([]);
@@ -51,6 +56,31 @@ const AddSubscription = () => {
 
         getVehicles();
     }, [ownerId]);
+
+      // Filter subscription types when parking lot changes
+    useEffect(() => {
+        if (selectedParkingLot && subscriptionTypes) {
+            const filtered = subscriptionTypes.filter(type =>
+                type.name.toLowerCase().includes(selectedParkingLot.toLowerCase())
+            );
+            setFilteredSubscriptionTypes(filtered);
+            // Clear subscription type selection when parking lot changes
+            setSubscriptionTypeId('');
+        }
+    }, [selectedParkingLot, subscriptionTypes]);
+
+    useEffect(() => {
+        const fetchParkingLots = async () => {
+            try {
+                const response = await parkingLotService.getAllParkingLots();
+                setParkingLots(response);
+            } catch (error) {
+                console.error("Error fetching parking lots:", error);
+            }
+        };
+        fetchParkingLots();
+    }, []);
+
 
     const fetchOwnerInfo = async (dni) => {
         try {
@@ -184,13 +214,16 @@ const AddSubscription = () => {
             remote_control_number: remoteControlNumber || null,
             observations: observations || null,
             parking_spot: parkingSpot || null,
+            parking_lot: selectedParkingLot, // Add selectedParkingLot here
             effective_date: effectiveDate, // Add effective date to the payload
             created_by: user.email,
             modified_by: ''
         };
 
         try {
+            console.log('data before sending', subscriptionData)
             await addSubscription(subscriptionData);
+            console.log('data after sending', subscriptionData)
 
             // Clear input fields
             setOwnerId('');
@@ -283,7 +316,7 @@ const AddSubscription = () => {
                         </Form.Group>
                     </Col>
 
-                     <Col md={3}>
+                    <Col md={3}>
                         <Form.Group controlId="formEffectiveDate" className="mb-3">
                             <Form.Label>Effective Date:</Form.Label>
                             <Form.Control
@@ -312,24 +345,48 @@ const AddSubscription = () => {
                 {ownerError && <Alert variant="danger" className="mt-2">{ownerError}</Alert>}
 
                 {/* Subscription Type Selection */}
-                <Form.Group controlId="formSubscriptionType" className="mb-3">
-                    <Form.Label>Subscription Type:</Form.Label>
-                    <Form.Control
-                        as="select"
-                        value={subscriptionTypeId}
-                        onChange={(e) => setSubscriptionTypeId(e.target.value)}
-                        required
-                    >
-                        <option value="">Select Subscription Type</option>
-                        {subscriptionTypes
-                            .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
-                            .map((type) => (
-                                <option key={type.id} value={type.id}>
-                                    {type.name} - ${type.price}
-                                </option>
-                            ))}
-                    </Form.Control>
-                </Form.Group>
+                   <Row>
+                    <Col md={6}>
+                        <Form.Group controlId="formParkingLot" className="mb-3">
+                            <Form.Label>Parking Lot:</Form.Label>
+                            <Form.Control
+                                as="select"
+                                value={selectedParkingLot}
+                                onChange={(e) => setSelectedParkingLot(e.target.value)}
+                                required
+                            >
+                                <option value="">Select Parking Lot</option>
+                                {parkingLots.map((lot) => (
+                                    <option key={lot.id} value={lot.name}>
+                                        {lot.name}
+                                    </option>
+                                ))}
+                            </Form.Control>
+                        </Form.Group>
+                    </Col>
+
+                    <Col md={6}>
+                        <Form.Group controlId="formSubscriptionType" className="mb-3">
+                            <Form.Label>Subscription Type:</Form.Label>
+                            <Form.Control
+                                as="select"
+                                value={subscriptionTypeId}
+                                onChange={(e) => setSubscriptionTypeId(e.target.value)}
+                                required
+                                disabled={!selectedParkingLot}
+                            >
+                                <option value="">Select Subscription Type</option>
+                                {filteredSubscriptionTypes
+                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                    .map((type) => (
+                                        <option key={type.id} value={type.id}>
+                                            {type.name} - ${type.price}
+                                        </option>
+                                    ))}
+                            </Form.Control>
+                        </Form.Group>
+                    </Col>
+                </Row>
 
                 {/* License Plates Selection */}
                 <Row>
