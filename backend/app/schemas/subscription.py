@@ -22,7 +22,7 @@ class Subscription_Types_Response(BaseModel):
 
     class Config:
         # from_attributes = True  # Enable the use of from_orm
-       from_attributes = True
+       orm_mode = True
 
 
 # Schemas for Subscriptions table
@@ -76,4 +76,4 @@ class SubscriptionResponse(BaseModel):
 
     class Config:
         # from_attributes = True
-        from_attributes = True
+        orm_mode = True

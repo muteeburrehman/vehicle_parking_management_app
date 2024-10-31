@@ -25,7 +25,7 @@ class ParkingLotResponse(ParkingLotCreate):
     id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class ParkingLotStats(BaseModel):
