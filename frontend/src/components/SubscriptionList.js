@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getSubscriptions, getSubscriptionTypes, exportSubscriptions } from '../services/subscriptionService';
-import { Table, Button, Spinner, Alert, Container, Form, Badge, Modal } from 'react-bootstrap';
+import React, {useEffect, useState, useMemo, useCallback} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {getSubscriptions, getSubscriptionTypes, exportSubscriptions} from '../services/subscriptionService';
+import {Table, Button, Spinner, Alert, Container, Form, Badge, Modal} from 'react-bootstrap';
 import {fetchOwnerByDNI} from "../services/getOwnerService";
 
 const SubscriptionList = () => {
@@ -16,17 +16,17 @@ const SubscriptionList = () => {
     const [exportFields, setExportFields] = useState([]);
     const navigate = useNavigate();
 
-   const fetchOwnerInfo = async (ownerId) => {
-    try {
-        const ownerData = await fetchOwnerByDNI(ownerId);
-        setOwners(prevOwners => ({
-            ...prevOwners,
-            [ownerId]: ownerData
-        }));
-    } catch (err) {
-        console.error('Failed to fetch owner info:', err.message);
-    }
-};
+    const fetchOwnerInfo = async (ownerId) => {
+        try {
+            const ownerData = await fetchOwnerByDNI(ownerId);
+            setOwners(prevOwners => ({
+                ...prevOwners,
+                [ownerId]: ownerData
+            }));
+        } catch (err) {
+            console.error('Failed to fetch owner info:', err.message);
+        }
+    };
 
     useEffect(() => {
         const fetchSubscriptionsAndTypes = async () => {
@@ -179,7 +179,6 @@ const SubscriptionList = () => {
     const headingTranslation = {
         'id': 'ID',
         'owner_id': 'ID del Propietario',
-        'subscription_type_id': 'ID del Tipo de Suscripción',
         'access_card': 'Tarjeta de Acceso',
         'lisence_plate1': 'Placa de Licencia 1',
         'lisence_plate2': 'Placa de Licencia 2',
@@ -194,7 +193,9 @@ const SubscriptionList = () => {
         'modified_by': 'Modificado Por',
         'modification_time': 'Hora de Modificación',
         'owner_email': 'Correo Electrónico del Propietario',
-        'owner_phone_number': 'Número de Teléfono del Propietario'
+        'owner_phone_number': 'Número de Teléfono del Propietario',
+        'subscription_type_name': 'Nombre del Tipo de Suscripción',
+        'subscription_type_parking_code': 'Código de Estacionamiento'
     };
 
 
@@ -262,7 +263,8 @@ const SubscriptionList = () => {
                     <span className="me-2">Active Filters:</span>
                     {activeFilters.map((filterName) => (
                         <Badge key={filterName} bg="secondary" className="me-2">
-                            {filterName} <Button variant="light" size="sm" onClick={() => handleFilter(filterName)}>×</Button>
+                            {filterName} <Button variant="light" size="sm"
+                                                 onClick={() => handleFilter(filterName)}>×</Button>
                         </Badge>
                     ))}
                     <Button variant="outline-secondary" size="sm" onClick={clearFilters}>

@@ -803,7 +803,6 @@ async def export_subscriptions(
     heading_translation = {
         'id': 'ID',
         'owner_id': 'ID del Propietario',
-        'subscription_type_id': 'ID del Tipo de Suscripción',
         'access_card': 'Tarjeta de Acceso',
         'lisence_plate1': 'Placa de Licencia 1',
         'lisence_plate2': 'Placa de Licencia 2',
@@ -819,19 +818,24 @@ async def export_subscriptions(
         'modified_by': 'Modificado Por',
         'modification_time': 'Hora de Modificación',
         'owner_email': 'Correo Electrónico del Propietario',
-        'owner_phone_number': 'Número de Teléfono del Propietario'
+        'owner_phone_number': 'Número de Teléfono del Propietario',
+        'subscription_type_name': 'Nombre del Tipo de Suscripción',
+        'subscription_type_parking_code': 'Código de Estacionamiento'
     }
 
     for subscription in subscriptions:
+        # Fetch subscription type information
+        subscription_type = db.query(Subscription_types).filter(
+            Subscription_types.id == subscription.subscription_type_id).first()
+
         # Get the owner's info using the owner_id from the subscription
-        owner = get_owner_by_dni(db, subscription.owner_id)  # Adjust according to your function to fetch owner info
+        owner = get_owner_by_dni(db, subscription.owner_id)
         owner_email = owner.email if owner else None
         owner_phone_number = owner.phone_number if owner else None
 
         subscription_data = {
             'id': subscription.id,
             'owner_id': subscription.owner_id,
-            'subscription_type_id': subscription.subscription_type_id,
             'access_card': subscription.access_card,
             'lisence_plate1': subscription.lisence_plate1,
             'lisence_plate2': subscription.lisence_plate2,
@@ -847,7 +851,9 @@ async def export_subscriptions(
             'modified_by': subscription.modified_by,
             'modification_time': subscription.modification_time,
             'owner_email': owner_email,
-            'owner_phone_number': owner_phone_number
+            'owner_phone_number': owner_phone_number,
+            'subscription_type_name': subscription_type.name if subscription_type else None,
+            'subscription_type_parking_code': subscription_type.parking_code if subscription_type else None,
         }
 
         filtered_data = {k: v for k, v in subscription_data.items() if k in field_list}
