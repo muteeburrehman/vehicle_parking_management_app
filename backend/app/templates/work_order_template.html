@@ -7,166 +7,166 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 20px;
+            margin: 10px;
+            font-size: 14px;
         }
 
         h1 {
             text-align: center;
-            font-size: 18px;
+            font-size: 20px;
             margin-bottom: 10px;
-            padding: 10px 0;
-            background-color: #f2f2f2;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table th, table td {
             border: 1px solid black;
             padding: 8px;
-            text-align: left;
+            background-color: #f0f0f0;
         }
 
-        .header {
-            background-color: #f2f2f2;
+        .section {
+            border: 1px solid black;
             padding: 10px;
+            margin-bottom: 10px;
         }
 
-        .section-title {
-            background-color: #f2f2f2;
-            padding: 5px;
-            text-align: left;
+        .field-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .field {
+            width: 48%;
             font-weight: bold;
         }
 
+        .input {
+            font-weight: normal; /* Make dynamic data normal */
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Adds space between the checkboxes and text */
+        }
+
         .checkbox {
-            display: inline-block;
             width: 12px;
             height: 12px;
             border: 1px solid black;
-            margin-right: 5px;
-            vertical-align: middle;
+            margin-right: 5px; /* Optional: additional margin if needed */
         }
+
 
         .checked {
             background-color: black;
         }
 
-        .small-input {
-            background-color: #d9e8f5;
-            display: inline-block;
-            padding: 5px 10px;
-            margin-right: 10px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
         }
 
-        .form-section {
-            margin-bottom: 10px;
-        }
-
-        .signature {
+        table th, table td {
+            border: 1px solid black;
+            padding: 6px;
             text-align: center;
-            margin-top: 40px;
         }
 
-        .footer {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #f2f2f2;
-        }
-
-        .footer p {
-            text-align: center;
+        .observations {
+            height: 60px;
+            border: 1px solid black;
+            padding: 4px;
             font-size: 12px;
         }
 
+        .signature {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid black;
+            width: 50%;
+            margin: 0 auto;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
-    <h1>ÓRDENES DE TRABAJO</h1>
+<h1>ÓRDENES DE TRABAJO</h1>
 
-    <!-- Sección de encabezado -->
-    <div class="form-section">
-        <span><strong>Nº DE ORDEN:</strong> <span class="small-input">{{ order_no }}</span></span>
-        <span style="float: right;"><strong>APARC:</strong> <span class="small-input">{{parking_spot}}</span></span>
+<div class="section">
+    <div class="field-group">
+        <div class="field">Nº DE ORDEN: <span class="input">{{ order_no }}</span></div>
+        <div class="field">APARC: <span class="input">{{ parking_spot }}</span></div>
     </div>
-
-    <!-- Sección de fecha -->
-    <div class="form-section">
-        <strong>FECHA:</strong> <span class="small-input">{{ date }}</span>
+    <div class="field-group">
+        <div class="field">FECHA: <span class="input">{{ date }}</span></div>
     </div>
+</div>
 
-    <!-- Sección de detalles del vehículo -->
-    <div class="form-section">
-        <table>
-            <tr>
-                <th></th>
-                <th>T. VEHICULO</th>
-                <th>EFECTO</th>
-            </tr>
-            <tr>
-                <td><strong>ALTA:</strong></td>
-                <td><strong>{{ vehicle_type }}</strong></td>
-                <td><strong>{{ effective_date }}</strong></td>
-            </tr>
-        </table>
+<div class="section">
+    <table>
+        <tr>
+            <th></th>
+            <th>T. VEHÍCULO</th>
+            <th>TIPO DE ABONO</th>
+            <th>EFECTO</th>
+        </tr>
+        <tr>
+            <th>ALTA:</th>
+            <td>{{ vehicle_type }}</td>
+            <td>{{subscription_type_name}}</td>
+            <td>{{ effective_date }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <div style="margin-bottom: 5px"><strong>NOMBRE Y APELLIDOS:</strong> <span class="input">{{ name_surname }}</span>
     </div>
-
-    <!-- Sección de nombre e información de contacto -->
-    <div class="form-section">
-        <p><strong>NOMBRE Y APELLIDO:</strong> {{ name_surname }}</p>
-        <p><strong>TELÉFONO:</strong> {{ phone }} &nbsp;&nbsp;&nbsp;&nbsp; <strong>E-MAIL:</strong> {{ email }}</p>
+    <div class="field-group">
+        <div class="field"><strong>TELÉFONO:</strong> <span class="input">{{ phone }}</span></div>
+        <div class="field"><strong>E-MAIL:</strong> <span class="input">{{ email }}</span></div>
     </div>
+</div>
 
-    <!-- Sección de matrícula, tarjeta y control remoto -->
-    <div class="form-section">
-        <p><strong>Nº MATRÍCULA:</strong> <span class="small-input">{{ license_plate }}</span>
-        &nbsp;&nbsp;&nbsp;&nbsp; <strong>TARJETA:</strong> <span class="small-input">{{ card }}</span>
-        &nbsp;&nbsp;&nbsp;&nbsp; <strong>MANDO:</strong> <span class="small-input">{{ remote }}</span></p>
-    </div>
-
-    <!-- Sección de pooling -->
-     <div class="form-section">
-        <strong>POOLING:</strong>
-        <span class="checkbox {% if license_plate2 or license_plate3 %}checked{% endif %}"></span> SÍ
+<div class="section">
+    <div style="margin-bottom: 5px"><strong>POOLING:</strong></div>
+    <div class="checkbox-group">
+        <span class="checkbox {% if license_plate2 or license_plate3 %}checked{% endif %}"></span> <span style="margin-right: 5px">SÍ</span>
         <span class="checkbox {% if not license_plate2 and not license_plate3 %}checked{% endif %}"></span> NO
     </div>
+</div>
 
-    <!-- Sección de cambio de matrícula -->
-   <div class="form-section">
-        <table>
-            <tr>
-                <th>MATRÍCULA 1</th>
-                <th>MATRÍCULA 2</th>
-<!--                <th>MATRÍCULA 3</th>-->
-            </tr>
-            <tr>
-                <td>{{ license_plate1 }}</td>
-                <td>{{ license_plate2 }}</td>
-<!--                <td>{{ license_plate3 }}</td>-->
-            </tr>
-        </table>
+
+<div class="section">
+    <table>
+        <tr>
+            <th>MATRÍCULA 1</th>
+            <th>MATRÍCULA 2</th>
+        </tr>
+        <tr>
+            <td>{{ license_plate1 }}</td>
+            <td>{{ license_plate2 }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <div class="field-group">
+        <div class="field"><strong>TARJETA:</strong> <span class="input">{{ card }}</span></div>
+        <div class="field"><strong>MANDO:</strong> <span class="input">{{ remote }}</span></div>
     </div>
+</div>
 
-  {% if has_license_plate_changes %}
-    <h3>CAMBIO DE MATRÍCULA:</h3>
-    <p><strong>MATRÍCULA DE BAJA:</strong> {{ old_license_plate }}</p>
-    <p><strong>MATRÍCULA DE ALTA:</strong> {{ new_license_plate }}</p>
-    {% endif %}
+<div class="section">
+    <div style="margin-bottom: 10px"><strong>OBSERVACIONES:</strong></div>
+    <div class="observations">{{ observations }}</div>
+</div>
 
-    <!-- Sección de observaciones -->
-    <div class="form-section">
-        <p><strong>OBSERVACIONES:</strong> {{ observations }}</p>
-    </div>
-
-    <!-- Sección de autorización y firma -->
-    <div class="signature">
-        <p><strong>AUTORIZADO</strong></p>
-        <p>_______________________________</p>
-        <p>_______________________________</p>
-    </div>
+<div class="signature">
+    <div><strong>AUTORIZADO</strong></div>
+    <div class="signature-line"></div>
+</div>
 </body>
 </html>

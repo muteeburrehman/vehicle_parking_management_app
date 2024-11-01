@@ -174,6 +174,7 @@ async def get_subscription_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)
 
+
 def convert_str_to_datetime(date_str: Optional[str]) -> Optional[datetime]:
     """Convert string date to datetime object."""
     if not date_str:
@@ -186,6 +187,8 @@ def convert_str_to_datetime(date_str: Optional[str]) -> Optional[datetime]:
             status_code=400,
             detail=f"Invalid date format for effective_date. Expected YYYY-MM-DD, got: {date_str}"
         )
+
+
 @router.post("/subscription/", response_model=SubscriptionResponse)
 async def create_subscription_endpoint(
         owner_id: str = Form(...),
@@ -220,7 +223,8 @@ async def create_subscription_endpoint(
         # 2. Check if subscription_type_id exists
         subscription_type = db.query(Subscription_types).filter(Subscription_types.id == subscription_type_id).first()
         if not subscription_type:
-            raise HTTPException(status_code=400, detail=f"Subscription type with ID {subscription_type_id} does not exist.")
+            raise HTTPException(status_code=400,
+                                detail=f"Subscription type with ID {subscription_type_id} does not exist.")
 
         # 3. Validate license plates
         def validate_license_plate(plate, plate_name):
@@ -230,7 +234,8 @@ async def create_subscription_endpoint(
                     Vehicles.owner_id == owner_id
                 ).first()
                 if not vehicle:
-                    raise HTTPException(status_code=400, detail=f"Vehicle with license plate {plate} does not belong to owner {owner_id}.")
+                    raise HTTPException(status_code=400,
+                                        detail=f"Vehicle with license plate {plate} does not belong to owner {owner_id}.")
 
         validate_license_plate(lisence_plate1, 'lisence_plate1')
         validate_license_plate(lisence_plate2, 'lisence_plate2')
@@ -327,7 +332,7 @@ async def create_subscription_endpoint(
             tique_x_park=new_subscription.tique_x_park,
             remote_control_number=new_subscription.remote_control_number,
             observations=new_subscription.observations,
-            effective_date= new_subscription.effective_date,
+            effective_date=new_subscription.effective_date,
             parking_spot=new_subscription.parking_spot,
             registration_date=new_subscription.registration_date,
             created_by=new_subscription.created_by,
@@ -348,7 +353,7 @@ async def create_subscription_endpoint(
             tique_x_park=new_subscription.tique_x_park,
             remote_control_number=new_subscription.remote_control_number,
             observations=new_subscription.observations,
-            effective_date= new_subscription.effective_date,
+            effective_date=new_subscription.effective_date,
             parking_spot=new_subscription.parking_spot,
             registration_date=new_subscription.registration_date,
             created_by=created_by,
@@ -363,7 +368,6 @@ async def create_subscription_endpoint(
         print(f"Error in create_subscription_endpoint: {str(e)}")
         # Raise a generic HTTP exception
         raise HTTPException(status_code=500, detail="An unexpected error occurred while processing the subscription.")
-
 
 
 def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: int):
@@ -396,6 +400,7 @@ def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: in
         db.rollback()
         print(f"Error in update_parking_lot_spaces: {str(e)}")
         raise HTTPException(status_code=500, detail=f"An error occurred while updating parking lot spaces: {str(e)}")
+
 
 # Set up Jinja2 environment
 # template_dir = r'C:\Users\Doom\Desktop\APP APARCAMIENTOS\car_parking_system\backend\app\templates'
@@ -654,7 +659,6 @@ async def edit_subscription_endpoint(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-
 async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_license_plates: dict):
     # Fetch owner information
     owner = get_owner_by_dni(db=db, owner_dni=subscription.owner_id)
@@ -665,6 +669,12 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
     vehicle = get_vehicle(db=db, lisence_plate=subscription.lisence_plate1)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
+
+        # Fetch subscription type information
+    subscription_type = db.query(Subscription_types).filter(
+        Subscription_types.id == subscription.subscription_type_id).first()
+    if not subscription_type:
+        raise HTTPException(status_code=404, detail="Subscription type not found")
 
     # Initialize license plate change information
     old_license_plate = []
@@ -698,9 +708,10 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
         'license_plate2': subscription.lisence_plate2 or '',
         'license_plate3': subscription.lisence_plate3 or '',
         'observations': subscription.observations or '',
-        'old_license_plate': ', '.join(old_license_plate) if old_license_plate else 'N/A',
-        'new_license_plate': ', '.join(new_license_plate) if new_license_plate else 'N/A',
+        'old_license_plate': ', '.join(old_license_plate) if old_license_plate else '',
+        'new_license_plate': ', '.join(new_license_plate) if new_license_plate else '',
         'has_license_plate_changes': bool(new_license_plate),
+        'subscription_type_name': subscription_type.name or '',
     }
     # Render HTML template
     template = env.get_template('work_order_template.html')
@@ -762,7 +773,7 @@ def get_subscription_endpoint(
         'tique_x_park': subscription.tique_x_park,
         'remote_control_number': subscription.remote_control_number,
         'observations': subscription.observations,
-         'effective_date': subscription.effective_date,
+        'effective_date': subscription.effective_date,
         'parking_spot': subscription.parking_spot,
         'registration_date': subscription.registration_date,
         'created_by': subscription.created_by,

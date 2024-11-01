@@ -29,7 +29,7 @@
   padding: 24px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
-  min-height: 550px;
+  min-height: auto; /* Remove fixed height */
   display: flex;
   flex-direction: column;
 }
@@ -76,35 +76,42 @@
 .chart-container {
   margin: 20px auto;
   max-width: 400px;
-  height: 550px; /* Increased height for more label space */
   width: 100%;
   position: relative;
-  padding: 60px 20px;
+  padding: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .custom-legend-container {
-  max-height: 150px;
-  overflow-y: auto;
   margin-top: 20px;
-  text-align: center;
+  width: 100%;
+  overflow: visible;
 }
 
 .custom-legend {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 0;
+  margin: 0;
   list-style: none;
+  width: 100%;
 }
 
 .custom-legend li {
   display: flex;
   align-items: center;
   font-size: 0.9rem;
-  margin-bottom: 5px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.custom-legend li:hover {
+  background-color: #f7fafc;
 }
 
 .no-data {
@@ -119,29 +126,9 @@
 
 .breakdown {
   margin-top: 24px;
-  overflow-y: auto;
-  max-height: 220px;
-  padding-right: 8px;
+  padding-right: 0;
   border-top: 1px solid #edf2f7;
-}
-
-/* Enhanced scrollbar styling */
-.breakdown::-webkit-scrollbar {
-  width: 6px;
-}
-
-.breakdown::-webkit-scrollbar-track {
-  background: #f7fafc;
-  border-radius: 3px;
-}
-
-.breakdown::-webkit-scrollbar-thumb {
-  background: #a0aec0;
-  border-radius: 3px;
-}
-
-.breakdown::-webkit-scrollbar-thumb:hover {
-  background: #718096;
+  overflow: visible;
 }
 
 .breakdown-row {
@@ -150,13 +137,6 @@
   align-items: center;
   padding: 12px 8px;
   border-bottom: 1px solid #edf2f7;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s;
-}
-
-.breakdown-row:hover {
-  background-color: #e2e8f0;
-  transform: translateX(4px);
 }
 
 .breakdown-info {
@@ -165,16 +145,13 @@
   align-items: center;
   margin-right: 16px;
   min-width: 0;
+  flex: 1;
 }
 
 .name {
-  flex: 1;
   color: #2c5282;
   font-weight: 600;
   margin-right: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-size: 1em;
 }
 
@@ -182,12 +159,14 @@
   color: #4a5568;
   font-size: 0.95em;
   margin-left: auto;
+  white-space: nowrap;
 }
 
 .billing {
   font-weight: 600;
   color: #2c5282;
   font-size: 0.95em;
+  white-space: nowrap;
 }
 
 .error {
@@ -214,27 +193,23 @@
     grid-template-columns: 1fr;
   }
 
-  .stats-card {
-    min-height: 450px;
-  }
-
   .chart-container {
     max-width: 100%;
-    padding-bottom: 60px;
+    padding-bottom: 20px;
   }
 
   .breakdown-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
 
   .name {
-    max-width: 200px;
+    flex: 1;
   }
 
   .stats {
-    margin-left: 0;
+    margin-left: 8px;
   }
 }
 
@@ -252,5 +227,5 @@
 }
 
 .hidden {
-  display: none; /* Hide the legend item */
+  display: none;
 }
