@@ -127,6 +127,7 @@ class Subscriptions(Base):
     documents = Column(String, nullable=True)
     observations = Column(String, nullable=True)
     effective_date = Column(DateTime, default=datetime.now(), nullable=True)
+    effective_cancellation_date=Column(DateTime, nullable=True)
     registration_date = Column(DateTime, default=datetime.now(), nullable=False)
     parking_spot = Column(String, nullable=True)
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
@@ -152,6 +153,7 @@ class Subscription_history(Base):
     remote_control_number = Column(String, ForeignKey("subscriptions.remote_control_number"), nullable=True)
     observations = Column(String, nullable=True)
     effective_date = Column(DateTime, default=datetime.now(), nullable=True)
+    effective_cancellation_date = Column(DateTime, nullable=True)
     registration_date = Column(DateTime, default=datetime.now, nullable=False)
     parking_spot = Column(String, nullable=True)
     modification_time = Column(DateTime, default=datetime.now, nullable=False)
@@ -176,10 +178,36 @@ class Cancellations(Base):
     observations = Column(String, nullable=True)
     registration_date = Column(DateTime, nullable=False)
     effective_date = Column(DateTime, nullable=True)
+    effective_cancellation_date = Column(DateTime, nullable=False)  # Added this field
     parking_spot = Column(String, nullable=True)
     modification_time = Column(DateTime, default=datetime.now(), nullable=True)
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
+
+
+class ApprovedCancellations(Base):
+    __tablename__ = "approved_cancellations"
+    id = Column(Integer, primary_key=True, index=True)
+    cancellation_id = Column(Integer, ForeignKey("cancellations.id"), nullable=False)
+    owner_id = Column(String, ForeignKey("owners.dni"), nullable=False)
+    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=False)
+    subscription_type_id = Column(Integer, ForeignKey("subscription_types.id"), nullable=False)
+    access_card = Column(String, nullable=True)
+    lisence_plate1 = Column(String, ForeignKey("vehicles.lisence_plate"), nullable=True)
+    lisence_plate2 = Column(String, ForeignKey("vehicles.lisence_plate"), nullable=True)
+    lisence_plate3 = Column(String, ForeignKey("vehicles.lisence_plate"), nullable=True)
+    tique_x_park = Column(String, nullable=True)
+    documents = Column(String, nullable=True)
+    remote_control_number = Column(String, nullable=True)
+    observations = Column(String, nullable=True)
+    registration_date = Column(DateTime, nullable=False)
+    effective_date = Column(DateTime, nullable=True)
+    parking_spot = Column(String, nullable=True)
+    effective_cancellation_date = Column(DateTime, nullable=False)  # Required for approved cancellations
+    created_by = Column(String, ForeignKey("users.email"), nullable=False)
+    modified_by = Column(String, ForeignKey("users.email"), nullable=True)
+    approved_by = Column(String, ForeignKey("users.email"), nullable=False)
+
 
 class ParkingLot(Base):
     __tablename__ = "parking_lot_config"

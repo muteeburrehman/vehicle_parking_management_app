@@ -18,6 +18,7 @@ class CancellationCreate(BaseModel):
     remote_control_number: Optional[str]
     observations: Optional[str]
     effective_date: Optional[date]
+    effective_cancellation_date: Optional[date]
     parking_spot: Optional[str]
     registration_date: Optional[datetime]
     modification_time: Optional[datetime]
@@ -41,6 +42,7 @@ class CancellationResponse(BaseModel):
     remote_control_number: Optional[str]
     observations: Optional[str]
     effective_date: Optional[date]
+    effective_cancellation_date: Optional[date]
     registration_date: datetime
     parking_spot: Optional[str]
     modification_time: Optional[datetime]

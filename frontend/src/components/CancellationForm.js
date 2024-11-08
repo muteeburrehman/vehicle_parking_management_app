@@ -1,16 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Alert, Container } from 'react-bootstrap';
+import { Form, Button, Alert, Container, Modal } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cancelSubscription } from '../services/cancellationService';
 import useAuth from "../hooks/useAuth";
+
+const ApprovalModal = ({ showApproveModal, setShowApproveModal, cancellationDate, setCancellationDate, handleApprove, approvalLoading }) => {
+  return (
+    <Modal show={showApproveModal} onHide={() => setShowApproveModal(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>Approve Cancellation</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group>
+            <Form.Label>Cancellation Date</Form.Label>
+            <Form.Control
+              type="date"
+              value={cancellationDate}
+              onChange={(e) => setCancellationDate(e.target.value)}
+              required
+            />
+          </Form.Group>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowApproveModal(false)}>
+          Close
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleApprove}
+          disabled={approvalLoading}
+        >
+          {approvalLoading ? 'Approving...' : 'Approve'}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
 const CancellationForm = () => {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     owner_id: '',
     subscription_type_id: 0,
-    parking_lot:'',
+    parking_lot: '',
     access_card: '',
     lisence_plate1: '',
     lisence_plate2: '',
@@ -21,6 +57,9 @@ const CancellationForm = () => {
 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [cancellationDate, setCancellationDate] = useState();
+  const [approvalLoading, setApprovalLoading] = useState(false);
 
   useEffect(() => {
     // If there's pre-filled data from the edit form, use it
@@ -37,50 +76,69 @@ const CancellationForm = () => {
     }));
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const dataToSend = {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const dataToSend = {
+        ...formData,
+        subscription_type_id: parseInt(formData.subscription_type_id, 10),
+        parking_lot: formData.parking_lot,
+        lisence_plate1: formData.lisence_plate1 || null,
+        lisence_plate2: formData.lisence_plate2 || null,
+        lisence_plate3: formData.lisence_plate3 || null,
+        modified_by: user.email,
+        observations: formData.observations,
+      };
+      console.log(dataToSend);
+
+      // Show the approval modal
+      setShowApproveModal(true);
+    } catch (err) {
+      setError(err.detail || 'An error occurred while cancelling the subscription.');
+      setSuccess(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    try {
+      setApprovalLoading(true);
+      const dataToSend = {
       ...formData,
-      subscription_type_id: parseInt(formData.subscription_type_id, 10),
-      parking_lot: formData.parking_lot,
-      lisence_plate1: formData.lisence_plate1 || null,
-      lisence_plate2: formData.lisence_plate2 || null,
-      lisence_plate3: formData.lisence_plate3 || null,
-      modified_by: user.email,
-      observations: formData.observations
+      cancellation_date: cancellationDate,
+      effective_cancellation_date: cancellationDate,
     };
-console.log(dataToSend)
-    // Call the cancelSubscription service
-    await cancelSubscription(dataToSend);
+      console.log('Sending data to backend:', dataToSend);
+      await cancelSubscription(dataToSend);
 
-    // Set success and reset error
-    setSuccess(true);
-    setError(null);
+      // Set success and reset error
+      setSuccess(true);
+      setError(null);
 
-    // Reset the form fields
-    setFormData({
-      owner_id: '',
-      parking_lot: '',
-      subscription_type_id: 0,
-      access_card: '',
-      lisence_plate1: '',
-      lisence_plate2: '',
-      lisence_plate3: '',
-      observations: '',
-      parking_spot: '',
-    });
+      // Reset the form fields
+      setFormData({
+        owner_id: '',
+        parking_lot: '',
+        subscription_type_id: 0,
+        access_card: '',
+        lisence_plate1: '',
+        lisence_plate2: '',
+        lisence_plate3: '',
+        observations: '',
+        parking_spot: '',
+      });
 
-    // Redirect to subscription list after a brief delay
-    setTimeout(() => {
-      navigate('/subscription-list');
-    }, 2000);
-
-  } catch (err) {
-    setError(err.detail || "An error occurred while cancelling the subscription.");
-    setSuccess(false);
-  }
-};
+      // Redirect to subscription list after a brief delay
+      setTimeout(() => {
+        navigate('/subscription-list');
+      }, 2000);
+    } catch (err) {
+      setError(err.detail || 'An error occurred while approving the cancellation.');
+      setSuccess(false);
+    } finally {
+      setApprovalLoading(false);
+      setShowApproveModal(false);
+    }
+  };
 
   return (
     <Container className="mt-4">
@@ -165,6 +223,14 @@ console.log(dataToSend)
           Confirm Cancellation
         </Button>
       </Form>
+       <ApprovalModal
+        showApproveModal={showApproveModal}
+        setShowApproveModal={setShowApproveModal}
+        cancellationDate={cancellationDate}
+        setCancellationDate={setCancellationDate}
+        handleApprove={handleApprove}
+        approvalLoading={approvalLoading}
+      />
     </Container>
   );
 };
