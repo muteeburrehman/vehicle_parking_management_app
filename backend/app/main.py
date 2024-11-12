@@ -22,6 +22,8 @@ app.mount("/vehicle_uploads", StaticFiles(directory="vehicle_uploads"), name="ve
 
 app.mount("/subscription_files", StaticFiles(directory="subscription_files"), name="subscription_files")
 
+app.mount("/cancelled_subscription_files", StaticFiles(directory="cancelled_subscription_files"), name="cancelled_subscription_files")
+
 # Add CORS middleware to allow all origins, methods, and headers
 app.add_middleware(
     CORSMiddleware,

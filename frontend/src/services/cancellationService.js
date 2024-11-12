@@ -38,3 +38,23 @@ export const getAllCancellations = async () => {
     throw new Error(error.response.data || 'Failed to fetch cancellations.');
   }
 };
+
+
+
+export const uploadDocument = async (file, cancellationId) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('cancellationId', cancellationId); // Assuming your backend requires an ID
+
+    try {
+        const response = await axios.post('http://localhost:8000/cancelled_subscription_files/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error uploading document:', error);
+        throw error;
+    }
+};

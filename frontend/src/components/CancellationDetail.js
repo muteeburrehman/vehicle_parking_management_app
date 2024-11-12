@@ -23,29 +23,37 @@ const CancellationDetail = () => {
 
 
     useEffect(() => {
-        const fetchCancellation = async () => {
-            try {
-                const data = await getCancellationById(id);
-                setCancellation(data);
-                const subscriptionTypesData = await getSubscriptionTypes();
-                setSubscriptionTypes(subscriptionTypesData);
+    const fetchCancellation = async () => {
+        try {
+            const data = await getCancellationById(id);
+            setCancellation(data);
 
-                if (data.documents && data.documents.length > 0) {
-                    const previews = data.documents.map(doc => ({
+            const subscriptionTypesData = await getSubscriptionTypes();
+            setSubscriptionTypes(subscriptionTypesData);
+
+            if (data.documents && data.documents.length > 0) {
+                const previews = data.documents.map(doc => {
+                    // Determine which path to use based on a condition (you can adjust as needed)
+                    const basePath = doc.includes('cancelled') ?
+                        '/cancelled_subscription_files/' : '/subscription_files/';
+
+                    return {
                         name: doc.split('/').pop(),
-                        src: `http://localhost:8000/subscription_files/${encodeURIComponent(doc)}`,
+                        src: `http://localhost:8000${basePath}${encodeURIComponent(doc)}`,
                         isExisting: true,
-                    }));
-                    setDocumentPreviews(previews);
-                }
-            } catch (error) {
-                setError(`Error fetching cancellation details: ${error}`);
-            } finally {
-                setLoading(false);
+                    };
+                });
+                setDocumentPreviews(previews);
             }
-        };
-        fetchCancellation();
-    }, [id]);
+        } catch (error) {
+            setError(`Error fetching cancellation details: ${error}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchCancellation();
+}, [id]);
+
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
