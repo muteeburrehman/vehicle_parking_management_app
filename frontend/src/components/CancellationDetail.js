@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Container, Card, Form, Button, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getCancellationById, updateCancellation, uploadDocument } from '../services/cancellationService';
@@ -9,8 +9,8 @@ import pdfIcon from "../assets/icons/pdf_icon.svg";
 const CancellationDetailEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [cancellation, setCancellation] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [cancellation, setCancellation] = useState(null);
     const [error, setError] = useState('');
     const [subscriptionTypes, setSubscriptionTypes] = useState([]);
     const [documentPreviews, setDocumentPreviews] = useState([]);
@@ -18,7 +18,33 @@ const CancellationDetailEdit = () => {
     const [uploadLoading, setUploadLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
-     useEffect(() => {
+    const checkUrlExists = async (url) => {
+        try {
+            const response = await fetch(url, { method: 'HEAD' });
+            return response.ok;
+        } catch {
+            return false;
+        }
+    };
+
+    const getDocumentUrl = useCallback(async (docName) => {
+        const cancelledPath = `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(docName.trim())}`;
+        const regularPath = `http://localhost:8000/subscription_files/${encodeURIComponent(docName.trim())}`;
+
+        const isCancelledPathValid = await checkUrlExists(cancelledPath);
+        if (isCancelledPathValid) {
+            return cancelledPath;
+        }
+
+        const isRegularPathValid = await checkUrlExists(regularPath);
+        if (isRegularPathValid) {
+            return regularPath;
+        }
+
+        return cancelledPath;
+    }, []);
+
+    useEffect(() => {
         const fetchCancellationData = async () => {
             try {
                 const data = await getCancellationById(id);
@@ -27,28 +53,30 @@ const CancellationDetailEdit = () => {
                 const subscriptionTypesData = await getSubscriptionTypes();
                 setSubscriptionTypes(subscriptionTypesData);
 
-                // Handle documents as an array
                 if (data.documents) {
                     const documentsList = Array.isArray(data.documents)
                         ? data.documents
                         : JSON.parse(data.documents.startsWith('[') ? data.documents : `[${data.documents}]`);
 
-                    const previews = documentsList.map(doc => ({
-                        name: doc.trim(),
-                        src: `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(doc.trim())}`,
-                        isExisting: true,
+                    const previews = await Promise.all(documentsList.map(async (doc) => {
+                        const documentUrl = await getDocumentUrl(doc);
+                        return {
+                            name: doc.trim(),
+                            src: documentUrl,
+                            isExisting: true,
+                        };
                     }));
                     setDocumentPreviews(previews);
                 }
             } catch (error) {
-                setError(`Error fetching cancellation details: ${error}`);
+                setError(`Error fetching cancellation details: ${error.message}`);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchCancellationData();
-    }, [id]);
+    }, [id, getDocumentUrl]);
 
     const getSubscriptionTypeName = (typeId) => {
         const subType = subscriptionTypes.find(type => type.id === typeId);
@@ -69,7 +97,7 @@ const CancellationDetailEdit = () => {
         });
     };
 
-   const handleDocumentChange = (event) => {
+    const handleDocumentChange = (event) => {
         const file = event.target.files[0];
         if (file) {
             const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -88,7 +116,7 @@ const CancellationDetailEdit = () => {
         }
     };
 
-     const handleDocumentUpload = async () => {
+    const handleDocumentUpload = async () => {
         if (!newDocument) return;
 
         setUploadLoading(true);
@@ -96,10 +124,11 @@ const CancellationDetailEdit = () => {
         try {
             const response = await uploadDocument(newDocument);
             const uploadedFileName = response.filename;
+            const documentUrl = await getDocumentUrl(uploadedFileName);
 
             setDocumentPreviews(prev => [...prev, {
                 name: uploadedFileName,
-                src: `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(uploadedFileName)}`,
+                src: documentUrl,
                 isExisting: true,
             }]);
             setNewDocument(null);
@@ -124,19 +153,18 @@ const CancellationDetailEdit = () => {
         setSuccessMessage('Document removed successfully');
     };
 
-   const handleSubmit = async () => {
+    const handleSubmit = async () => {
         try {
             setError('');
             setSuccessMessage('');
 
-            // Convert document previews to an array of document names
             const documentNames = documentPreviews
                 .filter(doc => doc.isExisting)
                 .map(doc => doc.name);
 
             const updatedCancellation = {
                 ...cancellation,
-                documents: documentNames, // Send as array, not comma-separated string
+                documents: documentNames,
             };
 
             await updateCancellation(cancellation.id, updatedCancellation);
@@ -145,7 +173,7 @@ const CancellationDetailEdit = () => {
                 navigate('/subscriptions/cancellations/');
             }, 1500);
         } catch (error) {
-            setError(`Error updating cancellation details: ${error}`);
+            setError(`Error updating cancellation details: ${error.message}`);
         }
     };
 
@@ -282,11 +310,7 @@ const CancellationDetailEdit = () => {
                         </Row>
 
                         <div className="mt-4">
-                            <Button
-                                variant="success"
-                                onClick={handleSubmit}
-                                className="me-2"
-                            >
+                            <Button variant="success" onClick={handleSubmit} className="me-2">
                                 Save Changes
                             </Button>
                             <Link to="/subscriptions/cancellations/">
