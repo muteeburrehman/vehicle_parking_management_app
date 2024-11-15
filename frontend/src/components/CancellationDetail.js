@@ -1,59 +1,59 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Container, Card, Spinner, Alert, Button, Row, Col } from 'react-bootstrap';
-import { getCancellationById } from '../services/cancellationService';
+import { Container, Card, Form, Button, Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getCancellationById, updateCancellation, uploadDocument } from '../services/cancellationService';
 import { getSubscriptionTypes } from '../services/subscriptionService';
 import DocumentPreviewRow from './DocumentPreviewRow';
 import pdfIcon from "../assets/icons/pdf_icon.svg";
 
-const CancellationDetail = () => {
+const CancellationDetailEdit = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [cancellation, setCancellation] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-     const [subscriptionTypes, setSubscriptionTypes] = useState([]); // State for subscription types
+    const [subscriptionTypes, setSubscriptionTypes] = useState([]);
     const [documentPreviews, setDocumentPreviews] = useState([]);
+    const [newDocument, setNewDocument] = useState(null);
+    const [uploadLoading, setUploadLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
+     useEffect(() => {
+        const fetchCancellationData = async () => {
+            try {
+                const data = await getCancellationById(id);
+                setCancellation(data);
 
-    // Function to get the name of the subscription type by ID
+                const subscriptionTypesData = await getSubscriptionTypes();
+                setSubscriptionTypes(subscriptionTypesData);
+
+                // Handle documents as an array
+                if (data.documents) {
+                    const documentsList = Array.isArray(data.documents)
+                        ? data.documents
+                        : JSON.parse(data.documents.startsWith('[') ? data.documents : `[${data.documents}]`);
+
+                    const previews = documentsList.map(doc => ({
+                        name: doc.trim(),
+                        src: `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(doc.trim())}`,
+                        isExisting: true,
+                    }));
+                    setDocumentPreviews(previews);
+                }
+            } catch (error) {
+                setError(`Error fetching cancellation details: ${error}`);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCancellationData();
+    }, [id]);
+
     const getSubscriptionTypeName = (typeId) => {
         const subType = subscriptionTypes.find(type => type.id === typeId);
-        return subType ? subType.name : 'Unknown'; // Return subscription type name or 'Unknown' if not found
+        return subType ? subType.name : 'Unknown';
     };
-
-
-    useEffect(() => {
-    const fetchCancellation = async () => {
-        try {
-            const data = await getCancellationById(id);
-            setCancellation(data);
-
-            const subscriptionTypesData = await getSubscriptionTypes();
-            setSubscriptionTypes(subscriptionTypesData);
-
-            if (data.documents && data.documents.length > 0) {
-                const previews = data.documents.map(doc => {
-                    // Determine which path to use based on a condition (you can adjust as needed)
-                    const basePath = doc.includes('cancelled') ?
-                        '/cancelled_subscription_files/' : '/subscription_files/';
-
-                    return {
-                        name: doc.split('/').pop(),
-                        src: `http://localhost:8000${basePath}${encodeURIComponent(doc)}`,
-                        isExisting: true,
-                    };
-                });
-                setDocumentPreviews(previews);
-            }
-        } catch (error) {
-            setError(`Error fetching cancellation details: ${error}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-    fetchCancellation();
-}, [id]);
-
 
     const formatDate = (dateString) => {
         if (!dateString) return '-';
@@ -69,21 +69,83 @@ const CancellationDetail = () => {
         });
     };
 
-    const formatdate = (dateString) => {
-    if (!dateString) return '';
+   const handleDocumentChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!validTypes.includes(file.type)) {
+                setError('Please upload only PDF or Word documents');
+                event.target.value = null;
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                setError('File size should not exceed 5MB');
+                event.target.value = null;
+                return;
+            }
+            setNewDocument(file);
+            setError('');
+        }
+    };
 
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-    }).format(date);
-};
+     const handleDocumentUpload = async () => {
+        if (!newDocument) return;
+
+        setUploadLoading(true);
+        setError('');
+        try {
+            const response = await uploadDocument(newDocument);
+            const uploadedFileName = response.filename;
+
+            setDocumentPreviews(prev => [...prev, {
+                name: uploadedFileName,
+                src: `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(uploadedFileName)}`,
+                isExisting: true,
+            }]);
+            setNewDocument(null);
+            setSuccessMessage('Document uploaded successfully');
+
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) fileInput.value = '';
+        } catch (error) {
+            setError(`Error uploading document: ${error.message}`);
+        } finally {
+            setUploadLoading(false);
+        }
+    };
 
     const handleViewDocument = (index) => {
         const document = documentPreviews[index];
-        if (document) {
-            window.open(document.src, '_blank');
+        window.open(document.src, '_blank');
+    };
+
+    const handleRemoveDocument = (index) => {
+        setDocumentPreviews(prev => prev.filter((_, idx) => idx !== index));
+        setSuccessMessage('Document removed successfully');
+    };
+
+   const handleSubmit = async () => {
+        try {
+            setError('');
+            setSuccessMessage('');
+
+            // Convert document previews to an array of document names
+            const documentNames = documentPreviews
+                .filter(doc => doc.isExisting)
+                .map(doc => doc.name);
+
+            const updatedCancellation = {
+                ...cancellation,
+                documents: documentNames, // Send as array, not comma-separated string
+            };
+
+            await updateCancellation(cancellation.id, updatedCancellation);
+            setSuccessMessage('Changes saved successfully');
+            setTimeout(() => {
+                navigate('/subscriptions/cancellations/');
+            }, 1500);
+        } catch (error) {
+            setError(`Error updating cancellation details: ${error}`);
         }
     };
 
@@ -95,22 +157,11 @@ const CancellationDetail = () => {
         );
     }
 
-    if (error) {
-        return (
-            <Container className="mt-5">
-                <Alert variant="danger">{error}</Alert>
-                <Link to="/subscriptions/cancellations/">
-                    <Button variant="secondary">Back to Cancellations List</Button>
-                </Link>
-            </Container>
-        );
-    }
-
     if (!cancellation) {
         return (
             <Container className="mt-5">
                 <Alert variant="warning">Cancellation not found.</Alert>
-                <Link to="/cancel-subscription-list">
+                <Link to="/subscriptions/cancellations/">
                     <Button variant="secondary">Back to Cancellations List</Button>
                 </Link>
             </Container>
@@ -119,57 +170,134 @@ const CancellationDetail = () => {
 
     return (
         <Container className="mt-5">
-            <Link to="/cancel-subscription-list">
+            <Link to="/subscriptions/cancellations/">
                 <Button variant="secondary" className="mb-3">
                     &larr; Back to Cancellations List
                 </Button>
             </Link>
+
+            {error && <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>}
+            {successMessage && <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>{successMessage}</Alert>}
+
             <Card>
-                <Card.Header className="bg-primary text-white">Cancellation Details</Card.Header>
+                <Card.Header className="bg-primary text-white">
+                    <h4 className="mb-0">Edit Cancellation</h4>
+                </Card.Header>
                 <Card.Body>
-                    <Row>
-                        <Col md={6}>
-                            <Card.Text><strong>ID:</strong> {cancellation.id}</Card.Text>
-                            <Card.Text><strong>DNI:</strong> {cancellation.owner_id}</Card.Text>
-                            <Card.Text><strong>Subscription Type:</strong> {getSubscriptionTypeName(cancellation.subscription_type_id)}</Card.Text>
-                            <Card.Text><strong>Access Card:</strong> {cancellation.access_card || 'N/A'}</Card.Text>
-                            <Card.Text><strong>Effective Date:</strong> {formatdate(cancellation.effective_date) || 'N/A'}</Card.Text>
-                            <Card.Text><strong>License Plate 1:</strong> {cancellation.lisence_plate1 || 'N/A'}</Card.Text>
-                            <Card.Text><strong>License Plate 2:</strong> {cancellation.lisence_plate2 || 'N/A'}</Card.Text>
-                            <Card.Text><strong>License Plate 3:</strong> {cancellation.lisence_plate3 || 'N/A'}</Card.Text>
-                            <Card.Text><strong>Parking Lot:</strong> {cancellation.parking_lot}</Card.Text>
-                        </Col>
-                        <Col md={6}>
-                            <Card.Text><strong>Tique X Park:</strong> {cancellation.tique_x_park || 'N/A'}</Card.Text>
-                            <Card.Text><strong>Remote Control Number:</strong> {cancellation.remote_control_number || 'N/A'}</Card.Text>
-                            <Card.Text><strong>Observations:</strong> {cancellation.observations || 'N/A'}</Card.Text>
-                            <Card.Text><strong>Registration Date:</strong> {formatDate(cancellation.registration_date)}</Card.Text>
-                            <Card.Text><strong>Parking Spot:</strong> {cancellation.parking_spot || 'N/A'}</Card.Text>
-                            <Card.Text><strong>Cancellation Date:</strong> {formatDate(cancellation.modification_time)}</Card.Text>
-                            <Card.Text><strong>Created By:</strong> {cancellation.created_by}</Card.Text>
-                            <Card.Text><strong>Modified By:</strong> {cancellation.modified_by || 'N/A'}</Card.Text>
-                        </Col>
-                    </Row>
-                    <Row className="mt-3">
-                        <Col>
-                            <h5>Documents</h5>
-                            {documentPreviews.length > 0 ? (
-                                <DocumentPreviewRow
-                                    documentPreviews={documentPreviews}
-                                    handleViewDocument={handleViewDocument}
-                                    handleRemoveDocument={() => {}}
-                                    pdfIcon={pdfIcon}
-                                    readOnly={true}
-                                />
-                            ) : (
-                                <p>No documents available</p>
-                            )}
-                        </Col>
-                    </Row>
+                    <Form>
+                        <Row>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>ID</Form.Label>
+                                    <Form.Control type="text" value={cancellation.id} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>DNI</Form.Label>
+                                    <Form.Control type="text" value={cancellation.owner_id} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Subscription Type</Form.Label>
+                                    <Form.Control type="text" value={getSubscriptionTypeName(cancellation.subscription_type_id)} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Access Card</Form.Label>
+                                    <Form.Control type="text" value={cancellation.access_card || 'N/A'} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Effective Date</Form.Label>
+                                    <Form.Control type="text" value={formatDate(cancellation.effective_date)} disabled />
+                                </Form.Group>
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>License Plate 1</Form.Label>
+                                    <Form.Control type="text" value={cancellation.lisence_plate1 || 'N/A'} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>License Plate 2</Form.Label>
+                                    <Form.Control type="text" value={cancellation.lisence_plate2 || 'N/A'} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>License Plate 3</Form.Label>
+                                    <Form.Control type="text" value={cancellation.lisence_plate3 || 'N/A'} disabled />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Parking Spot</Form.Label>
+                                    <Form.Control type="text" value={cancellation.parking_spot || 'N/A'} disabled />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <Row className="mt-4">
+                            <Col>
+                                <h5>Documents</h5>
+                                {documentPreviews.length > 0 ? (
+                                    <DocumentPreviewRow
+                                        documentPreviews={documentPreviews}
+                                        handleViewDocument={handleViewDocument}
+                                        handleRemoveDocument={handleRemoveDocument}
+                                        pdfIcon={pdfIcon}
+                                        readOnly={false}
+                                    />
+                                ) : (
+                                    <p>No documents available</p>
+                                )}
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Upload New Document</Form.Label>
+                                    <Form.Control
+                                        type="file"
+                                        onChange={handleDocumentChange}
+                                        accept=".pdf,.doc,.docx"
+                                        disabled={uploadLoading}
+                                    />
+                                    <Form.Text className="text-muted">
+                                        Accepted file types: PDF, DOC, DOCX (Max size: 5MB)
+                                    </Form.Text>
+                                    <div className="mt-2">
+                                        <Button
+                                            variant="primary"
+                                            onClick={handleDocumentUpload}
+                                            disabled={!newDocument || uploadLoading}
+                                        >
+                                            {uploadLoading ? (
+                                                <>
+                                                    <Spinner
+                                                        as="span"
+                                                        animation="border"
+                                                        size="sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                        className="me-2"
+                                                    />
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                'Upload Document'
+                                            )}
+                                        </Button>
+                                    </div>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <div className="mt-4">
+                            <Button
+                                variant="success"
+                                onClick={handleSubmit}
+                                className="me-2"
+                            >
+                                Save Changes
+                            </Button>
+                            <Link to="/subscriptions/cancellations/">
+                                <Button variant="outline-secondary">Cancel</Button>
+                            </Link>
+                        </div>
+                    </Form>
                 </Card.Body>
             </Card>
         </Container>
     );
 };
 
-export default CancellationDetail;
+export default CancellationDetailEdit;

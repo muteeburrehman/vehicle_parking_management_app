@@ -41,20 +41,29 @@ export const getAllCancellations = async () => {
 
 
 
-export const uploadDocument = async (file, cancellationId) => {
+export const updateCancellation = async (cancellationId, data) => {
+  try {
+    const response = await axios.put(`${API_URL}/${cancellationId}`, data);
+
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+
+export const uploadDocument = async (file) => {
+  try {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('cancellationId', cancellationId); // Assuming your backend requires an ID
 
-    try {
-        const response = await axios.post('http://localhost:8000/cancelled_subscription_files/upload', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error uploading document:', error);
-        throw error;
-    }
+    const response = await axios.post('http://localhost:8000/api/upload-document', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
 };

@@ -1,11 +1,14 @@
 import os
+import shutil
 from bdb import effective
 from datetime import datetime
 from pathlib import PosixPath
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi.logger import logger
 from sqlalchemy.orm import Session
+from starlette.responses import JSONResponse
 from weasyprint import CSS, HTML
 
 from backend.app.db.database import get_db
@@ -96,6 +99,7 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
         f.write(pdf)
 
     return filename  # Return only the filename
+
 @router.post("/subscriptions/cancel", response_model=CancellationResponse)
 async def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_db)):
     # Validate owner exists
@@ -233,6 +237,143 @@ async def cancel_subscription(request: CancellationCreate, db: Session = Depends
         modified_by=cancelled_subscription.modified_by
     )
 
+
+@router.put("/subscriptions/cancel/{cancellation_id}", response_model=CancellationResponse)
+async def update_cancellation(
+    cancellation_id: int,
+    request: CancellationCreate,
+    db: Session = Depends(get_db)
+):
+    # Retrieve the existing cancellation
+    cancelled_subscription = db.query(Cancellations).filter(
+        Cancellations.id == cancellation_id
+    ).first()
+
+    if not cancelled_subscription:
+        raise HTTPException(status_code=404, detail="Cancellation not found")
+
+    # Validate owner exists
+    owner = db.query(Owners).filter(Owners.dni == request.owner_id).first()
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
+
+    # Get current time
+    current_time = datetime.now()
+
+    # Handle documents
+    if isinstance(request.documents, str):
+        documents = request.documents.split(',')
+    elif isinstance(request.documents, list):
+        documents = request.documents
+    else:
+        documents = []
+    documents = [doc.strip() for doc in documents if doc.strip()]
+
+    try:
+        # Create a history entry before making changes
+        subscription_history_entry = Subscription_history(
+            id=cancelled_subscription.id,
+            owner_id=cancelled_subscription.owner_id,
+            subscription_type_id=cancelled_subscription.subscription_type_id,
+            access_card=cancelled_subscription.access_card,
+            lisence_plate1=cancelled_subscription.lisence_plate1,
+            lisence_plate2=cancelled_subscription.lisence_plate2,
+            lisence_plate3=cancelled_subscription.lisence_plate3,
+            documents=cancelled_subscription.documents,
+            tique_x_park=cancelled_subscription.tique_x_park,
+            remote_control_number=cancelled_subscription.remote_control_number,
+            observations=cancelled_subscription.observations,
+            effective_date=cancelled_subscription.effective_date,
+            effective_cancellation_date=cancelled_subscription.effective_cancellation_date,
+            registration_date=cancelled_subscription.registration_date,
+            parking_spot=cancelled_subscription.parking_spot,
+            modification_time=cancelled_subscription.modification_time,
+            created_by=cancelled_subscription.created_by,
+            modified_by=cancelled_subscription.modified_by
+        )
+        db.add(subscription_history_entry)
+
+        # Update the cancellation record
+        for field, value in request.dict(exclude_unset=True).items():
+            if field == 'documents':
+                setattr(cancelled_subscription, 'documents', ','.join(documents) if documents else None)
+            else:
+                setattr(cancelled_subscription, field, value)
+
+        # Always update modification time
+        cancelled_subscription.modification_time = current_time
+
+        # Generate new cancellation work order if needed
+        try:
+            cancellation_work_order_filename = await generate_cancellation_work_order_pdf(cancelled_subscription, db)
+            if cancelled_subscription.documents:
+                document_filenames = cancelled_subscription.documents.split(",")
+                if cancellation_work_order_filename not in document_filenames:
+                    document_filenames.append(cancellation_work_order_filename)
+                    cancelled_subscription.documents = ','.join(document_filenames)
+            else:
+                cancelled_subscription.documents = cancellation_work_order_filename
+        except Exception as e:
+            logger.error(f"Error generating work order: {str(e)}")
+            # Continue with the update even if work order generation fails
+            pass
+
+        # Commit changes
+        db.commit()
+        db.refresh(cancelled_subscription)
+
+        # Return updated cancellation response
+        return CancellationResponse(
+            id=cancelled_subscription.id,
+            owner_id=cancelled_subscription.owner_id,
+            subscription_type_id=cancelled_subscription.subscription_type_id,
+            access_card=cancelled_subscription.access_card,
+            lisence_plate1=cancelled_subscription.lisence_plate1,
+            lisence_plate2=cancelled_subscription.lisence_plate2,
+            lisence_plate3=cancelled_subscription.lisence_plate3,
+            documents=cancelled_subscription.documents.split(',') if cancelled_subscription.documents else [],
+            tique_x_park=cancelled_subscription.tique_x_park,
+            remote_control_number=cancelled_subscription.remote_control_number,
+            observations=cancelled_subscription.observations,
+            effective_date=cancelled_subscription.effective_date,
+            effective_cancellation_date=cancelled_subscription.effective_cancellation_date,
+            registration_date=cancelled_subscription.registration_date,
+            parking_spot=cancelled_subscription.parking_spot,
+            modification_time=cancelled_subscription.modification_time,
+            created_by=cancelled_subscription.created_by,
+            modified_by=cancelled_subscription.modified_by
+        )
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+
+@router.post("/api/upload-document")
+async def upload_document(file: UploadFile = File(...)):
+    try:
+        # Create a unique filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{timestamp}_{file.filename}"
+
+        # Define the path where files will be saved
+        save_path = "cancelled_subscription_files"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        file_path = os.path.join(save_path, filename)
+
+        # Save the file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        return JSONResponse(content={"filename": filename}, status_code=200)
+    except Exception as e:
+        return JSONResponse(
+            content={"error": f"Failed to upload file: {str(e)}"},
+            status_code=500
+        )
 @router.get("/subscriptions/cancellations/", response_model=List[CancellationResponse])
 def get_all_cancellations(db: Session = Depends(get_db)):
     cancellations = db.query(Cancellations).all()  # Fetch all cancellation records
