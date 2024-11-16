@@ -80,7 +80,7 @@ const CancellationList = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="text-center mb-4">Cancelled Subscriptions</h2>
+            <h2 className="text-center mb-4">Pending Cancellations</h2>
             <Form className="mb-4">
                 <Form.Group controlId="search">
                     <Form.Control

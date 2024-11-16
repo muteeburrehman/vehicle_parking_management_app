@@ -42,6 +42,8 @@ import ParkingLotStats from "./components/ParkingLotStats";
 import AddParkingLotForm from "./components/AddParkingLotForm";
 import ParkingLotList from "./components/ParkingLotList";
 import ParkingLotListAndEdit from "./components/ParkingLotListAndEdit";
+import ApproveCancellationList from "./components/ApproveCancellationList";
+import ApprovedCancellationDetail from "./components/ApprovedCancellationDetail";
 
 const NotFound = () => (
     <Container className="mt-5">
@@ -208,7 +210,7 @@ function App() {
                                     </ProtectedRoute>
                                 }/>
 
-                                 <Route path="/parking-lot/add" element={
+                                <Route path="/parking-lot/add" element={
                                     <ProtectedRoute>
                                         <AddParkingLotForm/>
                                     </ProtectedRoute>
@@ -220,7 +222,15 @@ function App() {
                                     </ProtectedRoute>
                                 }/>
 
-                                <Route path="*" element={<NotFound/>} />
+                                <Route path="/approved-cancellation-list"
+                                       element={<ProtectedRoute><ApproveCancellationList/></ProtectedRoute>}/>
+
+                                <Route
+                                    path="/approved-cancellation-detail/:id"
+                                    element={<ProtectedRoute><ApprovedCancellationDetail/></ProtectedRoute>}
+                                />
+
+                                <Route path="*" element={<NotFound/>}/>
 
                             </Routes>
                         </div>

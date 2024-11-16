@@ -253,7 +253,7 @@ const CancellationDetailEdit = () => {
 
             <Card>
                 <Card.Header className="bg-primary text-white">
-                    <h4 className="mb-0">Edit Cancellation</h4>
+                    <h4 className="mb-0">Pending Cancellation</h4>
                 </Card.Header>
                 <Card.Body>
                     <Form>
