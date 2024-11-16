@@ -32,7 +32,7 @@ import SubscriptionHistoryList from "./components/SubscriptionHistoryList";
 import CancellationList from "./components/CancellationList";
 import CancellationForm from "./components/CancellationForm";
 import AddNewUsers from "./components/AddNewUsers";
-import CancellationDetail from "./components/CancellationDetail";
+import CancellationDetail from "./components/CancellationDetailEdit";
 import SubscriptionHistoryDetail from "./components/SubscriptionHistoryDetail";
 import OwnerHistoryList from "./components/OwnerHistoryList";
 import VehicleHistoryList from "./components/VehicleHistoryList";

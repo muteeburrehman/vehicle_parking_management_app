@@ -1,14 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Container, Card, Form, Button, Row, Col, Spinner, Alert } from 'react-bootstrap';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getCancellationById, updateCancellation, uploadDocument } from '../services/cancellationService';
-import { getSubscriptionTypes } from '../services/subscriptionService';
+import React, {useEffect, useState, useCallback} from 'react';
+import {Container, Card, Form, Button, Row, Col, Spinner, Alert} from 'react-bootstrap';
+import {useParams, Link, useNavigate} from 'react-router-dom';
+import {getCancellationById, updateCancellation, uploadDocument} from '../services/cancellationService';
+import {getSubscriptionTypes} from '../services/subscriptionService';
 import DocumentPreviewRow from './DocumentPreviewRow';
 import pdfIcon from "../assets/icons/pdf_icon.svg";
+import useAuth from "../hooks/useAuth";
+import {approveCancellation} from "../services/approveCancellationService";
 
 const CancellationDetailEdit = () => {
-    const { id } = useParams();
+    const {id} = useParams();
     const navigate = useNavigate();
+    const {user} = useAuth();
     const [loading, setLoading] = useState(true);
     const [cancellation, setCancellation] = useState(null);
     const [error, setError] = useState('');
@@ -16,11 +19,12 @@ const CancellationDetailEdit = () => {
     const [documentPreviews, setDocumentPreviews] = useState([]);
     const [newDocument, setNewDocument] = useState(null);
     const [uploadLoading, setUploadLoading] = useState(false);
+    const [approveLoading, setApproveLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
 
     const checkUrlExists = async (url) => {
         try {
-            const response = await fetch(url, { method: 'HEAD' });
+            const response = await fetch(url, {method: 'HEAD'});
             return response.ok;
         } catch {
             return false;
@@ -152,6 +156,45 @@ const CancellationDetailEdit = () => {
         setDocumentPreviews(prev => prev.filter((_, idx) => idx !== index));
         setSuccessMessage('Document removed successfully');
     };
+    const handleApprove = async () => {
+        if (!user?.email) {
+            setError('User authentication required');
+            return;
+        }
+
+        setApproveLoading(true);
+        setError('');
+        setSuccessMessage('');
+
+        try {
+            // First update the cancellation with latest changes
+            const documentNames = documentPreviews
+                .filter(doc => doc.isExisting)
+                .map(doc => doc.name);
+
+            const updatedCancellation = {
+                ...cancellation,
+                documents: documentNames,
+                modified_by: user.email,
+                modification_time: new Date().toISOString()
+            };
+
+            await updateCancellation(cancellation.id, updatedCancellation);
+
+            // Then approve the cancellation
+            await approveCancellation(cancellation.id,updatedCancellation);
+
+            setSuccessMessage('Cancellation approved successfully');
+            setTimeout(() => {
+                navigate('/subscriptions/cancellations/');
+            }, 1500);
+        } catch (error) {
+            setError(`Error approving cancellation: ${error.message || 'Unknown error occurred'}`);
+        } finally {
+            setApproveLoading(false);
+        }
+    };
+
 
     const handleSubmit = async () => {
         try {
@@ -180,7 +223,7 @@ const CancellationDetailEdit = () => {
     if (loading) {
         return (
             <Container className="mt-5 text-center">
-                <Spinner animation="border" variant="primary" />
+                <Spinner animation="border" variant="primary"/>
             </Container>
         );
     }
@@ -205,7 +248,8 @@ const CancellationDetailEdit = () => {
             </Link>
 
             {error && <Alert variant="danger" onClose={() => setError('')} dismissible>{error}</Alert>}
-            {successMessage && <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>{successMessage}</Alert>}
+            {successMessage &&
+                <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>{successMessage}</Alert>}
 
             <Card>
                 <Card.Header className="bg-primary text-white">
@@ -217,41 +261,43 @@ const CancellationDetailEdit = () => {
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>ID</Form.Label>
-                                    <Form.Control type="text" value={cancellation.id} disabled />
+                                    <Form.Control type="text" value={cancellation.id} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>DNI</Form.Label>
-                                    <Form.Control type="text" value={cancellation.owner_id} disabled />
+                                    <Form.Control type="text" value={cancellation.owner_id} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Subscription Type</Form.Label>
-                                    <Form.Control type="text" value={getSubscriptionTypeName(cancellation.subscription_type_id)} disabled />
+                                    <Form.Control type="text"
+                                                  value={getSubscriptionTypeName(cancellation.subscription_type_id)}
+                                                  disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Access Card</Form.Label>
-                                    <Form.Control type="text" value={cancellation.access_card || 'N/A'} disabled />
+                                    <Form.Control type="text" value={cancellation.access_card || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Effective Date</Form.Label>
-                                    <Form.Control type="text" value={formatDate(cancellation.effective_date)} disabled />
+                                    <Form.Control type="text" value={formatDate(cancellation.effective_date)} disabled/>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>License Plate 1</Form.Label>
-                                    <Form.Control type="text" value={cancellation.lisence_plate1 || 'N/A'} disabled />
+                                    <Form.Control type="text" value={cancellation.lisence_plate1 || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>License Plate 2</Form.Label>
-                                    <Form.Control type="text" value={cancellation.lisence_plate2 || 'N/A'} disabled />
+                                    <Form.Control type="text" value={cancellation.lisence_plate2 || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>License Plate 3</Form.Label>
-                                    <Form.Control type="text" value={cancellation.lisence_plate3 || 'N/A'} disabled />
+                                    <Form.Control type="text" value={cancellation.lisence_plate3 || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Parking Spot</Form.Label>
-                                    <Form.Control type="text" value={cancellation.parking_spot || 'N/A'} disabled />
+                                    <Form.Control type="text" value={cancellation.parking_spot || 'N/A'} disabled/>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -312,6 +358,28 @@ const CancellationDetailEdit = () => {
                         <div className="mt-4">
                             <Button variant="success" onClick={handleSubmit} className="me-2">
                                 Save Changes
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleApprove}
+                                className="me-2"
+                                disabled={approveLoading}
+                            >
+                                {approveLoading ? (
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Approving...
+                                    </>
+                                ) : (
+                                    'Approve Cancellation'
+                                )}
                             </Button>
                             <Link to="/subscriptions/cancellations/">
                                 <Button variant="outline-secondary">Cancel</Button>

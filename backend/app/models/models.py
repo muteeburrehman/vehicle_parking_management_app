@@ -184,7 +184,6 @@ class Cancellations(Base):
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
 
-
 class ApprovedCancellations(Base):
     __tablename__ = "approved_cancellations"
     id = Column(Integer, primary_key=True, index=True)
@@ -196,17 +195,18 @@ class ApprovedCancellations(Base):
     lisence_plate1 = Column(String, ForeignKey("vehicles.lisence_plate"), nullable=True)
     lisence_plate2 = Column(String, ForeignKey("vehicles.lisence_plate"), nullable=True)
     lisence_plate3 = Column(String, ForeignKey("vehicles.lisence_plate"), nullable=True)
-    tique_x_park = Column(String, nullable=True)
+    tique_x_park = Column(String, ForeignKey("subscriptions.tique_x_park"), nullable=True)
     documents = Column(String, nullable=True)
-    remote_control_number = Column(String, nullable=True)
+    remote_control_number = Column(String, ForeignKey("subscriptions.remote_control_number"), nullable=True)
     observations = Column(String, nullable=True)
     registration_date = Column(DateTime, nullable=False)
     effective_date = Column(DateTime, nullable=True)
+    effective_cancellation_date = Column(DateTime, nullable=False)
     parking_spot = Column(String, nullable=True)
-    effective_cancellation_date = Column(DateTime, nullable=False)  # Required for approved cancellations
+    modification_time = Column(DateTime, default=datetime.now(), nullable=True)
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
-    approved_by = Column(String, ForeignKey("users.email"), nullable=False)
+
 
 
 class ParkingLot(Base):

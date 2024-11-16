@@ -10,6 +10,7 @@ from backend.app.queries.user import get_user_by_email, create_user
 from backend.app.routes import user_routes, auth_routes, owner_routes, vehicle_routes, subscription_routes, \
     subscription_cancellation_route, subscription_history_route, vehicle_history_route, owner_history_route, \
     parking_lot_routes, parking_stats
+from backend.app.routes import approve_cancellation
 from backend.app.routes.owner_routes import UPLOAD_DIR
 from backend.app.schemas.user import UserCreate
 
@@ -45,6 +46,8 @@ app.include_router(owner_history_route.router)
 app.include_router(vehicle_history_route.router)
 app.include_router(parking_lot_routes.router)
 app.include_router(parking_stats.router)
+
+app.include_router(approve_cancellation.router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the API!"}

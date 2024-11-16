@@ -93,7 +93,7 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
     # Save the PDF
-    filename = f"cancellation_work_order_{cancelled_subscription.effective_cancellation_date}.pdf"
+    filename = f"cancellation_work_order_{cancelled_subscription.owner_id}.pdf"
     file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         f.write(pdf)
