@@ -186,7 +186,7 @@ const CancellationDetailEdit = () => {
 
             setSuccessMessage('Cancellation approved successfully');
             setTimeout(() => {
-                navigate('/subscriptions/cancellations/');
+                navigate('/approved-cancellation-list');
             }, 1500);
         } catch (error) {
             setError(`Error approving cancellation: ${error.message || 'Unknown error occurred'}`);

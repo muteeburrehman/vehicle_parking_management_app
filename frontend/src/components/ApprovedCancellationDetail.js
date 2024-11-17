@@ -40,6 +40,38 @@ const ApprovedCancellationDetail = () => {
         return cancelledPath;
     }, []);
 
+    const parseDocuments = (documentsData) => {
+        if (!documentsData) return [];
+
+        try {
+            // If it's already an array, return it
+            if (Array.isArray(documentsData)) return documentsData;
+
+            // If it's a string, try different parsing strategies
+            if (typeof documentsData === 'string') {
+                // First, try parsing as JSON if it looks like JSON
+                if (documentsData.trim().startsWith('[')) {
+                    return JSON.parse(documentsData);
+                }
+
+                // If it's not JSON, split by comma and clean up
+                return documentsData
+                    .split(',')
+                    .map(doc => doc.trim())
+                    .filter(doc => doc); // Remove empty strings
+            }
+
+            // If it's neither array nor string, wrap it in array
+            return [documentsData.toString()];
+        } catch (error) {
+            console.warn('Document parsing fallback:', documentsData);
+            // If all parsing fails, treat as single item or split by comma
+            return documentsData.includes(',')
+                ? documentsData.split(',').map(doc => doc.trim()).filter(doc => doc)
+                : [documentsData.toString().trim()];
+        }
+    };
+
     useEffect(() => {
         const fetchApprovedCancellationData = async () => {
             try {
@@ -50,16 +82,13 @@ const ApprovedCancellationDetail = () => {
                 setSubscriptionTypes(subscriptionTypesData);
 
                 if (response.approved_cancellation.documents) {
-                    const documentsList = Array.isArray(response.approved_cancellation.documents)
-                        ? response.approved_cancellation.documents
-                        : JSON.parse(response.approved_cancellation.documents.startsWith('[')
-                            ? response.approved_cancellation.documents
-                            : `[${response.approved_cancellation.documents}]`);
+                    const documentsList = parseDocuments(response.approved_cancellation.documents);
 
                     const previews = await Promise.all(documentsList.map(async (doc) => {
-                        const documentUrl = await getDocumentUrl(doc);
+                        const docName = typeof doc === 'string' ? doc : doc.toString();
+                        const documentUrl = await getDocumentUrl(docName);
                         return {
-                            name: doc.trim(),
+                            name: docName.trim(),
                             src: documentUrl,
                             isExisting: true,
                         };
@@ -67,6 +96,7 @@ const ApprovedCancellationDetail = () => {
                     setDocumentPreviews(previews);
                 }
             } catch (error) {
+                console.error('Original error:', error);
                 setError(`Error fetching approved cancellation details: ${error.message}`);
             } finally {
                 setLoading(false);
@@ -76,6 +106,7 @@ const ApprovedCancellationDetail = () => {
         fetchApprovedCancellationData();
     }, [id, getDocumentUrl]);
 
+    // Rest of your component remains the same...
     const getSubscriptionTypeName = (typeId) => {
         const subType = subscriptionTypes.find(type => type.id === typeId);
         return subType ? subType.name : 'Unknown';
@@ -100,6 +131,7 @@ const ApprovedCancellationDetail = () => {
         window.open(document.src, '_blank');
     };
 
+    // Your existing JSX remains the same...
     if (loading) {
         return (
             <Container className="mt-5 text-center">
