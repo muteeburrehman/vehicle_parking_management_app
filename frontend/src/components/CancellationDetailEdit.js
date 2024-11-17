@@ -21,6 +21,8 @@ const CancellationDetailEdit = () => {
     const [uploadLoading, setUploadLoading] = useState(false);
     const [approveLoading, setApproveLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [hasUploadedDocument, setHasUploadedDocument] = useState(false);
+
 
     const checkUrlExists = async (url) => {
         try {
@@ -137,6 +139,7 @@ const CancellationDetailEdit = () => {
             }]);
             setNewDocument(null);
             setSuccessMessage('Document uploaded successfully');
+            setHasUploadedDocument(true); // Enable approve button after successful upload
 
             const fileInput = document.querySelector('input[type="file"]');
             if (fileInput) fileInput.value = '';
@@ -182,7 +185,7 @@ const CancellationDetailEdit = () => {
             await updateCancellation(cancellation.id, updatedCancellation);
 
             // Then approve the cancellation
-            await approveCancellation(cancellation.id,updatedCancellation);
+            await approveCancellation(cancellation.id, updatedCancellation);
 
             setSuccessMessage('Cancellation approved successfully');
             setTimeout(() => {
@@ -363,7 +366,7 @@ const CancellationDetailEdit = () => {
                                 variant="primary"
                                 onClick={handleApprove}
                                 className="me-2"
-                                disabled={approveLoading}
+                                disabled={approveLoading || !hasUploadedDocument}
                             >
                                 {approveLoading ? (
                                     <>
