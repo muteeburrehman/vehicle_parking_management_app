@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {Form, Button, Alert, Row, Col, Spinner} from 'react-bootstrap';
+import {Form, Button, Alert, Row, Col, Spinner, Toast} from 'react-bootstrap';
 import {useVehicle} from '../hooks/useVehicle'; // Assuming similar hook for vehicle CRUD
 import {useNavigate, useParams} from 'react-router-dom';
 import DocumentPreviewRow from './DocumentPreviewRow'; // Component to preview document files
@@ -10,6 +10,7 @@ import useAuth from "../hooks/useAuth";
 import {deleteVehicle} from "../services/deleteServices";
 import {useContext} from 'react';
 import GetVehiclesContext from '../context/GetVehiclesContext';
+import {checkActiveSubscription} from "../services/getVehicleService";
 
 const VehicleEditForm = () => {
     const {lisence_plate} = useParams();
@@ -21,9 +22,11 @@ const VehicleEditForm = () => {
         getAllVehicles
     } = useContext(GetVehiclesContext);
     const {updateVehicleByLisencePlate, loading, error} = useVehicle();
-    const [, setShowToast] = useState(false);
-    const [, setToastMessage] = useState('');
-    const [, setToastVariant] = useState('success');
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastVariant, setToastVariant] = useState('success');
+    const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
+
     const [vehicleData, setVehicleData] = useState({
         lisence_plate: '',
         model: '',
@@ -276,6 +279,18 @@ const VehicleEditForm = () => {
         const confirmDelete = window.confirm("Are you sure you want to delete this vehicle?");
         if (confirmDelete) {
             try {
+                setIsCheckingSubscription(true);
+                // Check for active subscriptions before proceeding with deletion
+                const hasActiveSubscription = await checkActiveSubscription(lisence_plate);
+
+                if (hasActiveSubscription) {
+                    setToastMessage("Cannot delete vehicle: Active subscriptions exist");
+                    setToastVariant('warning');
+                    setShowToast(true);
+                    return;
+                }
+
+                // Proceed with deletion if no active subscriptions
                 await deleteVehicle(lisence_plate);
                 setToastMessage("Vehicle deleted successfully!");
                 setToastVariant('success');
@@ -290,6 +305,8 @@ const VehicleEditForm = () => {
                 setToastMessage(`Failed to delete vehicle: ${err.response?.data?.detail || err.message}`);
                 setToastVariant('danger');
                 setShowToast(true);
+            } finally {
+                setIsCheckingSubscription(false);
             }
         }
     };
@@ -473,11 +490,17 @@ const VehicleEditForm = () => {
                     )}
 
                     {isSuperuser && (
-                        <Button variant="danger" onClick={handleDeleteVehicle} style={{marginLeft: '10px'}}
-                                className="me-2">
-                            Delete Vehicle
+                        <Button
+                            variant="danger"
+                            onClick={handleDeleteVehicle}
+                            style={{marginLeft: '10px'}}
+                            className="me-2"
+                            disabled={isCheckingSubscription}
+                        >
+                            {isCheckingSubscription ? 'Checking Subscriptions...' : 'Delete Vehicle'}
                         </Button>
                     )}
+
 
                     {(isSuperuser || isAdmin) && (
                         <Button variant={"secondary"} onClick={navigateToList}>
@@ -485,7 +508,31 @@ const VehicleEditForm = () => {
                         </Button>
                     )}
                 </Form>
+
             )}
+
+             {showToast && (
+            <Toast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                delay={3000}
+                autohide
+                style={{
+                    position: 'fixed',
+                    top: 20,
+                    right: 20,
+                    zIndex: 1000
+                }}
+            >
+                <Toast.Header>
+                    <strong className="me-auto">Notification</strong>
+                </Toast.Header>
+                <Toast.Body className={`bg-${toastVariant} text-white`}>
+                    {toastMessage}
+                </Toast.Body>
+            </Toast>
+        )}
+
         </div>
     );
 };

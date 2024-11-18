@@ -52,3 +52,14 @@ export const checkLicensePlateExists = async (lisence_plate) => {
         throw new Error('Failed to validate license plate');
     }
 };
+
+// Function to check active subscription for a vehicle by license plate
+export const checkActiveSubscription = async (licensePlate) => {
+    try {
+        const response = await axios.get(`${API_URL}/vehicle/${licensePlate}/check-subscription`);
+        return response.data.active; // Returns true or false
+    } catch (error) {
+        console.error('Error checking subscription:', error);
+        throw error; // Propagate error for error handling in the component
+    }
+};
