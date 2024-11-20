@@ -33,7 +33,8 @@ const OwnerEditForm = () => {
         observations: '',
         created_by: '',
         modified_by: '',
-        modification_time: ''
+        modification_time: '',
+        reduced_mobility_expiration: '',
     });
     const [documents, setDocuments] = useState([]);
     const [documentPreviews, setDocumentPreviews] = useState([]);
@@ -109,6 +110,9 @@ const OwnerEditForm = () => {
                 observations: selectedOwner.observations,
                 created_by: selectedOwner.created_by,
                 modified_by: selectedOwner.modified_by || '',
+                reduced_mobility_expiration: selectedOwner.reduced_mobility_expiration
+                    ? selectedOwner.reduced_mobility_expiration.split('T')[0]
+                    : '',
                 modification_time: selectedOwner.modification_time ? formatDateTime(selectedOwner.modification_time) : ''
             });
 
@@ -407,7 +411,7 @@ const OwnerEditForm = () => {
                         </Col>
                     </Row>
                     <Row className="mb-3">
-                        <Col md={6}>
+                        <Col md={4}>
                             <Form.Group controlId="owner_formLastName">
                                 <Form.Label>Last Name</Form.Label>
                                 <Form.Control
@@ -425,7 +429,7 @@ const OwnerEditForm = () => {
                                 </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
-                        <Col md={6}>
+                        <Col md={4}>
                             <Form.Group controlId="owner_formEmail">
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control
@@ -435,6 +439,22 @@ const OwnerEditForm = () => {
                                     value={ownerData.email}
                                     onChange={handleInputChange}
                                     isInvalid={!!validationErrors.email}
+                                    readOnly={isUser}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    {validationErrors.email}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+                        </Col>
+
+                        <Col md={4}>
+                            <Form.Group controlId="reduced_mobility_expiration">
+                                <Form.Label>Reduced Mobility Expiration</Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    name="reduced_mobility_expiration"
+                                    value={ownerData.reduced_mobility_expiration}
+                                    onChange={handleInputChange}
                                     readOnly={isUser}
                                 />
                                 <Form.Control.Feedback type="invalid">
