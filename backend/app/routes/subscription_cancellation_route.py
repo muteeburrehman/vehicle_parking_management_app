@@ -63,6 +63,9 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
         'subscription_type_name': subscription_type.name or '',
     }
 
+    # Add this print statement
+    print(f"Cancelled Subscription ID: {cancelled_subscription.id}")
+
     # Render HTML template
     template = env.get_template('cancellation_work_order_template.html')
     html_content = template.render(template_data)
@@ -93,7 +96,7 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
     # Save the PDF
-    filename = f"cancellation_work_order_{cancelled_subscription.owner_id}.pdf"
+    filename = f"cancellation_work_order_{cancelled_subscription.id}.pdf"
     file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         f.write(pdf)
@@ -165,6 +168,7 @@ async def cancel_subscription(request: CancellationCreate, db: Session = Depends
     )
 
     db.add(cancelled_subscription)
+    db.flush()  # This should populate the ID
 
     # Create subscription history entry
     subscription_history_entry = Subscription_history(

@@ -278,6 +278,24 @@ async def delete_vehicle_endpoint(
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
+    # Create a history entry before deleting the vehicle
+    history_entry = Vehicles_history(
+        lisence_plate=vehicle.lisence_plate,
+        brand=vehicle.brand,
+        model=vehicle.model,
+        vehicle_type=vehicle.vehicle_type,
+        owner_id=vehicle.owner_id,
+        documents=vehicle.documents,
+        observations=vehicle.observations,
+        registration_date=vehicle.registration_date,
+        created_by=vehicle.created_by,
+        modified_by=vehicle.modified_by,
+        modification_time=vehicle.modification_time
+    )
+    db.add(history_entry)
+    db.commit()  # Commit to save the history record before deletion
+    print(f"Created history entry for deleted vehicle: {license_plate}")
+
     # Delete associated documents from the server
     if vehicle.documents:
         current_documents = vehicle.documents.split(',')
@@ -305,4 +323,5 @@ async def delete_vehicle_endpoint(
     db.commit()
 
     return {"detail": "Vehicle and associated subscriptions deleted successfully"}
+
 

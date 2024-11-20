@@ -500,7 +500,6 @@ const handleChange = (e) => {
                 name="parkingLot"
                 value={selectedParkingLot}
                 onChange={handleChange}
-                required
                 disabled={isUser}
             >
                 <option value="">Select Parking Lot</option>

@@ -581,7 +581,7 @@ async def edit_subscription_endpoint(
         # Generate work order if needed
         if changes or new_documents or remove_documents:
             try:
-                work_order_filename = await generate_work_order_pdf(subscription, db, old_license_plates)
+                work_order_filename = await generate_work_order_modification_pdf(subscription, db, old_license_plates)
                 if subscription.documents:
                     document_filenames = subscription.documents.split(",")
                     if work_order_filename not in document_filenames:
@@ -751,6 +751,100 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
     return filename  # Return only the filename
 
 
+async def generate_work_order_modification_pdf(subscription: Subscriptions, db: Session, old_license_plates: dict):
+    # Fetch owner information
+    owner = get_owner_by_dni(db=db, owner_dni=subscription.owner_id)
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
+
+    # Fetch vehicle information
+    vehicle = get_vehicle(db=db, lisence_plate=subscription.lisence_plate1)
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+        # Fetch subscription type information
+    subscription_type = db.query(Subscription_types).filter(
+        Subscription_types.id == subscription.subscription_type_id).first()
+    if not subscription_type:
+        raise HTTPException(status_code=404, detail="Subscription type not found")
+
+    # Initialize license plate change information
+    old_license_plate = []
+    new_license_plate = []
+
+    # Check for license plate changes
+    for plate_num in range(1, 4):
+        plate_field = f'lisence_plate{plate_num}'
+        old_value = old_license_plates.get(plate_field)
+        new_value = getattr(subscription, plate_field)
+        if old_value is not None and old_value != new_value:
+            if old_value:
+                old_license_plate.append(old_value)
+            if new_value:
+                new_license_plate.append(new_value)
+
+    # Prepare data for the template
+    template_data = {
+        'order_no': f"{subscription.id}/24",
+        'date': datetime.now().strftime('%m/%d/%Y') or '',
+        'vehicle_type': vehicle.vehicle_type.upper(),
+        'effective_date': subscription.effective_date.strftime('%m/%d/%Y') or '',
+        'name_surname': f"{owner.first_name} {owner.last_name}",
+        'phone': owner.phone_number,
+        'email': owner.email,
+        'license_plate': subscription.lisence_plate1,
+        'parking_spot': subscription.parking_spot,
+        'card': subscription.access_card,
+        'remote': subscription.remote_control_number,
+        'license_plate1': subscription.lisence_plate1 or '',
+        'license_plate2': subscription.lisence_plate2 or '',
+        'license_plate3': subscription.lisence_plate3 or '',
+        'observations': subscription.observations or '',
+        'old_license_plate1': old_license_plates.get('lisence_plate1') or '',
+        'old_license_plate2': old_license_plates.get('lisence_plate2') or '',
+        'new_license_plate1': subscription.lisence_plate1 or '',
+        'new_license_plate2': subscription.lisence_plate2 or '',
+        'has_license_plate_changes': bool(new_license_plate),
+        'subscription_type_name': subscription_type.name or '',
+    }
+    # Render HTML template
+    template = env.get_template('modification_work_order_template.html')
+    html_content = template.render(template_data)
+
+    # Generate PDF
+    css = CSS(string='''
+        @page {
+            size: letter;
+            margin: 1cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        .checkbox {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 1px solid black;
+            margin-right: 5px;
+        }
+        .checked {
+            background-color: black;
+        }
+    ''')
+    pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
+
+    # Save the PDF
+    filename = f"work_order_modification_{subscription.id}.pdf"
+    file_path = UPLOAD_DIR / filename
+    with open(file_path, "wb") as f:
+        f.write(pdf)
+
+    return filename  # Return only the filename
+
+
 @router.get("/subscription/{subscription_id}", response_model=SubscriptionResponse)
 def get_subscription_endpoint(
         subscription_id: int,
@@ -911,3 +1005,20 @@ def delete_subscription(id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"detail": "Subscription deleted successfully"}
+
+
+@router.get("/vehicle/{license_plate}/check-subscription")
+def check_subscription(license_plate: str, db: Session = Depends(get_db)):
+    vehicle = db.query(Vehicles).filter(Vehicles.lisence_plate == license_plate).first()
+
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+
+    active_subscription = db.query(Subscriptions).filter(
+        (Subscriptions.lisence_plate1 == vehicle.lisence_plate) |
+        (Subscriptions.lisence_plate2 == vehicle.lisence_plate) |
+        (Subscriptions.lisence_plate3 == vehicle.lisence_plate)
+    ).first()
+
+    # Return true if there's an active subscription, false otherwise
+    return {"active": bool(active_subscription)}

@@ -163,7 +163,7 @@ class Subscription_history(Base):
 
 class Cancellations(Base):
     __tablename__ = "cancellations"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     owner_id = Column(String, ForeignKey("owners.dni"), nullable=False)
     subscription_id = Column(Integer, ForeignKey("subscriptions.id"),
                              nullable=False)  # Reference to the canceled subscription
