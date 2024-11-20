@@ -17,6 +17,7 @@ export const createOwner = async (ownerData) => {
         form.append('phone_number', ownerData.phone_number || ''); // Optional field
         form.append('created_by', ownerData.created_by);
         form.append('modified_by', ownerData.modified_by || '');
+        form.append('reduced_mobility_expiration', ownerData.reduced_mobility_expiration);
         // Ensure documents field exists and is an array
         if (Array.isArray(ownerData.documents)) {
             ownerData.documents.forEach((file, index) => {

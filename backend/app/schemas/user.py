@@ -67,6 +67,7 @@ class OwnersCreate(BaseModel):
     sage_client_number: Optional[str]
     phone_number: Optional[str] = None
     registration_date: Optional[datetime] = None  # Automatically set in DB
+    reduced_mobility_expiration: Optional[datetime] = None
     created_by: str
     modified_by: Optional[str] = None
     modification_time: Optional[datetime] = None  # Automatically set in DB
@@ -84,6 +85,7 @@ class OwnersResponse(BaseModel):
     sage_client_number: Optional[str]
     phone_number: Optional[str] = None
     registration_date: datetime
+    reduced_mobility_expiration: Optional[datetime] = None
     created_by: str
     modified_by: Optional[str] = None
     modification_time: Optional[datetime] = None  # Automatically set in DB

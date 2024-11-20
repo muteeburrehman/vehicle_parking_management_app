@@ -41,6 +41,7 @@ class Owners(Base):
     sage_client_number = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
     registration_date = Column(DateTime, default=datetime.now, nullable=False)
+    reduced_mobility_expiration = Column(DateTime, nullable=True)
 
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
@@ -62,6 +63,7 @@ class Owners_history(Base):
     sage_client_number = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
     registration_date = Column(DateTime, nullable=False)
+    reduced_mobility_expiration = Column(DateTime, nullable=True)
 
     created_by = Column(String, nullable=False)
     modified_by = Column(String, nullable=True)

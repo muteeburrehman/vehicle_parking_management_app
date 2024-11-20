@@ -14,6 +14,7 @@ class OwnerHistoryCreate(BaseModel):
     sage_client_number: Optional[str]
     phone_number: Optional[str]
     registration_date: datetime
+    reduced_mobility_expiration: Optional[datetime]
     created_by: str
     modified_by: Optional[str] = None
     modification_time: Optional[datetime] = None
@@ -33,6 +34,7 @@ class OwnerHistoryResponse(BaseModel):
     sage_client_number: Optional[str]
     phone_number: Optional[str]
     registration_date: datetime
+    reduced_mobility_expiration: Optional[datetime]
     created_by: str
     modified_by: Optional[str] = None
     modification_time: Optional[datetime] = None

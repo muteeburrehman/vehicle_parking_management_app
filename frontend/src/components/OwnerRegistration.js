@@ -18,6 +18,7 @@ const OwnerRegistration = () => {
         last_name: '',
         email: '',
         bank_account_number: '',
+        reduced_mobility_expiration: '',
         phone_number: '',
         observations: '',
     });
@@ -175,6 +176,7 @@ const OwnerRegistration = () => {
                 sage_client_number: '',
                 phone_number: '',
                 observations: '',
+                reduced_mobility_expiration: ''
             });
             setDocumentPreviews([]);
             setDocuments([]);
@@ -238,7 +240,7 @@ const OwnerRegistration = () => {
                     </Col>
                 </Row>
                 <Row className="mb-3">
-                    <Col md={6}>
+                    <Col md={4}>
                         <Form.Group controlId="owner_formLastName">
                             <Form.Label>Last Name</Form.Label>
                             <Form.Control
@@ -255,7 +257,7 @@ const OwnerRegistration = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
-                    <Col md={6}>
+                    <Col md={4}>
                         <Form.Group controlId="owner_formEmail">
                             <Form.Label>Email</Form.Label>
                             <Form.Control
@@ -269,6 +271,19 @@ const OwnerRegistration = () => {
                             <Form.Control.Feedback type="invalid">
                                 {validationErrors.email}
                             </Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+
+                    <Col md={4}>
+                        <Form.Group controlId="formReducedMobilityExpiration" className="mb-3">
+                            <Form.Label>Reduced Mobility Expiration</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="reduced_mobility_expiration"
+                                value={ownerData.reduced_mobility_expiration}
+                                onChange={handleInputChange}
+
+                            />
                         </Form.Group>
                     </Col>
                 </Row>

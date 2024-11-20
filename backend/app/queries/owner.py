@@ -23,6 +23,7 @@ def create_owner(db: Session, owner: OwnersCreate, document_filenames: List[str]
         sage_client_number=owner.sage_client_number,
         phone_number=owner.phone_number,
         registration_date=datetime.now(),
+        reduced_mobility_expiration=owner.reduced_mobility_expiration,
         created_by=owner.created_by,
         modified_by=owner.modified_by,
     )
@@ -53,6 +54,7 @@ def get_all_owners(db):
             sage_client_number=owner.sage_client_number,
             phone_number=owner.phone_number,
             registration_date=owner.registration_date,
+            reduced_mobility_expiration=owner.reduced_mobility_expiration,
             created_by=owner.created_by,
             modified_by=owner.modified_by,
             modification_time=owner.modification_time,
@@ -64,7 +66,7 @@ def get_all_owners(db):
 
 def get_owner_by_dni(db:Session, owner_dni: str):
     sql = text("""
-    SELECT dni, first_name, last_name, email, documents, observations, bank_account_number,sage_client_number,phone_number, registration_date, created_by, modified_by, modification_time
+    SELECT dni, first_name, last_name, email, documents, observations, bank_account_number,sage_client_number,phone_number, registration_date, reduced_mobility_expiration, created_by, modified_by, modification_time
     FROM owners
     WHERE dni = :owner_dni
     """)

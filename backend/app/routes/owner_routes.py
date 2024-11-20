@@ -21,6 +21,19 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+def convert_str_to_datetime(date_str: Optional[str]) -> Optional[datetime]:
+    """Convert string date to datetime object."""
+    if not date_str:
+        return None
+    try:
+        # Assuming date string comes in format 'YYYY-MM-DD'
+        return datetime.strptime(date_str, '%Y-%m-%d')
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid date format for effective_date. Expected YYYY-MM-DD, got: {date_str}"
+        )
+
 @router.post("/owner/", response_model=OwnersResponse)
 async def create_owner_endpoint(
         dni: str = Form(...),
@@ -31,6 +44,7 @@ async def create_owner_endpoint(
         bank_account_number: str = Form(...),
         sage_client_number: Optional[str] = Form(None),
         phone_number: Optional[str] = Form(None),
+        reduced_mobility_expiration: Optional[str] = Form(None),
         documents: List[UploadFile] = File([]),
         created_by: str = Form(...),
         db: Session = Depends(get_db)
@@ -42,6 +56,8 @@ async def create_owner_endpoint(
             file_object.write(await document.read())
         document_filenames.append(file_location)
 
+    reduced_mobility_expiration_date = convert_str_to_datetime(reduced_mobility_expiration)
+
     owner_data = OwnersCreate(
         dni=dni,
         first_name=first_name,
@@ -52,6 +68,7 @@ async def create_owner_endpoint(
         sage_client_number=sage_client_number,
         phone_number=phone_number,
         registration_date=datetime.now(),
+        reduced_mobility_expiration=reduced_mobility_expiration_date,
         created_by=created_by,
     )
 
@@ -69,6 +86,7 @@ async def create_owner_endpoint(
         sage_client_number=new_owner.sage_client_number,
         phone_number=new_owner.phone_number,
         registration_date=new_owner.registration_date,
+        reduced_mobility_expiration=new_owner.reduced_mobility_expiration,
         created_by=new_owner.created_by,
     )
     db.add(history_entry)
@@ -86,6 +104,7 @@ async def create_owner_endpoint(
         sage_client_number=new_owner.sage_client_number,
         phone_number=new_owner.phone_number,
         registration_date=new_owner.registration_date,
+        reduced_mobility_expiration=new_owner.reduced_mobility_expiration,
         created_by=new_owner.created_by,
         modified_by=new_owner.modified_by
     )
@@ -150,6 +169,7 @@ async def edit_owner_endpoint(
     remove_documents: List[str] = Form([]),
     created_by: Optional[str] = Form(None),
     modified_by: Optional[str] = Form(None),
+    reduced_mobility_expiration: Optional[str] = Form(None),
     modification_time: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
@@ -175,6 +195,12 @@ async def edit_owner_endpoint(
             changes.append((field_name, old_value, new_value))
             print(f"Updated {field_name}: {new_value}")
 
+    if reduced_mobility_expiration is not None:
+        try:
+            converted_date = convert_str_to_datetime(reduced_mobility_expiration)
+            update_field('reduced_mobility_expiration', converted_date)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid reduced_mobility_expiration format: {str(e)}")
     # Update the owner fields if they are provided
     update_field('first_name', first_name)
     update_field('last_name', last_name)
@@ -215,6 +241,7 @@ async def edit_owner_endpoint(
             sage_client_number=owner.sage_client_number,
             phone_number=owner.phone_number,
             registration_date=owner.registration_date,
+            reduced_mobility_expiration=owner.reduced_mobility_expiration,
             created_by=owner.created_by,
             modified_by=owner.modified_by,
             modification_time=owner.modification_time
@@ -239,6 +266,7 @@ async def edit_owner_endpoint(
         sage_client_number=owner.sage_client_number,
         phone_number=owner.phone_number,
         registration_date=owner.registration_date,
+        reduced_mobility_expiration=owner.reduced_mobility_expiration,
         created_by=owner.created_by,
         modified_by=owner.modified_by,
         modification_time=owner.modification_time,
@@ -263,6 +291,7 @@ def get_owner_endpoint(owner_dni: str, db: Session = Depends(get_db)):
         'sage_client_number': owner.sage_client_number,
         'phone_number': owner.phone_number,
         'registration_date': owner.registration_date,
+        'reduced_mobility_expiration': owner.reduced_mobility_expiration,
         'created_by': owner.created_by,
         'modified_by': owner.modified_by,
         'modification_time':owner.modification_time,
