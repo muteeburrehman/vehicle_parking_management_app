@@ -89,19 +89,6 @@ const CancellationDetailEdit = () => {
         return subType ? subType.name : 'Unknown';
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleString([], {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-        });
-    };
 
     const handleDocumentChange = (event) => {
         const file = event.target.files[0];
@@ -282,10 +269,19 @@ const CancellationDetailEdit = () => {
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Effective Date</Form.Label>
-                                    <Form.Control type="text" value={formatDate(cancellation.effective_date)} disabled/>
+                                    <Form.Control type="text" value={cancellation.effective_date.split('T')[0]} disabled/>
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Large Family Expiration</Form.Label>
+                                    <Form.Control type="text" value={cancellation.large_family_expiration.split('T')[0]} disabled/>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Effective Cancellation Date</Form.Label>
+                                    <Form.Control type="text" value={cancellation.effective_cancellation_date.split('T')[0] || ''}  disabled/>
+                                </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>License Plate 1</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate1 || 'N/A'} disabled/>

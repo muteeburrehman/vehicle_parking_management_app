@@ -157,34 +157,39 @@ const SubscriptionHistoryDetail = () => {
                         <Col md={6}>
                             <Table responsive striped hover>
                                 <tbody>
-                                    <tr>
-                                        <td><strong>Remote Control Number:</strong></td>
-                                        <td>{history.remote_control_number}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Observations:</strong></td>
-                                        <td>{history.observations}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Registration Date:</strong></td>
-                                        <td>{formatDateTime(history.registration_date)}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Parking Spot:</strong></td>
-                                        <td>{history.parking_spot}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Created By:</strong></td>
-                                        <td>{history.created_by}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Modified By:</strong></td>
-                                        <td>{history.modified_by}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Modification Time:</strong></td>
-                                        <td>{formatDateTime(history.modification_time)}</td>
-                                    </tr>
+                                <tr>
+                                    <td><strong>Remote Control Number:</strong></td>
+                                    <td>{history.remote_control_number}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Observations:</strong></td>
+                                    <td>{history.observations}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Registration Date:</strong></td>
+                                    <td>{formatDateTime(history.registration_date)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Parking Spot:</strong></td>
+                                    <td>{history.parking_spot}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created By:</strong></td>
+                                    <td>{history.created_by}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Modified By:</strong></td>
+                                    <td>{history.modified_by}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Modification Time:</strong></td>
+                                    <td>{formatDateTime(history.modification_time)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Large Family Expiration:</strong></td>
+                                    <td>{(history.large_family_expiration.split('T')[0])}</td>
+                                </tr>
+
                                 </tbody>
                             </Table>
                         </Col>

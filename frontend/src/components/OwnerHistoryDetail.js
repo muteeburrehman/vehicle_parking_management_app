@@ -96,7 +96,7 @@ const OwnerHistoryDetail = () => {
                                 </tr>
                                 <tr>
                                     <td><strong>Last Name:</strong></td>
-                                    <td>{history.last_name }</td>
+                                    <td>{history.last_name}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Email</strong></td>
@@ -109,6 +109,11 @@ const OwnerHistoryDetail = () => {
                                 <tr>
                                     <td><strong>Bank Account Number</strong></td>
                                     <td>{history.bank_account_number}</td>
+                                </tr>
+
+                                <tr>
+                                    <td><strong>Reduced Mobility Expiration</strong></td>
+                                    <td>{history.reduced_mobility_expiration.split('T')[0]}</td>
                                 </tr>
 
                                 </tbody>
