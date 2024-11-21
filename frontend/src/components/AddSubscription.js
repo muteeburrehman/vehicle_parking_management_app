@@ -26,6 +26,7 @@ const AddSubscription = () => {
     const [documents, setDocuments] = useState([]);
     const [availablePlates, setAvailablePlates] = useState([]);
     const [effectiveDate, setEffectiveDate] = useState(''); // New state for effective date
+    const [largeFamilyExpiration, setLargeFamilyExpiration] = useState('');
 
     const [parkingLots, setParkingLots] = useState([]);
     const [selectedParkingLot, setSelectedParkingLot] = useState('');
@@ -57,7 +58,7 @@ const AddSubscription = () => {
         getVehicles();
     }, [ownerId]);
 
-      // Filter subscription types when parking lot changes
+    // Filter subscription types when parking lot changes
     useEffect(() => {
         if (selectedParkingLot && subscriptionTypes) {
             const filtered = subscriptionTypes.filter(type =>
@@ -216,6 +217,7 @@ const AddSubscription = () => {
             parking_spot: parkingSpot || null,
             parking_lot: selectedParkingLot, // Add selectedParkingLot here
             effective_date: effectiveDate, // Add effective date to the payload
+            large_family_expiration: largeFamilyExpiration,
             created_by: user.email,
             modified_by: ''
         };
@@ -239,6 +241,7 @@ const AddSubscription = () => {
             setObservations('');
             setParkingSpot('');
             setEffectiveDate('');
+            setLargeFamilyExpiration('')
             // Navigate back to the subscription list
             navigate('/subscription-list');
         } catch (error) {
@@ -302,6 +305,8 @@ const AddSubscription = () => {
                             />
                         </Form.Group>
                     </Col>
+
+
                 </Row>
                 <Row>
                     <Col md={6}>
@@ -316,7 +321,7 @@ const AddSubscription = () => {
                         </Form.Group>
                     </Col>
 
-                    <Col md={3}>
+                    <Col md={6}>
                         <Form.Group controlId="formEffectiveDate" className="mb-3">
                             <Form.Label>Effective Date:</Form.Label>
                             <Form.Control
@@ -341,11 +346,22 @@ const AddSubscription = () => {
                             />
                         </Form.Group>
                     </Col>
+
+                    <Col md={6}>
+                        <Form.Group controlId="formLargeFamilyExpiration" className="mb-3">
+                            <Form.Label>Large Family Expiration:</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={largeFamilyExpiration}
+                                onChange={(e) => setLargeFamilyExpiration(e.target.value)}
+                            />
+                        </Form.Group>
+                    </Col>
                 </Row>
                 {ownerError && <Alert variant="danger" className="mt-2">{ownerError}</Alert>}
 
                 {/* Subscription Type Selection */}
-                   <Row>
+                <Row>
                     <Col md={6}>
                         <Form.Group controlId="formParkingLot" className="mb-3">
                             <Form.Label>Parking Lot:</Form.Label>

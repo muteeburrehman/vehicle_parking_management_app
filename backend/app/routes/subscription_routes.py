@@ -202,6 +202,7 @@ async def create_subscription_endpoint(
         remote_control_number: Optional[str] = Form(None),
         observations: Optional[str] = Form(None),
         effective_date: Optional[str] = Form(None),
+        large_family_expiration: Optional[str] = Form(None),
         parking_spot: Optional[str] = Form(None),
         created_by: str = Form(...),
         modified_by: str = Form(None),
@@ -212,8 +213,13 @@ async def create_subscription_endpoint(
         print(f"Received request to create subscription for owner_id: {owner_id}")
         print(f"Received {len(documents)} documents")
 
+        print("LargeFamilyExpiration", large_family_expiration)
+
         # Convert effective_date string to datetime
         effective_datetime = convert_str_to_datetime(effective_date)
+
+        # Convert large_family_expiration string to datetime
+        large_family_expiration_date = convert_str_to_datetime(large_family_expiration)
 
         # 1. Check if owner_id exists
         owner = db.query(Owners).filter(Owners.dni == owner_id).first()
@@ -272,6 +278,7 @@ async def create_subscription_endpoint(
             remote_control_number=remote_control_number,
             observations=observations,
             effective_date=effective_datetime,  # Use converted datetime
+            large_family_expiration=large_family_expiration_date,
             parking_spot=parking_spot,
             registration_date=datetime.now(),
             created_by=created_by,
@@ -333,6 +340,7 @@ async def create_subscription_endpoint(
             remote_control_number=new_subscription.remote_control_number,
             observations=new_subscription.observations,
             effective_date=new_subscription.effective_date,
+            large_family_expiration=large_family_expiration_date,
             parking_spot=new_subscription.parking_spot,
             registration_date=new_subscription.registration_date,
             created_by=new_subscription.created_by,
@@ -354,6 +362,7 @@ async def create_subscription_endpoint(
             remote_control_number=new_subscription.remote_control_number,
             observations=new_subscription.observations,
             effective_date=new_subscription.effective_date,
+            large_family_expiration=new_subscription.large_family_expiration,
             parking_spot=new_subscription.parking_spot,
             registration_date=new_subscription.registration_date,
             created_by=created_by,
@@ -423,6 +432,7 @@ async def edit_subscription_endpoint(
         remote_control_number: Optional[str] = Form(default=None),
         observations: Optional[str] = Form(default=None),
         effective_date: Optional[str] = Form(default=None),
+        large_family_expiration: Optional[str] = Form(default=None),
         parking_spot: Optional[str] = Form(default=None),
         created_by: Optional[str] = Form(default=None),
         modified_by: Optional[str] = Form(default=None),
@@ -477,6 +487,13 @@ async def edit_subscription_endpoint(
                 update_field('effective_date', converted_date)
             except Exception as e:
                 raise HTTPException(status_code=400, detail=f"Invalid effective_date format: {str(e)}")
+
+        if large_family_expiration is not None:
+            try:
+                converted_date = convert_str_to_datetime(large_family_expiration)
+                update_field('large_family_expiration', converted_date)
+            except Exception as e:
+                raise HTTPException(status_code=400, detail=f"Invalid large_family_expiration format: {str(e)}")
 
         # Update modified_by
         if modified_by is not None:
@@ -621,6 +638,8 @@ async def edit_subscription_endpoint(
                     tique_x_park=subscription.tique_x_park,
                     remote_control_number=subscription.remote_control_number,
                     observations=subscription.observations,
+                    effective_date=subscription.effective_date,
+                    large_family_expiration=subscription.large_family_expiration,
                     registration_date=subscription.registration_date,
                     parking_spot=subscription.parking_spot,
                     modification_time=subscription.modification_time,
@@ -647,6 +666,7 @@ async def edit_subscription_endpoint(
             observations=subscription.observations,
             registration_date=subscription.registration_date,
             effective_date=subscription.effective_date,
+            large_family_expiration=subscription.large_family_expiration,
             parking_spot=subscription.parking_spot,
             created_by=subscription.created_by,
             modified_by=subscription.modified_by,
@@ -868,6 +888,7 @@ def get_subscription_endpoint(
         'remote_control_number': subscription.remote_control_number,
         'observations': subscription.observations,
         'effective_date': subscription.effective_date,
+        'large_family_expiration': subscription.large_family_expiration,
         'parking_spot': subscription.parking_spot,
         'registration_date': subscription.registration_date,
         'created_by': subscription.created_by,

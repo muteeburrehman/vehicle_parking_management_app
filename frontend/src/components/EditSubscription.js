@@ -1,4 +1,3 @@
-
 import React, {useEffect, useRef, useState} from 'react';
 import {Col, Row} from 'react-bootstrap';
 import {useParams, useNavigate} from 'react-router-dom';
@@ -45,6 +44,7 @@ const EditSubscription = () => {
         tique_x_park: '',
         remote_control_number: '',
         effective_date: '',
+        large_family_expiration: '',
         observations: '',
         parking_spot: '',
         created_by: '',
@@ -94,63 +94,68 @@ const EditSubscription = () => {
     }, []);
 
 
-useEffect(() => {
-    const fetchSubscription = async () => {
-        if (id) {
-            try {
-                const data = await fetchSubscriptionById(id);
+    useEffect(() => {
+        const fetchSubscription = async () => {
+            if (id) {
+                try {
+                    const data = await fetchSubscriptionById(id);
 
-                // Format the effective date if present
-                const formattedDate = data.effective_date
-                    ? data.effective_date.split('T')[0]
-                    : '';
+                    // Format the effective date if present
+                    const formattedEffectiveDate = data.effective_date
+                        ? data.effective_date.split('T')[0]
+                        : '';
 
-                const formattedData = {
-                    ...data,
-                    effective_date: formattedDate
-                };
+                    const formattedLargeFamilyExpiration = data.large_family_expiration
+                        ? data.large_family_expiration.split('T')[0]
+                        : '';
 
-                // Set initial data and selectedParkingLot
-                setFormData(formattedData);
-                setSelectedParkingLot(data.parking_lot || '');
+                    const formattedData = {
+                        ...data,
+                        effective_date: formattedEffectiveDate,
+                        large_family_expiration: formattedLargeFamilyExpiration // Updated field name
+                    };
 
-                // Initial filtered subscription types based on the loaded parking lot
-                const initialFilteredTypes = subscriptionTypes.filter(
-                    type => type.parking_lot_name === data.parking_lot
-                );
-                setFilteredSubscriptionTypes(initialFilteredTypes);
+                    // Set initial data and selectedParkingLot
+                    setFormData(formattedData);
+                    setSelectedParkingLot(data.parking_lot || '');
 
-                if (data.modification_time) {
-                    const formattedModTime = formatModificationTime(data.modification_time);
-                    setModificationTime(formattedModTime);
-                } else {
-                    setModificationTime('');
+                    // Initial filtered subscription types based on the loaded parking lot
+                    const initialFilteredTypes = subscriptionTypes.filter(
+                        type => type.parking_lot_name === data.parking_lot
+                    );
+                    setFilteredSubscriptionTypes(initialFilteredTypes);
+
+                    if (data.modification_time) {
+                        const formattedModTime = formatModificationTime(data.modification_time);
+                        setModificationTime(formattedModTime);
+                    } else {
+                        setModificationTime('');
+                    }
+
+                    setModifiedBy(data.modified_by || '');
+
+                    if (data.owner_id) {
+                        fetchVehicles(data.owner_id);
+                        fetchOwnerInfo(data.owner_id);
+                    }
+
+                    if (data.documents) {
+                        const previews = data.documents.map(doc => ({
+                            name: doc.split('/').pop(),
+                            src: `${backendURL}/subscription_files/${encodeURIComponent(doc.split('/').pop())}`,
+                            isExisting: true,
+                        }));
+                        setDocumentPreviews(previews);
+                        setInitialDocuments(data.documents);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch subscription:', err.response?.detail || err.message);
                 }
-
-                setModifiedBy(data.modified_by || '');
-
-                if (data.owner_id) {
-                    fetchVehicles(data.owner_id);
-                    fetchOwnerInfo(data.owner_id);
-                }
-
-                if (data.documents) {
-                    const previews = data.documents.map(doc => ({
-                        name: doc.split('/').pop(),
-                        src: `${backendURL}/subscription_files/${encodeURIComponent(doc.split('/').pop())}`,
-                        isExisting: true,
-                    }));
-                    setDocumentPreviews(previews);
-                    setInitialDocuments(data.documents);
-                }
-            } catch (err) {
-                console.error('Failed to fetch subscription:', err.response?.detail || err.message);
             }
-        }
-    };
+        };
 
-    fetchSubscription();
-}, [id, fetchSubscriptionById, subscriptionTypes]);
+        fetchSubscription();
+    }, [id, fetchSubscriptionById, subscriptionTypes]);
 
 
     // Add new useEffect to filter subscription types based on parking lot
@@ -197,49 +202,47 @@ useEffect(() => {
         }
     };
 
-useEffect(() => {
-    const updatedFilteredTypes = selectedParkingLot
-        ? subscriptionTypes.filter(type =>
-            type.name.includes(selectedParkingLot)
-        )
-        : subscriptionTypes; // Show all if no parking lot is selected
+    useEffect(() => {
+        const updatedFilteredTypes = selectedParkingLot
+            ? subscriptionTypes.filter(type =>
+                type.name.includes(selectedParkingLot)
+            )
+            : subscriptionTypes; // Show all if no parking lot is selected
 
-    console.log("Selected Parking Lot:", selectedParkingLot);
-    console.log("Filtered Subscription Types:", updatedFilteredTypes);
+        console.log("Selected Parking Lot:", selectedParkingLot);
+        console.log("Filtered Subscription Types:", updatedFilteredTypes);
 
-    setFilteredSubscriptionTypes(updatedFilteredTypes);
+        setFilteredSubscriptionTypes(updatedFilteredTypes);
 
-    // Keep the selected subscription type if still valid, otherwise clear
-    setFormData(prev => ({
-        ...prev,
-        subscription_type_id: updatedFilteredTypes.some(type => type.id === prev.subscription_type_id)
-            ? prev.subscription_type_id
-            : '' // Clear if no longer valid
-    }));
-}, [selectedParkingLot, subscriptionTypes]);
-
-
+        // Keep the selected subscription type if still valid, otherwise clear
+        setFormData(prev => ({
+            ...prev,
+            subscription_type_id: updatedFilteredTypes.some(type => type.id === prev.subscription_type_id)
+                ? prev.subscription_type_id
+                : '' // Clear if no longer valid
+        }));
+    }, [selectedParkingLot, subscriptionTypes]);
 
 
 // Handle input changes
-const handleChange = (e) => {
-    const { name, value } = e.target;
+    const handleChange = (e) => {
+        const {name, value} = e.target;
 
-    if (name === 'parkingLot') {
-        setSelectedParkingLot(value);
+        if (name === 'parkingLot') {
+            setSelectedParkingLot(value);
 
-        // Clear subscription type if parking lot changes
-        setFormData(prev => ({
-            ...prev,
-            subscription_type_id: ''
-        }));
-    } else {
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    }
-};
+            // Clear subscription type if parking lot changes
+            setFormData(prev => ({
+                ...prev,
+                subscription_type_id: ''
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
 
     const handleLicensePlateChange = (e) => {
         const {name, value} = e.target;
@@ -356,6 +359,7 @@ const handleChange = (e) => {
                 lisence_plate2: formData.lisence_plate2 || '',
                 lisence_plate3: formData.lisence_plate3 || '',
                 effective_date: formData.effective_date || '',
+                large_family_expiration: formData.large_family_expiration || '',
                 new_documents: newDocuments,
                 remove_documents: removedDocuments,
                 existing_documents: existingDocuments,
@@ -481,7 +485,7 @@ const handleChange = (e) => {
                     </Col>
                 </Row>
                 <Row>
-                    <Col md={6}>
+                    <Col md={4}>
                         <Form.Group controlId="bank_account_number" className="mb-3">
                             <Form.Label>Bank Account:</Form.Label>
                             <Form.Control
@@ -491,53 +495,8 @@ const handleChange = (e) => {
                             />
                         </Form.Group>
                     </Col>
-                </Row>
-<Row>
-    <Col md={4}>
-        <Form.Group controlId="parkingLot" className="mb-3">
-            <Form.Label>Parking Lot:</Form.Label>
-            <Form.Select
-                name="parkingLot"
-                value={selectedParkingLot}
-                onChange={handleChange}
-                disabled={isUser}
-            >
-                <option value="">Select Parking Lot</option>
-                {parkingLots.map((lot) => (
-                    <option key={lot.id} value={lot.name}>
-                        {lot.name}
-                    </option>
-                ))}
-            </Form.Select>
-        </Form.Group>
-    </Col>
 
-    <Col md={4}>
-        <Form.Group controlId="subscription_type_id" className="mb-3">
-            <Form.Label>Subscription Type:</Form.Label>
-            <Form.Select
-                name="subscription_type_id"
-                value={formData.subscription_type_id || ''}
-                onChange={handleChange}
-                isInvalid={!!validationErrors.subscription_type_id}
-                required
-                disabled={isUser || !selectedParkingLot}
-            >
-                <option value="">Select Subscription Type</option>
-                {filteredSubscriptionTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                        {type.name} - ${type.price}
-                    </option>
-                ))}
-            </Form.Select>
-            <Form.Control.Feedback type="invalid">
-                {validationErrors.subscription_type_id}
-            </Form.Control.Feedback>
-        </Form.Group>
-    </Col>
-</Row>
-                <Row>
-                    <Col md={3}>
+                    <Col md={4}>
                         <Form.Group controlId="effective_date" className="mb-3">
                             <Form.Label>Effective Date</Form.Label>
                             <Form.Control
@@ -550,7 +509,25 @@ const handleChange = (e) => {
                             />
                         </Form.Group>
                     </Col>
-                    <Col md={3}>
+
+                    <Col md={4}>
+                        <Form.Group controlId="large_family_expiration" className="mb-3">
+                            <Form.Label>Large Family Expiration Date</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="large_family_expiration"
+                                value={formData.large_family_expiration || ''}
+                                onChange={handleChange}
+                                readOnly={isUser}
+                                onFocus={(e) => console.log('Large family expiration date field value:', e.target.value)}
+                            />
+                        </Form.Group>
+                    </Col>
+
+
+                </Row>
+                <Row>
+                    <Col md={4}>
                         <Form.Group controlId="access_card" className="mb-3">
 
                             <Form.Label>Access Card:</Form.Label>
@@ -564,6 +541,54 @@ const handleChange = (e) => {
 
                         </Form.Group>
                     </Col>
+
+                    <Col md={4}>
+                        <Form.Group controlId="parkingLot" className="mb-3">
+                            <Form.Label>Parking Lot:</Form.Label>
+                            <Form.Select
+                                name="parkingLot"
+                                value={selectedParkingLot}
+                                onChange={handleChange}
+                                disabled={isUser}
+                            >
+                                <option value="">Select Parking Lot</option>
+                                {parkingLots.map((lot) => (
+                                    <option key={lot.id} value={lot.name}>
+                                        {lot.name}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+                    </Col>
+
+                    <Col md={4}>
+                        <Form.Group controlId="subscription_type_id" className="mb-3">
+                            <Form.Label>Subscription Type:</Form.Label>
+                            <Form.Select
+                                name="subscription_type_id"
+                                value={formData.subscription_type_id || ''}
+                                onChange={handleChange}
+                                isInvalid={!!validationErrors.subscription_type_id}
+                                required
+                                disabled={isUser || !selectedParkingLot}
+                            >
+                                <option value="">Select Subscription Type</option>
+                                {filteredSubscriptionTypes.map((type) => (
+                                    <option key={type.id} value={type.id}>
+                                        {type.name} - ${type.price}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                {validationErrors.subscription_type_id}
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+
+
+                </Row>
+                <Row>
+
                 </Row>
                 <Row>
                     {['lisence_plate1', 'lisence_plate2', 'lisence_plate3'].map((plate, index) => (

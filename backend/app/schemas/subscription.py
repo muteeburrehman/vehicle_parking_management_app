@@ -37,6 +37,7 @@ class SubscriptionCreate(BaseModel):
     remote_control_number: Optional[str]
     observations: Optional[str]
     effective_date: Optional[datetime]
+    large_family_expiration: Optional[datetime]
     parking_spot: Optional[str]
     created_by: str
     modified_by: Optional[str] = None
@@ -61,6 +62,7 @@ class SubscriptionResponse(BaseModel):
     remote_control_number: Optional[str]
     observations: Optional[str]
     effective_date: Optional[datetime]
+    large_family_expiration: Optional[datetime]
     registration_date: datetime
     parking_spot: Optional[str]
     created_by: str
