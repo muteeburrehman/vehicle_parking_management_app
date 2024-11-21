@@ -935,7 +935,8 @@ async def export_subscriptions(
         'owner_email': 'Correo Electrónico del Propietario',
         'owner_phone_number': 'Número de Teléfono del Propietario',
         'subscription_type_name': 'Nombre del Tipo de Suscripción',
-        'subscription_type_parking_code': 'Código de Estacionamiento'
+        'subscription_type_parking_code': 'Código de Estacionamiento',
+        'Large Family Expiration': 'vencimiento familia numerosa'
     }
 
     for subscription in subscriptions:
