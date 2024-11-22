@@ -363,7 +363,7 @@ async def update_cancellation(
 async def upload_document(file: UploadFile = File(...)):
     try:
         # Create a more readable unique filename
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d")
         filename = f"{timestamp}_{file.filename}"
 
         # Rest of the code remains the same
