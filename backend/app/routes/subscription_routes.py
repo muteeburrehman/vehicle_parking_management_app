@@ -1044,3 +1044,35 @@ def check_subscription(license_plate: str, db: Session = Depends(get_db)):
 
     # Return true if there's an active subscription, false otherwise
     return {"active": bool(active_subscription)}
+
+
+@router.get("/subscriptions/large-family", response_model=List[SubscriptionResponse])
+def get_large_family_subscriptions(db: Session = Depends(get_db)):
+    query = db.query(Subscriptions).filter(Subscriptions.large_family_expiration.isnot(None))
+    subscriptions = query.all()
+
+    subscription_list = []
+    for subscription in subscriptions:
+        subscription_data = {
+            'id': subscription.id,
+            'owner_id': subscription.owner_id,
+            'subscription_type_id': subscription.subscription_type_id,
+            'access_card': subscription.access_card,
+            'lisence_plate1': subscription.lisence_plate1,
+            'lisence_plate2': subscription.lisence_plate2,
+            'lisence_plate3': subscription.lisence_plate3,
+            'documents': subscription.documents.split(',') if subscription.documents else [],
+            'tique_x_park': subscription.tique_x_park,
+            'remote_control_number': subscription.remote_control_number,
+            'observations': subscription.observations,
+            'effective_date': subscription.effective_date,
+            'large_family_expiration': subscription.large_family_expiration,
+            'parking_spot': subscription.parking_spot,
+            'registration_date': subscription.registration_date,
+            'created_by': subscription.created_by,
+            'modified_by': subscription.modified_by,
+            'modification_time': subscription.modification_time
+        }
+        subscription_list.append(subscription_data)
+
+    return subscription_list

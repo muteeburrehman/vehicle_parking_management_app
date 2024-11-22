@@ -44,6 +44,8 @@ import ParkingLotList from "./components/ParkingLotList";
 import ParkingLotListAndEdit from "./components/ParkingLotListAndEdit";
 import ApproveCancellationList from "./components/ApproveCancellationList";
 import ApprovedCancellationDetail from "./components/ApprovedCancellationDetail";
+import ReducedMobilityList from "./components/ReducedMobilityList";
+import LargeFamilyList from "./components/LargeFamilyList";
 
 const NotFound = () => (
     <Container className="mt-5">
@@ -228,6 +230,16 @@ function App() {
                                 <Route
                                     path="/approved-cancellation-detail/:id"
                                     element={<ProtectedRoute><ApprovedCancellationDetail/></ProtectedRoute>}
+                                />
+
+                                <Route
+                                    path="/owners/reduced-mobility"
+                                    element={<ProtectedRoute><ReducedMobilityList/></ProtectedRoute>}
+                                />
+
+                                <Route
+                                    path="/subscriptions/large-family"
+                                    element={<ProtectedRoute><LargeFamilyList/></ProtectedRoute>}
                                 />
 
                                 <Route path="*" element={<NotFound/>}/>

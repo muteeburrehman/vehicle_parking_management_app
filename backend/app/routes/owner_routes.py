@@ -339,3 +339,33 @@ async def delete_owner_endpoint(dni: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"detail": "Owner and associated vehicles and subscriptions deleted successfully"}
+
+
+@router.get("/owners/reduced-mobility", response_model=list[OwnersResponse])
+def get_reduced_mobility_owners(db: Session = Depends(get_db)):
+    # Get only owners with reduced mobility expiration dates
+    query = db.query(Owners).filter(Owners.reduced_mobility_expiration.isnot(None))
+    owners = query.all()
+
+    # Convert the owners to a list of dictionaries and handle the documents field
+    owner_list = []
+    for owner in owners:
+        owner_data = {
+            'dni': owner.dni,
+            'first_name': owner.first_name,
+            'last_name': owner.last_name,
+            'email': owner.email,
+            'documents': owner.documents.split(',') if owner.documents else [],  # Convert string to list or empty list
+            'observations': owner.observations,
+            'bank_account_number': owner.bank_account_number,
+            'sage_client_number': owner.sage_client_number,
+            'phone_number': owner.phone_number,
+            'registration_date': owner.registration_date,
+            'reduced_mobility_expiration': owner.reduced_mobility_expiration,
+            'created_by': owner.created_by,
+            'modified_by': owner.modified_by,
+            'modification_time': owner.modification_time,
+        }
+        owner_list.append(owner_data)
+
+    return owner_list

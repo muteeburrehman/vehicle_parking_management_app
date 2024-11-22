@@ -39,6 +39,8 @@ const Sidebar = () => {
       isSuperUser && { to: "/parking-lot/add", icon: "user-plus", text: "Add Parking Lot" },
       isSuperUser && {to:"/parking-lot-list", icon: "columns", text:"Parking Lot Edit"},
     isSuperUser && { to: "/parking-lot-stats", icon: "chart-line", text: "Parking Lot Stats" },
+    {to: "/owners/reduced-mobility", icon: "columns", text: "Reduced Mobility"},
+    {to: "/subscriptions/large-family", icon: "columns", text: "Large Family"}
   ].filter(Boolean);
 
   return (

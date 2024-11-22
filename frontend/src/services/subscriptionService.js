@@ -123,6 +123,15 @@ export const getSubscriptionById = async (id) => {
     }
 };
 
+export const fetchLargeFamilySubscriptions = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/subscriptions/large-family`);
+        return response.data;
+    } catch (error) {
+        handleAxiosError(error, 'Error fetching large family subscriptions');
+        throw error;
+    }
+};
 // Update an existing subscription
 export const updateSubscription = async (subscriptionData) => {
     try {

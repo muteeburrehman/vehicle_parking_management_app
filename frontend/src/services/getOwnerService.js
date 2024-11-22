@@ -27,6 +27,16 @@ export const fetchOwnerByDNI = async (dni) => {
     }
 };
 
+
+export const fetchReducedMobilityOwners = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/owners/reduced-mobility`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching reduced mobility owners:', error);
+        throw new Error(error.response?.data?.detail || 'Error fetching owners');
+    }
+};
 // Function to check if DNI exists
 export const checkDniExists = async (dni) => {
     try {
