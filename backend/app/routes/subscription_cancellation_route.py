@@ -362,18 +362,17 @@ async def update_cancellation(
 @router.post("/api/upload-document")
 async def upload_document(file: UploadFile = File(...)):
     try:
-        # Create a unique filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Create a more readable unique filename
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"{timestamp}_{file.filename}"
 
-        # Define the path where files will be saved
+        # Rest of the code remains the same
         save_path = "cancelled_subscription_files"
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
         file_path = os.path.join(save_path, filename)
 
-        # Save the file
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 

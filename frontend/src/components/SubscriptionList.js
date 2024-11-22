@@ -117,9 +117,10 @@ const SubscriptionList = () => {
                 case '12H':
                     return normalizedSubTypeName.includes('12H');
                 case 'MOTO':
-                    return normalizedSubTypeName.includes('MOTO');
+                    return normalizedSubTypeName.includes('MOTOS');
                 case 'COCHE':
-                    return normalizedSubTypeName.includes('COCHE');
+                    return (normalizedSubTypeName.includes('24H') || normalizedSubTypeName.includes('12H'))
+                        && !normalizedSubTypeName.includes('MOTOS');
                 case 'PROPIETARIO':
                     return normalizedOwnerType.includes('PROPIETARIO');
                 case 'PROPIETARIO(SERV.DEPASO)':
@@ -131,12 +132,13 @@ const SubscriptionList = () => {
         });
     }, [subscriptionTypes]);
 
-    const filteredSubscriptions = useMemo(() => {
+     const filteredSubscriptions = useMemo(() => {
         let result = [...subscriptions];
 
         if (searchTerm.trim() !== '') {
             const lowerSearchTerm = searchTerm.toLowerCase();
             result = result.filter(subscription => {
+                const owner = owners[subscription.owner_id] || {};
                 const licensePlates = [subscription.lisence_plate1, subscription.lisence_plate2, subscription.lisence_plate3]
                     .filter(Boolean)
                     .join(', ')
@@ -144,7 +146,9 @@ const SubscriptionList = () => {
 
                 return (
                     subscription.owner_id.toString().toLowerCase().includes(lowerSearchTerm) ||
-                    licensePlates.includes(lowerSearchTerm)
+                    licensePlates.includes(lowerSearchTerm) ||
+                    (owner.first_name || '').toLowerCase().includes(lowerSearchTerm) ||
+                    (owner.last_name || '').toLowerCase().includes(lowerSearchTerm)
                 );
             });
         }
@@ -155,7 +159,7 @@ const SubscriptionList = () => {
         }
 
         return result;
-    }, [activeFilters, searchTerm, subscriptions, matchesFilter]);
+    }, [activeFilters, searchTerm, subscriptions, matchesFilter, owners]);
 
     const handleExport = async () => {
         try {
@@ -241,7 +245,7 @@ const SubscriptionList = () => {
     };
 
     return (
-        <Container className="mt-5">
+          <Container className="mt-5">
             <h2 className="mb-4">Subscriptions</h2>
             <Button className="mb-3 me-2" variant="primary" onClick={handleAddNew}>
                 Add New Subscription
@@ -253,7 +257,7 @@ const SubscriptionList = () => {
             <Form className="mb-3">
                 <Form.Control
                     type="text"
-                    placeholder="Search by Owner ID or License Plate"
+                    placeholder="Search by DNI, Name, Surname, or License Plate"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -301,49 +305,49 @@ const SubscriptionList = () => {
                 filteredSubscriptions.length === 0 ? (
                     <Alert variant="info">No subscriptions available.</Alert>
                 ) : (
-                    <Table striped bordered hover>
-                        <thead>
-                        <tr>
-                            <th>DNI</th>
-                            <th>Name</th>
-                            <th>Last Name</th>
-                            <th>Subscription Type</th>
-                            <th>Email</th>
-                            <th>Telephone</th>
-                            <th>Observations</th>
-                            <th>Registration Date</th>
+                   <Table striped bordered hover>
+                <thead>
+                <tr>
+                    <th>DNI</th>
+                    <th>Name</th>
+                    <th>Last Name</th>
+                    <th>Subscription Type</th>
+                    <th>License Plates</th>
+                    <th>Email</th>
+                    <th>Telephone</th>
+                    <th>Observations</th>
+                    <th>Registration Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                {filteredSubscriptions.map((subscription) => {
+                    const subType = subscriptionTypes.find((type) => type.id === subscription.subscription_type_id);
+                    const owner = owners[subscription.owner_id] || {};
+
+                    return (
+                        <tr
+                            key={subscription.id}
+                            onClick={() => handleRowClick(subscription.id)}
+                            style={{cursor: 'pointer'}}
+                        >
+                            <td>{subscription.owner_id}</td>
+                            <td>{owner.first_name || 'Loading...'}</td>
+                            <td>{owner.last_name}</td>
+                            <td>{subType ? subType.name : 'Unknown'}</td>
+                            <td>
+                                {subscription.lisence_plate1}
+                                {subscription.lisence_plate2 && `, ${subscription.lisence_plate2}`}
+                                {subscription.lisence_plate3 && `, ${subscription.lisence_plate3}`}
+                            </td>
+                            <td>{owner.email || 'Loading...'}</td>
+                            <td>{owner.phone_number || 'N/A'}</td>
+                            <td>{subscription.observations}</td>
+                            <td>{formatDate(subscription.registration_date)}</td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        {filteredSubscriptions.map((subscription) => {
-                            const subType = subscriptionTypes.find((type) => type.id === subscription.subscription_type_id);
-                            const owner = owners[subscription.owner_id] || {};
-
-                            return (
-                                <tr
-                                    key={subscription.id}
-                                    onClick={() => handleRowClick(subscription.id)}
-                                    style={{cursor: 'pointer'}}
-                                >
-                                    <td>{subscription.owner_id}</td>
-                                    <td>{owner.first_name || 'Loading...'}</td>
-                                    <td>{owner.last_name}</td>
-                                    <td>{subType ? subType.name : 'Unknown'}</td>
-                                    <td>{owner.email || 'Loading...'}</td>
-
-                                    <td>{owner.phone_number || 'N/A'}</td>
-                                    {/*<td>*/}
-                                    {/*    {subscription.lisence_plate1}*/}
-                                    {/*    {subscription.lisence_plate2 && `, ${subscription.lisence_plate2}`}*/}
-                                    {/*    {subscription.lisence_plate3 && `, ${subscription.lisence_plate3}`}*/}
-                                    {/*</td>*/}
-                                    <td>{subscription.observations}</td>
-                                    <td>{formatDate(subscription.registration_date)}</td>
-                                </tr>
-                            );
-                        })}
-                        </tbody>
-                    </Table>
+                    );
+                })}
+                </tbody>
+            </Table>
                 )
             )}
 
