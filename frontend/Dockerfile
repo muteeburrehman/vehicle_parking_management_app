@@ -6,16 +6,19 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
-RUN npm install
-
-# Install required system dependencies
-RUN apk add --no-cache curl
+RUN npm install --omit=dev
 
 # Copy the rest of the frontend app
 COPY . .
 
+# Build the React app
+RUN npm run build
+
+# Install a static file server
+RUN npm install -g serve
+
 # Expose port 3000 for the frontend
 EXPOSE 3000
 
-# Start the React app
-CMD ["npm", "start"]
+# Serve the built frontend using "serve"
+CMD ["serve", "-s", "build", "-l", "3000"]

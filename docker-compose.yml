@@ -3,17 +3,16 @@ version: "3.8"
 services:
   backend:
     build:
-      context: ./backend  # Ensure Dockerfile is inside backend/
+      context: ./backend
       dockerfile: Dockerfile
     container_name: car_parking_backend
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app/db:/app/db  # Mount database directory
+      - ./backend/app/db:/app/db  # Ensure database.db is accessible inside /app/db
       - ./backend/app/subscription_files:/app/subscription_files
       - ./backend/app/vehicle_uploads:/app/vehicle_uploads
       - ./backend/app/cancelled_subscription_files:/app/cancelled_subscription_files
-      - ./backend/app/cancelled_subscription_files:/app/uploads
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
@@ -26,5 +25,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - backend  # Ensures backend starts first
+      - backend
+    env_file:
+      - ./frontend/.env.production  # Ensure production environment variables load
     restart: always
