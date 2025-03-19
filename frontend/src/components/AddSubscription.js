@@ -257,7 +257,7 @@ const AddSubscription = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="mb-4">Add Subscription</h2>
+            <h2 className="mb-4">Nuevo Abono</h2>
             <Form onSubmit={handleSubmit}>
                 <Row>
                     <Col md={3}>
@@ -274,23 +274,23 @@ const AddSubscription = () => {
                     </Col>
                     <Col md={3}>
                         <Form.Group controlId="formOwnerFirstName" className="mb-3">
-                            <Form.Label>First Name:</Form.Label>
+                            <Form.Label>Nombre:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerInfo?.first_name || ''}
                                 readOnly
-                                placeholder="First Name"
+                                placeholder="Nombre"
                             />
                         </Form.Group>
                     </Col>
                     <Col md={3}>
                         <Form.Group controlId="formOwnerLastName" className="mb-3">
-                            <Form.Label>Last Name:</Form.Label>
+                            <Form.Label>Apellidos:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerInfo?.last_name || ''}
                                 readOnly
-                                placeholder="Last Name"
+                                placeholder="Apellidos"
                             />
                         </Form.Group>
                     </Col>
@@ -311,19 +311,19 @@ const AddSubscription = () => {
                 <Row>
                     <Col md={6}>
                         <Form.Group controlId="formOwnerBankAccount" className="mb-3">
-                            <Form.Label>Bank Account:</Form.Label>
+                            <Form.Label>IBAN (Cuenta Bancaria):</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerInfo?.bank_account_number || ''}
                                 readOnly
-                                placeholder="Bank Account"
+                                placeholder="IBAN"
                             />
                         </Form.Group>
                     </Col>
 
                     <Col md={6}>
                         <Form.Group controlId="formEffectiveDate" className="mb-3">
-                            <Form.Label>Effective Date:</Form.Label>
+                            <Form.Label>Fecha de Efecto del Alta:</Form.Label>
                             <Form.Control
                                 type="date"
                                 value={effectiveDate}
@@ -337,19 +337,19 @@ const AddSubscription = () => {
                 <Row>
                     <Col md={6}>
                         <Form.Group controlId="AccessCard" className="mb-3">
-                            <Form.Label>Access Card:</Form.Label>
+                            <Form.Label>Nº de Tarjeta:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={accessCard}
                                 onChange={(e) => setAccessCard(e.target.value)}
-                                placeholder="Enter Access Card (optional)"
+                                placeholder="Nº de Tarjeta (opccional)"
                             />
                         </Form.Group>
                     </Col>
 
                     <Col md={6}>
                         <Form.Group controlId="formLargeFamilyExpiration" className="mb-3">
-                            <Form.Label>Large Family Expiration:</Form.Label>
+                            <Form.Label>Vencimiento Familia Numerosa(opcional):</Form.Label>
                             <Form.Control
                                 type="date"
                                 value={largeFamilyExpiration}
@@ -364,14 +364,14 @@ const AddSubscription = () => {
                 <Row>
                     <Col md={6}>
                         <Form.Group controlId="formParkingLot" className="mb-3">
-                            <Form.Label>Parking Lot:</Form.Label>
+                            <Form.Label>Aparcamiento:</Form.Label>
                             <Form.Control
                                 as="select"
                                 value={selectedParkingLot}
                                 onChange={(e) => setSelectedParkingLot(e.target.value)}
                                 required
                             >
-                                <option value="">Select Parking Lot</option>
+                                <option value="">Seleccione un Aparcamiento</option>
                                 {parkingLots.map((lot) => (
                                     <option key={lot.id} value={lot.name}>
                                         {lot.name}
@@ -383,7 +383,7 @@ const AddSubscription = () => {
 
                     <Col md={6}>
                         <Form.Group controlId="formSubscriptionType" className="mb-3">
-                            <Form.Label>Subscription Type:</Form.Label>
+                            <Form.Label>Tipo de Abono:</Form.Label>
                             <Form.Control
                                 as="select"
                                 value={subscriptionTypeId}
@@ -391,12 +391,12 @@ const AddSubscription = () => {
                                 required
                                 disabled={!selectedParkingLot}
                             >
-                                <option value="">Select Subscription Type</option>
+                                <option value="">Seleccione Tipo de Abono</option>
                                 {filteredSubscriptionTypes
                                     .sort((a, b) => a.name.localeCompare(b.name))
                                     .map((type) => (
                                         <option key={type.id} value={type.id}>
-                                            {type.name} - ${type.price}
+                                            {type.name} - €{type.price}
                                         </option>
                                     ))}
                             </Form.Control>
@@ -408,14 +408,14 @@ const AddSubscription = () => {
                 <Row>
                     <Col md={4}>
                         <Form.Group controlId="formLisencePlate1" className="mb-3">
-                            <Form.Label>License Plate 1:</Form.Label>
+                            <Form.Label>Matrícula 1:</Form.Label>
                             <Form.Control
                                 as="select"
                                 value={lisencePlate1}
                                 onChange={(e) => setLisencePlate1(e.target.value)}
                                 required
                             >
-                                <option value="">Select License Plate 1</option>
+                                <option value="">Seleccione Matrícula 1</option>
                                 {getAvailableOptions(lisencePlate1, [lisencePlate2, lisencePlate3]).map((plate) => (
                                     <option key={plate} value={plate}>
                                         {plate}
@@ -427,13 +427,13 @@ const AddSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="formLisencePlate2" className="mb-3">
-                            <Form.Label>License Plate 2:</Form.Label>
+                            <Form.Label>Matrícula 2:</Form.Label>
                             <Form.Control
                                 as="select"
                                 value={lisencePlate2}
                                 onChange={(e) => setLisencePlate2(e.target.value)}
                             >
-                                <option value="">Select License Plate 2 (optional)</option>
+                                <option value="">Selecionne Matrícula 2 (optional)</option>
                                 {getAvailableOptions(lisencePlate2, [lisencePlate1, lisencePlate3]).map((plate) => (
                                     <option key={plate} value={plate}>
                                         {plate}
@@ -445,13 +445,13 @@ const AddSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="formLisencePlate3" className="mb-3">
-                            <Form.Label>License Plate 3:</Form.Label>
+                            <Form.Label>Matrícula 3:</Form.Label>
                             <Form.Control
                                 as="select"
                                 value={lisencePlate3}
                                 onChange={(e) => setLisencePlate3(e.target.value)}
                             >
-                                <option value="">Select License Plate 3 (optional)</option>
+                                <option value="">Seleccione Matrícula 3 (optional)</option>
                                 {getAvailableOptions(lisencePlate3, [lisencePlate1, lisencePlate2]).map((plate) => (
                                     <option key={plate} value={plate}>
                                         {plate}
@@ -470,19 +470,19 @@ const AddSubscription = () => {
                                 type="text"
                                 value={tiqueXPark}
                                 onChange={(e) => setTiqueXPark(e.target.value)}
-                                placeholder="Enter TiqueXPark (optional)"
+                                placeholder="TiqueXPark (opcional)"
                             />
                         </Form.Group>
                     </Col>
 
                     <Col md={6}>
                         <Form.Group controlId="formRemoteControlNumber" className="mb-3">
-                            <Form.Label>Remote Control Number:</Form.Label>
+                            <Form.Label>Nº de Mando a Distancia:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={remoteControlNumber}
                                 onChange={(e) => setRemoteControlNumber(e.target.value)}
-                                placeholder="Enter Remote Control Number (optional)"
+                                placeholder="Nº de Mando a Distancia (opcional)"
                             />
                         </Form.Group>
                     </Col>
@@ -490,28 +490,28 @@ const AddSubscription = () => {
 
                 {/* Observations and Parking Spot */}
                 <Form.Group controlId="formObservations" className="mb-3">
-                    <Form.Label>Observations:</Form.Label>
+                    <Form.Label>Observaciones:</Form.Label>
                     <Form.Control
                         type="text"
                         value={observations}
                         onChange={(e) => setObservations(e.target.value)}
-                        placeholder="Enter any observations (optional)"
+                        placeholder="Introduzca Cualquier Observación (optional)"
                     />
                 </Form.Group>
 
                 <Form.Group controlId="formParkingSpot" className="mb-3">
-                    <Form.Label>Parking Spot:</Form.Label>
+                    <Form.Label>Plaza de Aparcamiento:</Form.Label>
                     <Form.Control
                         type="text"
                         value={parkingSpot}
                         onChange={(e) => setParkingSpot(e.target.value)}
-                        placeholder="Enter parking spot (optional)"
+                        placeholder="Plaza de aparcamiento (Sólo Propietarios)"
                     />
                 </Form.Group>
 
                 <Row className="mb-3">
                     <Form.Group controlId="formSubscriptionDocuments">
-                        <Form.Label>Upload Documents (PDF only)</Form.Label>
+                        <Form.Label>Añadir Documentación (Sólo Archivos .PDF)</Form.Label>
                         <Form.Control
                             type="file"
                             accept="application/pdf"
@@ -526,7 +526,7 @@ const AddSubscription = () => {
                 {documentPreviews.length > 0 && (
                     <Row className="mb-3">
                         <Col>
-                            <h5>Document Previews</h5>
+                            <h5>Documentos Añadidos</h5>
                             <DocumentPreviewRow
                                 documentPreviews={documentPreviews}
                                 handleViewDocument={handleViewDocument}
@@ -542,7 +542,7 @@ const AddSubscription = () => {
                 )}
 
                 <Button variant="primary" type="submit" disabled={loading}>
-                    {loading ? 'Adding Subscription...' : 'Add Subscription'}
+                    {loading ? 'Añadiendo Abono...' : 'Añadir Abono'}
                 </Button>
             </Form>
         </Container>

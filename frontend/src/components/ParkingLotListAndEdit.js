@@ -42,10 +42,10 @@ const ParkingLotListAndEdit = () => {
     e.preventDefault();
     try {
       await parkingLotService.updateParkingLotConfig(selectedLot.id, editForm);
-      setSuccess('Parking lot updated successfully');
+      setSuccess('Aparcamiento Actualizado Correctamente');
       fetchParkingLots(); // Refresh the list
     } catch (error) {
-      setError('Failed to update parking lot');
+      setError('Fallo al Actualizar el Aparcamiento');
     }
   };
 
@@ -53,7 +53,7 @@ const ParkingLotListAndEdit = () => {
     <Container fluid>
       <Row>
         <Col md={4}>
-          <h2 className="text-center mb-4">Parking Lots</h2>
+          <h2 className="text-center mb-4">Aparcamientos</h2>
           <ListGroup className="lot-list">
             {parkingLots.map(lot => (
               <ListGroup.Item
@@ -72,11 +72,11 @@ const ParkingLotListAndEdit = () => {
           {selectedLot ? (
             <Card className="p-4 shadow-lg">
               <Form onSubmit={handleSubmit}>
-                <h2 className="mb-4">Edit Parking Lot: {selectedLot.name}</h2>
+                <h2 className="mb-4">Editando: {selectedLot.name}</h2>
                 {error && <Alert variant="danger" className="text-center">{error}</Alert>}
                 {success && <Alert variant="success" className="text-center">{success}</Alert>}
                 <Form.Group controlId="name">
-                  <Form.Label>Name</Form.Label>
+                  <Form.Label>Nombre</Form.Label>
                   <Form.Control
                     type="text"
                     name="name"
@@ -86,7 +86,7 @@ const ParkingLotListAndEdit = () => {
                   />
                 </Form.Group>
                 <Form.Group controlId="total_car_spaces" className="mt-3">
-                  <Form.Label>Total Car Spaces</Form.Label>
+                  <Form.Label>Plazas de Coche</Form.Label>
                   <Form.Control
                     type="number"
                     name="total_car_spaces"
@@ -96,7 +96,7 @@ const ParkingLotListAndEdit = () => {
                   />
                 </Form.Group>
                 <Form.Group controlId="total_motorcycle_spaces" className="mt-3">
-                  <Form.Label>Total Motorcycle Spaces</Form.Label>
+                  <Form.Label>Plazas de Moto</Form.Label>
                   <Form.Control
                     type="number"
                     name="total_motorcycle_spaces"
@@ -106,7 +106,7 @@ const ParkingLotListAndEdit = () => {
                   />
                 </Form.Group>
                 <Form.Group controlId="min_car_spaces" className="mt-3">
-                  <Form.Label>Minimum Car Spaces</Form.Label>
+                  <Form.Label>Plazas Mínimas disponibles de coche</Form.Label>
                   <Form.Control
                     type="number"
                     name="min_car_spaces"
@@ -116,7 +116,7 @@ const ParkingLotListAndEdit = () => {
                   />
                 </Form.Group>
                 <Form.Group controlId="min_motorcycle_spaces" className="mt-3">
-                  <Form.Label>Minimum Motorcycle Spaces</Form.Label>
+                  <Form.Label>Plazas Mínimas de moto</Form.Label>
                   <Form.Control
                     type="number"
                     name="min_motorcycle_spaces"
@@ -126,13 +126,13 @@ const ParkingLotListAndEdit = () => {
                   />
                 </Form.Group>
                 <Button variant="primary" type="submit" className="mt-4 w-100">
-                  Update Parking Lot
+                  Actualizar Aparcamiento
                 </Button>
               </Form>
             </Card>
           ) : (
             <div className="text-center">
-              <p className="fs-4">Select a parking lot to edit</p>
+              <p className="fs-4">Selecciona un Aparcamiento para Editarlo</p>
             </div>
           )}
         </Col>

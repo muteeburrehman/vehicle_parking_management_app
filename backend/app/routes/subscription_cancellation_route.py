@@ -4,6 +4,7 @@ from bdb import effective
 from datetime import datetime
 from pathlib import PosixPath
 from typing import List
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from fastapi.logger import logger
@@ -22,7 +23,7 @@ from backend.app.schemas.subscription_cancellation import CancellationResponse, 
 router = APIRouter()
 
 base_path = os.getcwd()
-UPLOAD_DIR = PosixPath(base_path) / "cancelled_subscription_files"
+UPLOAD_DIR = Path(base_path) / "cancelled_subscription_files"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellations, db: Session):
@@ -42,29 +43,34 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     if not subscription_type:
         raise HTTPException(status_code=404, detail="Subscription type not found")
 
+    # Helper function to safely get attribute or return empty string
+    def safe_get(obj, attr, default=''):
+        value = getattr(obj, attr, None)
+        return value if value is not None else default
+
     # Prepare data for the template
     template_data = {
-        'order_no': f"{cancelled_subscription.id}/24",
-        'date': cancelled_subscription.modification_time.strftime('%m/%d/%Y') or '',
-        'vehicle_type': vehicle.vehicle_type.upper(),
-        'effective_date': cancelled_subscription.effective_date.strftime('%m/%d/%Y') or '',
-        'effective_cancellation_date': cancelled_subscription.effective_cancellation_date.strftime('%m/%d/%Y') or '',
-        'name_surname': f"{owner.first_name} {owner.last_name}",
-        'phone': owner.phone_number,
-        'email': owner.email,
-        'license_plate': cancelled_subscription.lisence_plate1,
-        'parking_spot': cancelled_subscription.parking_spot,
-        'card': cancelled_subscription.access_card,
-        'remote': cancelled_subscription.remote_control_number,
-        'license_plate1': cancelled_subscription.lisence_plate1 or '',
-        'license_plate2': cancelled_subscription.lisence_plate2 or '',
-        'license_plate3': cancelled_subscription.lisence_plate3 or '',
-        'observations': cancelled_subscription.observations or '',
-        'subscription_type_name': subscription_type.name or '',
+        'order_no': f"{safe_get(cancelled_subscription, 'id')}/24",
+        'date': safe_get(cancelled_subscription, 'modification_time', datetime.now()).strftime('%m/%d/%Y'),
+        'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
+        'effective_date': safe_get(cancelled_subscription, 'effective_date', datetime.now()).strftime('%m/%d/%Y'),
+        'effective_cancellation_date': safe_get(cancelled_subscription, 'effective_cancellation_date', datetime.now()).strftime('%m/%d/%Y'),
+        'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
+        'phone': safe_get(owner, 'phone_number', ''),
+        'email': safe_get(owner, 'email', ''),
+        'license_plate': safe_get(cancelled_subscription, 'lisence_plate1', ''),
+        'parking_spot': safe_get(cancelled_subscription, 'parking_spot', ''),
+        'card': safe_get(cancelled_subscription, 'access_card', ''),
+        'remote': safe_get(cancelled_subscription, 'remote_control_number', ''),
+        'license_plate1': safe_get(cancelled_subscription, 'lisence_plate1', ''),
+        'license_plate2': safe_get(cancelled_subscription, 'lisence_plate2', ''),
+        'license_plate3': safe_get(cancelled_subscription, 'lisence_plate3', ''),
+        'observations': safe_get(cancelled_subscription, 'observations', ''),
+        'subscription_type_name': safe_get(subscription_type, 'name', ''),
     }
 
-    # Add this print statement
-    print(f"Cancelled Subscription ID: {cancelled_subscription.id}")
+    # Print statement for debugging
+    print(f"Cancelled Subscription ID: {safe_get(cancelled_subscription, 'id', 'N/A')}")
 
     # Render HTML template
     template = env.get_template('cancellation_work_order_template.html')
@@ -96,7 +102,7 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
     # Save the PDF
-    filename = f"cancellation_work_order_{cancelled_subscription.id}.pdf"
+    filename = f"cancellation_Orden De Trabajo_{safe_get(cancelled_subscription, 'id', 'unknown')}.pdf"
     file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         f.write(pdf)

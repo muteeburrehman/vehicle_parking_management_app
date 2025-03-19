@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+passlib
+python-jose
+pydantic[email]
+python-multipart
+sympy
+weasyprint
+jinja2
+pandas
+python-dotenv

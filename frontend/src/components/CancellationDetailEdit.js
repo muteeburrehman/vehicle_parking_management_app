@@ -22,7 +22,8 @@ const CancellationDetailEdit = () => {
     const [approveLoading, setApproveLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [hasUploadedDocument, setHasUploadedDocument] = useState(false);
-
+    const backendURL = process.env.REACT_APP_BASE_URL;
+    const backendURL2 = process.env.REACT_APP_BASE_URL;
 
     const checkUrlExists = async (url) => {
         try {
@@ -34,8 +35,8 @@ const CancellationDetailEdit = () => {
     };
 
     const getDocumentUrl = useCallback(async (docName) => {
-        const cancelledPath = `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(docName.trim())}`;
-        const regularPath = `http://localhost:8000/subscription_files/${encodeURIComponent(docName.trim())}`;
+        const cancelledPath = `${backendURL}/cancelled_subscription_files/${encodeURIComponent(docName.trim())}`;
+        const regularPath = `${backendURL2}/subscription_files/${encodeURIComponent(docName.trim())}`;
 
         const isCancelledPathValid = await checkUrlExists(cancelledPath);
         if (isCancelledPathValid) {
@@ -48,7 +49,7 @@ const CancellationDetailEdit = () => {
         }
 
         return cancelledPath;
-    }, []);
+    }, [backendURL, backendURL2]);
 
     useEffect(() => {
         const fetchCancellationData = async () => {
@@ -202,9 +203,6 @@ const CancellationDetailEdit = () => {
 
             await updateCancellation(cancellation.id, updatedCancellation);
             setSuccessMessage('Changes saved successfully');
-            setTimeout(() => {
-                navigate('/subscriptions/cancellations/');
-            }, 1500);
         } catch (error) {
             setError(`Error updating cancellation details: ${error.message}`);
         }
@@ -269,18 +267,22 @@ const CancellationDetailEdit = () => {
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Effective Date</Form.Label>
-                                    <Form.Control type="text" value={cancellation.effective_date.split('T')[0]} disabled/>
+                                    <Form.Control type="text" value={cancellation.effective_date ? cancellation.effective_date.split('T')[0] : 'N/A'}
+/>
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
                                     <Form.Label>Large Family Expiration</Form.Label>
-                                    <Form.Control type="text" value={cancellation.large_family_expiration.split('T')[0]} disabled/>
+                                    <Form.Control type="text" value={cancellation.large_family_expiration ? cancellation.large_family_expiration.split('T')[0] : 'N/A'}
+/>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Effective Cancellation Date</Form.Label>
-                                    <Form.Control type="text" value={cancellation.effective_cancellation_date.split('T')[0] || ''}  disabled/>
+                                    <Form.Control type="text" value={cancellation.effective_cancellation_date ? cancellation.effective_cancellation_date.split('T')[0] : 'N/A'}
+
+/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>License Plate 1</Form.Label>
@@ -380,9 +382,7 @@ const CancellationDetailEdit = () => {
                                     'Approve Cancellation'
                                 )}
                             </Button>
-                            <Link to="/subscriptions/cancellations/">
-                                <Button variant="outline-secondary">Cancel</Button>
-                            </Link>
+
                         </div>
                     </Form>
                 </Card.Body>

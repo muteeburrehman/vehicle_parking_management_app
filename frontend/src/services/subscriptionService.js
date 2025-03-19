@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 // Use environment variables for API URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 // Utility function to convert object to FormData
 const objectToFormData = (obj, form = new FormData(), namespace = '') => {

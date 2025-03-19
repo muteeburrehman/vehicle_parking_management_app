@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/subscription_histories/'; // Adjust this to your backend URL
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 export const fetchSubscriptionHistories = async () => {
     try {
@@ -16,7 +16,7 @@ export const fetchSubscriptionHistories = async () => {
 // Fetch subscription history by ID
 export const fetchSubscriptionHistoryById = async (historyId) => {
     try {
-        const response = await axios.get(`${API_URL}${historyId}`);
+        const response = await axios.get(`${API_URL}/subscription_histories/${historyId}`);
         return response.data;
     } catch (error) {
         throw new Error(`Error fetching subscription history ${historyId}: ` + error.message);

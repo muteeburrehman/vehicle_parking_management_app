@@ -21,7 +21,7 @@ const LargeFamilyList = () => {
                 [ownerId]: ownerData
             }));
         } catch (err) {
-            console.error('Failed to fetch owner info:', err.message);
+            console.error('Fallo al acceder a la información del cliente:', err.message);
         }
     };
 
@@ -127,13 +127,13 @@ const LargeFamilyList = () => {
         <Container className="mt-4">
             <Card>
                 <Card.Header>
-                    <Card.Title as="h2" className="mb-0">Large Family Subscription Status</Card.Title>
+                    <Card.Title as="h2" className="mb-0">Estado de vencimientos: Familia numerosa</Card.Title>
                 </Card.Header>
 
                 <Card.Body>
                     <InputGroup className="mb-3">
                         <Form.Control
-                            placeholder="Search by dni, names and lisence_plates"
+                            placeholder="Busca por DNI, nombre, apellidos y matrícula"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -141,20 +141,20 @@ const LargeFamilyList = () => {
 
                     {filteredSubscriptions.length === 0 ? (
                         <Alert variant="info">
-                            No subscriptions found with large family expiration dates.
+                            No se encuentran abonos con fechas de vencimiento de Familia numerosa.
                         </Alert>
                     ) : (
                         <Table responsive hover bordered>
                             <thead>
                             <tr>
-                                <th>Owner ID</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Subscription Type</th>
-                                <th>License Plates</th>
-                                <th>Effective Date</th>
-                                <th>Large Family Expiration</th>
-                                <th>Status</th>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Apellidos</th>
+                                <th>Tipo de Abono</th>
+                                <th>Matrículas</th>
+                                <th>Fecha de efecto</th>
+                                <th>Vencimiento Familia numerosa</th>
+                                <th>Estado</th>
                             </tr>
                             </thead>
                             <tbody>

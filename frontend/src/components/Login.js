@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Button, Spinner } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import logo from "../assets/icons/Logo.png";
 
@@ -14,10 +14,10 @@ function Login() {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!email) newErrors.email = "Email is required";
-        else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
-        if (!password) newErrors.password = "Password is required";
-        else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+        if (!email) newErrors.email = "Es obligatorio introducir un Email";
+        else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email es inválido";
+        if (!password) newErrors.password = "Es obligatorio introducir una contraseña";
+        else if (password.length < 6) newErrors.password = "La contraseña debe tener al menos 6 caracteres";
         return newErrors;
     };
 
@@ -44,13 +44,13 @@ function Login() {
         <div className="login-wrapper">
             <div className="login-form-container">
                 <img src={logo} alt="Company Logo" className="logo" />
-                <h2 className="login-title">Login</h2>
+                <h2 className="login-title">Inicio de Sesión</h2>
                 <Form onSubmit={handleSubmit} className="login-form">
                     <Form.Group className="mb-3" controlId="formBasicEmail">
-                        <Form.Label>Email address</Form.Label>
+                        <Form.Label>Dirección de E-mail</Form.Label>
                         <Form.Control
                             type="email"
-                            placeholder="Enter email"
+                            placeholder="Introduzca E-mail"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             isInvalid={!!errors.email}
@@ -62,10 +62,10 @@ function Login() {
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="formBasicPassword">
-                        <Form.Label>Password</Form.Label>
+                        <Form.Label>Contraseña</Form.Label>
                         <Form.Control
                             type="password"
-                            placeholder="Password"
+                            placeholder="Introduzca contraseña"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             isInvalid={!!errors.password}
@@ -81,11 +81,12 @@ function Login() {
                         {loading ? (
                             <Spinner animation="border" size="sm" />
                         ) : (
-                            "Login"
+                            "Iniciar sesión"
                         )}
                     </Button>
+                    {}
                     <p className="forgot-password text-right">
-                        Don't have an account? <Link to="/signup">Sign up</Link>
+                        Si no recuerda la contraseña, pongáse en contacto con el área de informática.
                     </p>
                 </Form>
             </div>

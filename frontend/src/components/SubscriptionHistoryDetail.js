@@ -40,6 +40,7 @@ const SubscriptionHistoryDetail = () => {
     const [documentPreviews, setDocumentPreviews] = useState([]);
     const [subscriptionTypes, setSubscriptionTypes] = useState([]); // State for subscription types
     const navigate = useNavigate();
+    const backendURL = process.env.REACT_APP_BASE_URL;
 
     // Function to get the name of the subscription type by ID
     const getSubscriptionTypeName = (typeId) => {
@@ -61,7 +62,7 @@ const SubscriptionHistoryDetail = () => {
                 if (historyData.documents) {
                     const previews = historyData.documents.map(doc => ({
                         name: doc.split('/').pop(),
-                        src: `http://localhost:8000/subscription_files/${encodeURIComponent(doc.split('/').pop())}`,
+                        src: `${backendURL}/subscription_files/${encodeURIComponent(doc.split('/').pop())}`,
                         isExisting: true,
                     }));
                     setDocumentPreviews(previews);
@@ -74,7 +75,7 @@ const SubscriptionHistoryDetail = () => {
         };
 
         getSubscriptionHistory();
-    }, [historyId]);
+    }, [historyId,backendURL]);
 
     const handleViewDocument = (index) => {
         const document = documentPreviews[index];
@@ -187,7 +188,7 @@ const SubscriptionHistoryDetail = () => {
                                 </tr>
                                 <tr>
                                     <td><strong>Large Family Expiration:</strong></td>
-                                    <td>{(history.large_family_expiration.split('T')[0])}</td>
+                                    <td>{history.large_family_expiration ? history.large_family_expiration.split('T')[0]: ''}</td>
                                 </tr>
 
                                 </tbody>

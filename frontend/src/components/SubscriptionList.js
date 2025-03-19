@@ -1,8 +1,8 @@
 import React, {useEffect, useState, useMemo, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {getSubscriptions, getSubscriptionTypes, exportSubscriptions} from '../services/subscriptionService';
-import {Table, Button, Spinner, Alert, Container, Form, Badge, Modal} from 'react-bootstrap';
 import {fetchOwnerByDNI} from "../services/getOwnerService";
+import './SubscriptionList.css'; // Make sure to create this CSS file
 
 const SubscriptionList = () => {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -132,7 +132,7 @@ const SubscriptionList = () => {
         });
     }, [subscriptionTypes]);
 
-     const filteredSubscriptions = useMemo(() => {
+    const filteredSubscriptions = useMemo(() => {
         let result = [...subscriptions];
 
         if (searchTerm.trim() !== '') {
@@ -163,10 +163,7 @@ const SubscriptionList = () => {
 
     const handleExport = async () => {
         try {
-            // Directly receive the Blob from exportSubscriptions
             const blob = await exportSubscriptions(filteredSubscriptions.map(s => s.id), exportFields);
-
-            // Create a URL for the Blob
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -182,27 +179,26 @@ const SubscriptionList = () => {
 
     const headingTranslation = {
         'id': 'ID',
-        'owner_id': 'ID del Propietario',
-        'access_card': 'Tarjeta de Acceso',
-        'lisence_plate1': 'Placa de Licencia 1',
-        'lisence_plate2': 'Placa de Licencia 2',
-        'lisence_plate3': 'Placa de Licencia 3',
+        'owner_id': 'DNI',
+        'access_card': 'Nº de Tarjeta',
+        'lisence_plate1': 'Matrícula 1',
+        'lisence_plate2': 'Matrícula 2',
+        'lisence_plate3': 'Matrícula 3',
         'documents': 'Documentos',
-        'tique_x_park': 'Tique X Parque',
-        'remote_control_number': 'Número de Control Remoto',
+        'tique_x_park': 'TiqueXPARK',
+        'remote_control_number': 'Número de Mando',
         'observations': 'Observaciones',
-        'parking_spot': 'Puesto de Estacionamiento',
+        'parking_spot': 'Plaza de Aparcamiento',
         'registration_date': 'Fecha de Registro',
         'created_by': 'Creado Por',
         'modified_by': 'Modificado Por',
         'modification_time': 'Hora de Modificación',
         'owner_email': 'Correo Electrónico del Propietario',
         'owner_phone_number': 'Número de Teléfono del Propietario',
-        'subscription_type_name': 'Nombre del Tipo de Suscripción',
-        'subscription_type_parking_code': 'Código de Estacionamiento',
+        'subscription_type_name': 'Nombre del Tipo de Abono',
+        'subscription_type_parking_code': 'Código SAGE abono',
         'large_family_expiration': 'vencimiento familia numerosa'
     };
-
 
     const toggleExportField = (field) => {
         setExportFields(prev =>
@@ -245,140 +241,145 @@ const SubscriptionList = () => {
     };
 
     return (
-          <Container className="mt-5">
-            <h2 className="mb-4">Subscriptions</h2>
-            <Button className="mb-3 me-2" variant="primary" onClick={handleAddNew}>
-                Add New Subscription
-            </Button>
-            <Button className="mb-3" variant="secondary" onClick={() => setShowExportModal(true)}>
-                Export Selected
-            </Button>
+        <div className="subscription-container">
+            <h2 className="page-title">Abonos</h2>
 
-            <Form className="mb-3">
-                <Form.Control
+            <div className="action-buttons">
+                <button className="btn primary" onClick={handleAddNew}>
+                    Añadir Nuevo Abono
+                </button>
+                <button className="btn secondary" onClick={() => setShowExportModal(true)}>
+                    Exportar a Excel
+                </button>
+            </div>
+
+            <div className="search-box">
+                <input
                     type="text"
-                    placeholder="Search by DNI, Name, Surname, or License Plate"
+                    placeholder="Buscar por DNI, Nombre, Apellidos o Matrícula"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-            </Form>
+            </div>
 
             {activeFilters.length > 0 && (
-                <div className="mb-3">
-                    <span className="me-2">Active Filters:</span>
-                    {activeFilters.map((filterName) => (
-                        <Badge key={filterName} bg="secondary" className="me-2">
-                            {filterName} <Button variant="light" size="sm"
-                                                 onClick={() => handleFilter(filterName)}>×</Button>
-                        </Badge>
-                    ))}
-                    <Button variant="outline-secondary" size="sm" onClick={clearFilters}>
-                        Clear All
-                    </Button>
+                <div className="active-filters">
+                    <span>Filtros Activos:</span>
+                    <div className="filter-badges">
+                        {activeFilters.map((filterName) => (
+                            <span key={filterName} className="filter-badge">
+                                {filterName}
+                                <button className="remove-filter" onClick={() => handleFilter(filterName)}>×</button>
+                            </span>
+                        ))}
+                        <button className="clear-filters" onClick={clearFilters}>
+                            Limpiar filtros
+                        </button>
+                    </div>
                 </div>
             )}
 
-            <div className="mb-3">
+            <div className="filter-buttons">
                 {filterButtons.map((filterName) => (
-                    <Button
+                    <button
                         key={filterName}
-                        className="mb-2 me-2"
-                        variant={activeFilters.includes(filterName) ? 'secondary' : 'info'}
+                        className={`filter-btn ${activeFilters.includes(filterName) ? 'active' : ''}`}
                         onClick={() => handleFilter(filterName)}
                     >
                         {filterName}
-                    </Button>
+                    </button>
                 ))}
             </div>
 
             {loading && (
-                <div className="d-flex justify-content-center my-4">
-                    <Spinner animation="border" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </Spinner>
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                    <span className="sr-only">Loading...</span>
                 </div>
             )}
 
-            {error && <Alert variant="danger">Error: {error}</Alert>}
+            {error && <div className="error-message">Error: {error}</div>}
 
             {!loading && !error && (
                 filteredSubscriptions.length === 0 ? (
-                    <Alert variant="info">No subscriptions available.</Alert>
+                    <div className="info-message">No hay Abonos Disponibles.</div>
                 ) : (
-                   <Table striped bordered hover>
-                <thead>
-                <tr>
-                    <th>DNI</th>
-                    <th>Name</th>
-                    <th>Last Name</th>
-                    <th>Subscription Type</th>
-                    <th>License Plates</th>
-                    <th>Email</th>
-                    <th>Telephone</th>
-                    <th>Observations</th>
-                    <th>Registration Date</th>
-                </tr>
-                </thead>
-                <tbody>
-                {filteredSubscriptions.map((subscription) => {
-                    const subType = subscriptionTypes.find((type) => type.id === subscription.subscription_type_id);
-                    const owner = owners[subscription.owner_id] || {};
+                    <div className="table-container">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    {['DNI', 'Nombre', 'Apellidos', 'Tipo de Abono', 'Matriculas', 'Email', 'Tlf', 'Observaciones', 'Fecha de Registro'].map((header) => (
+                                        <th key={header}>{header}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredSubscriptions.map((subscription) => {
+                                    const subType = subscriptionTypes.find((type) => type.id === subscription.subscription_type_id);
+                                    const owner = owners[subscription.owner_id] || {};
 
-                    return (
-                        <tr
-                            key={subscription.id}
-                            onClick={() => handleRowClick(subscription.id)}
-                            style={{cursor: 'pointer'}}
-                        >
-                            <td>{subscription.owner_id}</td>
-                            <td>{owner.first_name || 'Loading...'}</td>
-                            <td>{owner.last_name}</td>
-                            <td>{subType ? subType.name : 'Unknown'}</td>
-                            <td>
-                                {subscription.lisence_plate1}
-                                {subscription.lisence_plate2 && `, ${subscription.lisence_plate2}`}
-                                {subscription.lisence_plate3 && `, ${subscription.lisence_plate3}`}
-                            </td>
-                            <td>{owner.email || 'Loading...'}</td>
-                            <td>{owner.phone_number || 'N/A'}</td>
-                            <td>{subscription.observations}</td>
-                            <td>{formatDate(subscription.registration_date)}</td>
-                        </tr>
-                    );
-                })}
-                </tbody>
-            </Table>
+                                    return (
+                                        <tr key={subscription.id} onClick={() => handleRowClick(subscription.id)}>
+                                            <td>{subscription.owner_id}</td>
+                                            <td>{owner.first_name || 'Loading...'}</td>
+                                            <td>{owner.last_name}</td>
+                                            <td>{subType ? subType.name : 'Unknown'}</td>
+                                            <td>
+                                                {[subscription.lisence_plate1, subscription.lisence_plate2, subscription.lisence_plate3]
+                                                    .filter(Boolean)
+                                                    .join(', ')}
+                                            </td>
+                                            <td>{owner.email || 'Loading...'}</td>
+                                            <td>{owner.phone_number || 'N/A'}</td>
+                                            <td>{subscription.observations}</td>
+                                            <td>{formatDate(subscription.registration_date)}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 )
             )}
 
-            <Modal show={showExportModal} onHide={() => setShowExportModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Export Subscriptions</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        {Object.entries(headingTranslation).map(([field, translation]) => (
-                            <Form.Check
-                                key={field}
-                                type="checkbox"
-                                id={`export-${field}`}
-                                label={translation}
-                                checked={exportFields.includes(field)}
-                                onChange={() => toggleExportField(field)}
-                            />
-                        ))}
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowExportModal(false)}>
-                        Close
-                    </Button>
-                    <Button variant="primary" onClick={handleExport} disabled={exportFields.length === 0}>
-                        Export
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>
+            {showExportModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h3>Exportar a Excel</h3>
+                            <button className="close-modal" onClick={() => setShowExportModal(false)}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <form className="export-form">
+                                {Object.entries(headingTranslation).map(([field, translation]) => (
+                                    <div key={field} className="checkbox-group">
+                                        <input
+                                            type="checkbox"
+                                            id={`export-${field}`}
+                                            checked={exportFields.includes(field)}
+                                            onChange={() => toggleExportField(field)}
+                                        />
+                                        <label htmlFor={`export-${field}`}>{translation}</label>
+                                    </div>
+                                ))}
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn secondary" onClick={() => setShowExportModal(false)}>
+                                Cerrar
+                            </button>
+                            <button
+                                className="btn primary"
+                                onClick={handleExport}
+                                disabled={exportFields.length === 0}
+                            >
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 

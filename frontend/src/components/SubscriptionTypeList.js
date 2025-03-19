@@ -45,15 +45,15 @@ const SubscriptionTypeList = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="mb-4">Subscription Types</h2>
+            <h2 className="mb-4">Listado de Tipos de Abono</h2>
             <Button className="mb-3" variant="primary" onClick={handleAddNew}>
-                Add New Subscription Type
+                +Añadir Nuevo Tipo de Abono
             </Button>
 
             {/* Search bar */}
             <InputGroup className="mb-3">
                 <FormControl
-                    placeholder="Search by Name or Code"
+                    placeholder="Buscar por Nombre o Código"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -73,26 +73,26 @@ const SubscriptionTypeList = () => {
                 <Table striped bordered hover>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Code</th>
-                            <th>Actions</th>
+                            {/*<th>ID</th> */}
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Código SAGE</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredSubscriptionTypes.map((type) => (
                             <tr key={type.id}>
-                                <td>{type.id}</td>
+                                {/*<td>{type.id}</td> */}
                                 <td>{type.name}</td>
-                                <td>${type.price.toFixed(2)}</td>
+                                <td>€{type.price.toFixed(2)}</td>
                                 <td>{type.parking_code}</td>
                                 <td>
                                     <Button
                                         variant="warning"
                                         onClick={() => handleEdit(type.id)}
                                     >
-                                        Edit
+                                        Editar
                                     </Button>
                                 </td>
                             </tr>

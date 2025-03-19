@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000'; // Replace with your actual API URL
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 export const parkingLotService = {
   createParkingLotConfig: async (config) => {

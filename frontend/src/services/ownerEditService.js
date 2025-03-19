@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000'; // Assuming you have this endpoint
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 export const updateOwner = async (dni, formData) => {
     try {

@@ -21,7 +21,7 @@ const VehicleList = () => {
                 }));
             }
         } catch (err) {
-            console.error('Failed to fetch owner info:', err.message);
+            console.error('Fallo al conector información del propietario:', err.message);
         }
     }, [owners]); // Memoize with owners dependency
 
@@ -62,12 +62,12 @@ const VehicleList = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="vehicle_h2" style={{ textTransform: "uppercase" }}>Vehicle List</h2>
+            <h2 className="vehicle_h2" style={{ textTransform: "uppercase" }}>Registro de Vehículos</h2>
 
             {/* Search bar */}
             <InputGroup className="mb-3">
                 <FormControl
-                    placeholder="Search by License Plate or Owner ID"
+                    placeholder="Buscar por Matrícula o DNI"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -78,23 +78,23 @@ const VehicleList = () => {
                     <Spinner className="vehicle_spinner" animation="border" variant="primary" />
                 </div>
             )}
-            {error && <Alert className="vehicle_alert" variant="danger">Error fetching vehicles: {error.message}</Alert>}
+            {error && <Alert className="vehicle_alert" variant="danger">Error al acceder al registro de vehículos: {error.message}</Alert>}
             {!loading && !error && filteredVehicles.length === 0 && (
-                <Alert className="vehicle_alert" variant="info">No vehicles available.</Alert>
+                <Alert className="vehicle_alert" variant="info">No hay vehiculos registrados.</Alert>
             )}
             {!loading && !error && filteredVehicles.length > 0 && (
                 <Table className="vehicle_table" striped bordered hover responsive>
                     <thead>
                         <tr>
-                            <th>License Plate</th>
+                            <th>Matrícula</th>
                             <th>DNI</th>
-                            <th>Name</th>
-                            <th>Last Name</th>
-                            <th>Telephone</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Telefono</th>
                             <th>Email</th>
-                            <th>Brand</th>
-                            <th>Model</th>
-                            <th>Registration Date</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Fecha de registro</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -51,10 +51,11 @@ async def create_owner_endpoint(
 ):
     document_filenames = []
     for document in documents:
-        file_location = f"uploads/{document.filename}"
+        filename = f"{dni}_{document.filename}"
+        file_location = os.path.join(UPLOAD_DIR, filename)
         with open(file_location, "wb+") as file_object:
             file_object.write(await document.read())
-        document_filenames.append(file_location)
+        document_filenames.append(filename)
 
     reduced_mobility_expiration_date = convert_str_to_datetime(reduced_mobility_expiration)
 
@@ -114,25 +115,16 @@ async def handle_document_updates(owner, new_documents: List[UploadFile], remove
     # Get current documents
     current_documents = owner.documents.split(',') if owner.documents else []
 
-    print(f"Current documents: {current_documents}")
-    print(f"Documents to remove: {remove_documents}")
-
     # Handle document removal
     updated_documents = []
     for doc in current_documents:
-        doc_name = doc.split('/')[-1]  # Get just the filename
-        if doc_name not in remove_documents:
+        if doc not in remove_documents:
             updated_documents.append(doc)
         else:
             # Delete the file from the server
-            file_path = os.path.join(UPLOAD_DIR, doc_name)
+            file_path = os.path.join(UPLOAD_DIR, doc)
             if os.path.exists(file_path):
                 os.remove(file_path)
-                print(f"Removed file: {file_path}")
-            else:
-                print(f"File not found for removal: {file_path}")
-
-    print(f"Documents after removal: {updated_documents}")
 
     # Handle new document uploads
     for document in new_documents:
@@ -142,16 +134,12 @@ async def handle_document_updates(owner, new_documents: List[UploadFile], remove
             with open(file_location, "wb") as file:
                 content = await document.read()
                 file.write(content)
-            updated_documents.append(os.path.join(UPLOAD_DIR, filename))
-            print(f"Added new file: {file_location}")
+            updated_documents.append(filename)
         except IOError:
             raise HTTPException(status_code=500, detail=f"Could not write file: {filename}")
 
     # Update the owner's documents
     owner.documents = ','.join(updated_documents) if updated_documents else None
-
-    print(f"Final updated documents: {owner.documents}")
-
     return owner
 
 

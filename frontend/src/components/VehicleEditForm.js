@@ -50,7 +50,7 @@ const VehicleEditForm = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    const backendURL = 'http://localhost:8000'; // Update this based on your backend configuration
+    const backendURL = process.env.REACT_APP_BASE_URL; // Update this based on your backend configuration
 
     // Helper function to format date and time
     const formatDateTime = (dateString) => {

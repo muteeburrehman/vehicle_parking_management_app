@@ -33,13 +33,13 @@ from backend.app.queries.subscription import create_subscription_type_query, get
     get_subscription_type_by_id_query, create_subscription_query, get_subscription_by_id_query, get_subscriptions_query, \
     get_subscription_by_id
 
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 router = APIRouter()
 
 # UPLOAD_DIR = Path("C:/Users/Doom/Desktop/APP APARCAMIENTOS/car_parking_system/backend/app/subscription_files")
 base_path = os.getcwd()
-UPLOAD_DIR = PosixPath(base_path) / "subscription_files"
+UPLOAD_DIR = Path(base_path) / "subscription_files"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -413,7 +413,7 @@ def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: in
 
 # Set up Jinja2 environment
 # template_dir = r'C:\Users\Doom\Desktop\APP APARCAMIENTOS\car_parking_system\backend\app\templates'
-template_dir = PosixPath(base_path) / "templates"
+template_dir = Path(base_path) / "templates"
 env = Environment(loader=FileSystemLoader(template_dir))
 
 
@@ -569,7 +569,7 @@ async def edit_subscription_endpoint(
                     try:
                         file_path.unlink()
                     except Exception as e:
-                        print(f"Error removing file {filename}: {str(e)}")
+                        print(f"Error quitando archivo {filename}: {str(e)}")
                         continue
 
                 if subscription.documents:
@@ -589,14 +589,14 @@ async def edit_subscription_endpoint(
                     file.write(content)
                 document_filenames.append(filename)
             except Exception as e:
-                print(f"Error uploading file {filename}: {str(e)}")
+                print(f"Error subiendo archivo {filename}: {str(e)}")
                 continue
 
         if document_filenames:
             subscription.documents = ','.join(document_filenames)
 
-        # Generate work order if needed
-        if changes or new_documents or remove_documents:
+        # Generate work order only if there are actual field modifications
+        if changes and not (new_documents or remove_documents):
             try:
                 work_order_filename = await generate_work_order_modification_pdf(subscription, db, old_license_plates)
                 if subscription.documents:
@@ -607,7 +607,7 @@ async def edit_subscription_endpoint(
                 else:
                     subscription.documents = work_order_filename
             except Exception as e:
-                print(f"Error generating work order: {str(e)}")
+                print(f"Error generando la orden de trabajo: {str(e)}")
 
         # Commit changes
         try:
@@ -615,7 +615,7 @@ async def edit_subscription_endpoint(
             db.refresh(subscription)
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=f"Error saving changes: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error guardando cambios: {str(e)}")
 
         # Construct the response
         base_url = "http://localhost:8000/subscription_files/"
@@ -683,18 +683,18 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
     # Fetch owner information
     owner = get_owner_by_dni(db=db, owner_dni=subscription.owner_id)
     if not owner:
-        raise HTTPException(status_code=404, detail="Owner not found")
+        raise HTTPException(status_code=404, detail="Propietario no encontrado")
 
     # Fetch vehicle information
     vehicle = get_vehicle(db=db, lisence_plate=subscription.lisence_plate1)
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
+        raise HTTPException(status_code=404, detail="Vehiculo no encontrado")
 
-        # Fetch subscription type information
+    # Fetch subscription type information
     subscription_type = db.query(Subscription_types).filter(
         Subscription_types.id == subscription.subscription_type_id).first()
     if not subscription_type:
-        raise HTTPException(status_code=404, detail="Subscription type not found")
+        raise HTTPException(status_code=404, detail="Tipo de abono no encontrado")
 
     # Initialize license plate change information
     old_license_plate = []
@@ -711,28 +711,34 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
             if new_value:
                 new_license_plate.append(new_value)
 
+    # Helper function to safely get attribute or return empty string
+    def safe_get(obj, attr, default=''):
+        value = getattr(obj, attr, None)
+        return value if value is not None else default
+
     # Prepare data for the template
     template_data = {
-        'order_no': f"{subscription.id}/24",
-        'date': datetime.now().strftime('%m/%d/%Y') or '',
-        'vehicle_type': vehicle.vehicle_type.upper(),
-        'effective_date': subscription.effective_date.strftime('%m/%d/%Y') or '',
-        'name_surname': f"{owner.first_name} {owner.last_name}",
-        'phone': owner.phone_number,
-        'email': owner.email,
-        'license_plate': subscription.lisence_plate1,
-        'parking_spot': subscription.parking_spot,
-        'card': subscription.access_card,
-        'remote': subscription.remote_control_number,
-        'license_plate1': subscription.lisence_plate1 or '',
-        'license_plate2': subscription.lisence_plate2 or '',
-        'license_plate3': subscription.lisence_plate3 or '',
-        'observations': subscription.observations or '',
+        'order_no': f"{safe_get(subscription, 'id')}/24",
+        'date': datetime.now().strftime('%m/%d/%Y'),
+        'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
+        'effective_date': safe_get(subscription, 'effective_date', datetime.now()).strftime('%m/%d/%Y'),
+        'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
+        'phone': safe_get(owner, 'phone_number', ''),
+        'email': safe_get(owner, 'email', ''),
+        'parking_spot': safe_get(subscription, 'parking_spot', ''),
+        'card': safe_get(subscription, 'access_card', ''),
+        'remote': safe_get(subscription, 'remote_control_number', ''),
+        'license_plate1': safe_get(subscription, 'lisence_plate1', ''),
+        'license_plate2': safe_get(subscription, 'lisence_plate2', ''),
+        'license_plate3': safe_get(subscription, 'lisence_plate3', ''),
+        'observations': safe_get(subscription, 'observations', ''),
         'old_license_plate': ', '.join(old_license_plate) if old_license_plate else '',
         'new_license_plate': ', '.join(new_license_plate) if new_license_plate else '',
         'has_license_plate_changes': bool(new_license_plate),
-        'subscription_type_name': subscription_type.name or '',
+        'subscription_type_name': safe_get(subscription_type, 'name', ''),
     }
+
+    # Rest of the function remains the same...
     # Render HTML template
     template = env.get_template('work_order_template.html')
     html_content = template.render(template_data)
@@ -763,7 +769,7 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
     # Save the PDF
-    filename = f"work_order_{subscription.id}.pdf"
+    filename = f"ODT_{subscription.id}.pdf"
     file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         f.write(pdf)
@@ -775,18 +781,23 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
     # Fetch owner information
     owner = get_owner_by_dni(db=db, owner_dni=subscription.owner_id)
     if not owner:
-        raise HTTPException(status_code=404, detail="Owner not found")
+        raise HTTPException(status_code=404, detail="Propietario no encontrado")
 
     # Fetch vehicle information
     vehicle = get_vehicle(db=db, lisence_plate=subscription.lisence_plate1)
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
+        raise HTTPException(status_code=404, detail="Vehiculo no encontrado")
 
-        # Fetch subscription type information
+    # Fetch subscription type information
     subscription_type = db.query(Subscription_types).filter(
         Subscription_types.id == subscription.subscription_type_id).first()
     if not subscription_type:
-        raise HTTPException(status_code=404, detail="Subscription type not found")
+        raise HTTPException(status_code=404, detail="Tipo de abono no encontrado")
+
+    # Helper function to safely get attribute or return empty string
+    def safe_get(obj, attr, default=''):
+        value = getattr(obj, attr, None)
+        return value if value is not None else default
 
     # Initialize license plate change information
     old_license_plate = []
@@ -804,28 +815,32 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
                 new_license_plate.append(new_value)
 
     # Prepare data for the template
+    # Prepare data for the template
     template_data = {
-        'order_no': f"{subscription.id}/24",
-        'date': datetime.now().strftime('%m/%d/%Y') or '',
-        'vehicle_type': vehicle.vehicle_type.upper(),
-        'effective_date': subscription.effective_date.strftime('%m/%d/%Y') or '',
-        'name_surname': f"{owner.first_name} {owner.last_name}",
-        'phone': owner.phone_number,
-        'email': owner.email,
-        'license_plate': subscription.lisence_plate1,
-        'parking_spot': subscription.parking_spot,
-        'card': subscription.access_card,
-        'remote': subscription.remote_control_number,
-        'license_plate1': subscription.lisence_plate1 or '',
-        'license_plate2': subscription.lisence_plate2 or '',
-        'license_plate3': subscription.lisence_plate3 or '',
-        'observations': subscription.observations or '',
-        'old_license_plate1': old_license_plates.get('lisence_plate1') or '',
-        'old_license_plate2': old_license_plates.get('lisence_plate2') or '',
-        'new_license_plate1': subscription.lisence_plate1 or '',
-        'new_license_plate2': subscription.lisence_plate2 or '',
+        'order_no': f"{safe_get(subscription, 'id')}/24",
+        'date': datetime.now().strftime('%m/%d/%Y'),
+        'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
+        'effective_date': safe_get(subscription, 'effective_date', datetime.now()).strftime('%m/%d/%Y'),
+        'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
+        'phone': safe_get(owner, 'phone_number', ''),
+        'email': safe_get(owner, 'email', ''),
+        'license_plate': safe_get(subscription, 'lisence_plate1', ''),
+        'parking_spot': safe_get(subscription, 'parking_spot', ''),
+        'card': safe_get(subscription, 'access_card', ''),
+        'remote': safe_get(subscription, 'remote_control_number', ''),
+        'license_plate1': safe_get(subscription, 'lisence_plate1', ''),
+        'license_plate2': safe_get(subscription, 'lisence_plate2', ''),
+        'license_plate3': safe_get(subscription, 'lisence_plate3', ''),
+        'observations': safe_get(subscription, 'observations', ''),
+        # Directly access the old license plates from the dictionary
+        'old_license_plate1': old_license_plates.get('lisence_plate1', '') or '',
+        'old_license_plate2': old_license_plates.get('lisence_plate2', '') or '',
+        'old_license_plate3': old_license_plates.get('lisence_plate3', '') or '',
+        'new_license_plate1': safe_get(subscription, 'lisence_plate1', '') or '',
+        'new_license_plate2': safe_get(subscription, 'lisence_plate2', '') or '',
+        'new_license_plate3': safe_get(subscription, 'lisence_plate3', '') or '',
         'has_license_plate_changes': bool(new_license_plate),
-        'subscription_type_name': subscription_type.name or '',
+        'subscription_type_name': safe_get(subscription_type, 'name', ''),
     }
     # Render HTML template
     template = env.get_template('modification_work_order_template.html')
@@ -856,13 +871,19 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
     ''')
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
-    # Save the PDF
-    filename = f"work_order_modification_{subscription.id}.pdf"
+    # Generate a unique filename using timestamp
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"ODT_mod_{subscription.id}_{timestamp}.pdf"
     file_path = UPLOAD_DIR / filename
+
+    # Ensure the directory exists
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Save the PDF
     with open(file_path, "wb") as f:
         f.write(pdf)
 
-    return filename  # Return only the filename
+    return filename  # Return only the unique filename
 
 
 @router.get("/subscription/{subscription_id}", response_model=SubscriptionResponse)
@@ -873,7 +894,7 @@ def get_subscription_endpoint(
     subscription = get_subscription_by_id_query(db=db, id=subscription_id)
 
     if subscription is None:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        raise HTTPException(status_code=404, detail="Abono no encontrado")
 
     subscription_data = {
         'id': subscription.id,
@@ -917,16 +938,16 @@ async def export_subscriptions(
     data = []
     heading_translation = {
         'id': 'ID',
-        'owner_id': 'ID del Propietario',
+        'owner_id': 'DNI',
         'access_card': 'Tarjeta de Acceso',
-        'lisence_plate1': 'Placa de Licencia 1',
-        'lisence_plate2': 'Placa de Licencia 2',
-        'lisence_plate3': 'Placa de Licencia 3',
+        'lisence_plate1': 'Matrícula 1',
+        'lisence_plate2': 'Matrícula 2',
+        'lisence_plate3': 'Matrícula 3',
         'documents': 'Documentos',
-        'tique_x_park': 'Tique X Parque',
-        'remote_control_number': 'Número de Control Remoto',
+        'tique_x_park': 'TiqueXPark',
+        'remote_control_number': 'Número del mando',
         'observations': 'Observaciones',
-        'parking_spot': 'Puesto de Estacionamiento',
+        'parking_spot': 'Plaza de aparcamiento',
         'registration_date': 'Fecha de Registro',
         'effective_date': 'Fecha de Efecto',
         'created_by': 'Creado Por',
@@ -934,9 +955,9 @@ async def export_subscriptions(
         'modification_time': 'Hora de Modificación',
         'owner_email': 'Correo Electrónico del Propietario',
         'owner_phone_number': 'Número de Teléfono del Propietario',
-        'subscription_type_name': 'Nombre del Tipo de Suscripción',
-        'subscription_type_parking_code': 'Código de Estacionamiento',
-        'Large Family Expiration': 'vencimiento familia numerosa'
+        'subscription_type_name': 'Tipo de Suscripción',
+        'subscription_type_parking_code': 'Código',
+        'Large Family Expiration': 'Vencimiento familia numerosa'
     }
 
     for subscription in subscriptions:
@@ -982,12 +1003,12 @@ async def export_subscriptions(
 
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Suscripciones')
+        df.to_excel(writer, index=False, sheet_name='Abonos')
 
     output.seek(0)
 
     headers = {
-        'Content-Disposition': f'attachment; filename="subscriptions_export.xlsx"'
+        'Content-Disposition': f'attachment; filename="Abonos_export.xlsx"'
     }
     return StreamingResponse(output, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                              headers=headers)
@@ -1007,12 +1028,12 @@ def delete_subscription_type(id: int, db: Session = Depends(get_db)):
     subscription_type = db.query(Subscription_types).filter(Subscription_types.id == id).first()
 
     if not subscription_type:
-        raise HTTPException(status_code=404, detail="Subscription type not found")
+        raise HTTPException(status_code=404, detail="Tipo de abono no encontrado")
 
     db.delete(subscription_type)
     db.commit()
 
-    return {"detail": "Subscription type deleted successfully"}
+    return {"detail": "Tipo de abono borrado correctamente"}
 
 
 # Delete a subscription
@@ -1021,12 +1042,12 @@ def delete_subscription(id: int, db: Session = Depends(get_db)):
     subscription = db.query(Subscriptions).filter(Subscriptions.id == id).first()
 
     if not subscription:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        raise HTTPException(status_code=404, detail="Abono no encontrado")
 
     db.delete(subscription)
     db.commit()
 
-    return {"detail": "Subscription deleted successfully"}
+    return {"detail": "Abono borrado correctamente"}
 
 
 @router.get("/vehicle/{license_plate}/check-subscription")
@@ -1034,7 +1055,7 @@ def check_subscription(license_plate: str, db: Session = Depends(get_db)):
     vehicle = db.query(Vehicles).filter(Vehicles.lisence_plate == license_plate).first()
 
     if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
+        raise HTTPException(status_code=404, detail="Vehículo no encontrado")
 
     active_subscription = db.query(Subscriptions).filter(
         (Subscriptions.lisence_plate1 == vehicle.lisence_plate) |

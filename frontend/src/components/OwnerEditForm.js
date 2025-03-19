@@ -50,7 +50,7 @@ const OwnerEditForm = () => {
     const [loadingVehicles, setLoadingVehicles] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const backendURL = 'http://localhost:8000';
+    const backendURL = process.env.REACT_APP_BASE_URL;
 
     // Helper function to format date and time
     const formatDateTime = (dateString) => {
@@ -125,6 +125,7 @@ const OwnerEditForm = () => {
                 isExisting: true,
             }));
 
+            setDocumentPreviews(initialDocumentPreviews);
             setDocumentPreviews(initialDocumentPreviews);
         }
     }, [loadingOwner, selectedOwner, backendURL]);
@@ -367,7 +368,7 @@ const OwnerEditForm = () => {
     return (
         <div className="edit_owner_container mt-5">
             <img src={companyLogo} alt="Company Logo" className="register_owner_company_logo mb-3"/>
-            <h2 className="edit_owner_heading">Edit Owner</h2>
+            <h2 className="edit_owner_heading">Ficha de Cliente</h2>
             {loadingOwner ? (
                 <Spinner animation="border"/>
             ) : (
@@ -378,7 +379,7 @@ const OwnerEditForm = () => {
                                 <Form.Label>DNI</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter DNI"
+                                    placeholder="Introduzca DNI"
                                     name="dni"
                                     value={ownerData.dni}
                                     onChange={handleInputChange}
@@ -393,10 +394,10 @@ const OwnerEditForm = () => {
                         </Col>
                         <Col md={6}>
                             <Form.Group controlId="owner_formFirstName">
-                                <Form.Label>First Name</Form.Label>
+                                <Form.Label>Nombre</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter First Name"
+                                    placeholder="Introduzca Nombre"
                                     name="first_name"
                                     value={ownerData.first_name}
                                     onChange={handleInputChange}
@@ -413,10 +414,10 @@ const OwnerEditForm = () => {
                     <Row className="mb-3">
                         <Col md={4}>
                             <Form.Group controlId="owner_formLastName">
-                                <Form.Label>Last Name</Form.Label>
+                                <Form.Label>Apellidos</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter Last Name"
+                                    placeholder="Introduzca Apellidos"
                                     name="last_name"
                                     value={ownerData.last_name}
                                     onChange={handleInputChange}
@@ -434,7 +435,7 @@ const OwnerEditForm = () => {
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control
                                     type="email"
-                                    placeholder="Enter Email"
+                                    placeholder="Email"
                                     name="email"
                                     value={ownerData.email}
                                     onChange={handleInputChange}
@@ -449,7 +450,7 @@ const OwnerEditForm = () => {
 
                         <Col md={4}>
                             <Form.Group controlId="reduced_mobility_expiration">
-                                <Form.Label>Reduced Mobility Expiration</Form.Label>
+                                <Form.Label>Vencimiento Movilidad Reducida</Form.Label>
                                 <Form.Control
                                     type="date"
                                     name="reduced_mobility_expiration"
@@ -466,10 +467,10 @@ const OwnerEditForm = () => {
                     <Row className="mb-3">
                         <Col md={4}>
                             <Form.Group controlId="owner_formBankAccount">
-                                <Form.Label>Bank Account Number (IBAN)</Form.Label>
+                                <Form.Label>(IBAN) Cuenta Bancaria</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter IBAN"
+                                    placeholder="IBAN"
                                     name="bank_account_number"
                                     value={ownerData.bank_account_number}
                                     onChange={handleInputChange}
@@ -486,10 +487,10 @@ const OwnerEditForm = () => {
                         </Col>
                         <Col md={4}>
                             <Form.Group controlId="owner_formPhoneNumber">
-                                <Form.Label>Phone Number</Form.Label>
+                                <Form.Label>Teléfono</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter Phone Number"
+                                    placeholder="Teléfono"
                                     name="phone_number"
                                     value={ownerData.phone_number}
                                     onChange={handleInputChange}
@@ -499,10 +500,10 @@ const OwnerEditForm = () => {
                         </Col>
                         <Col md={4}>
                             <Form.Group controlId="owner_formSageClientNumber">
-                                <Form.Label>Sage Client Number</Form.Label>
+                                <Form.Label>Nº Cliente SAGE</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter Sage Client Number"
+                                    placeholder="SAGE cliente"
                                     name="sage_client_number"
                                     value={ownerData.sage_client_number}
                                     onChange={handleInputChange}
@@ -513,11 +514,11 @@ const OwnerEditForm = () => {
                     </Row>
                     <Row className="mb-3">
                         <Form.Group controlId="owner_formObservations">
-                            <Form.Label>Observations</Form.Label>
+                            <Form.Label>Observaciones</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                placeholder="Enter any observations"
+                                placeholder="Observaciones..."
                                 name="observations"
                                 value={ownerData.observations}
                                 onChange={handleInputChange}
@@ -528,10 +529,10 @@ const OwnerEditForm = () => {
                     <Row className="mb-3">
                         <Col md={6}>
                             <Form.Group controlId="owner_formCreatedBy">
-                                <Form.Label>Created By:</Form.Label>
+                                <Form.Label>Creado por:</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Created by"
+                                    placeholder="Creado por"
                                     name="created_by"
                                     value={ownerData.created_by}
                                     onChange={handleInputChange}
@@ -548,7 +549,7 @@ const OwnerEditForm = () => {
                     <Row className="mb-3">
                         <Col md={6}>
                             <Form.Group controlId="owner_formModifiedBy">
-                                <Form.Label>Modified By:</Form.Label>
+                                <Form.Label>Modificado por:</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="modified_by"
@@ -559,7 +560,7 @@ const OwnerEditForm = () => {
                         </Col>
                         <Col md={6}>
                             <Form.Group controlId="owner_formModificationTime">
-                                <Form.Label>Modification Time:</Form.Label>
+                                <Form.Label>Última modificación:</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="modification_time"
@@ -570,7 +571,7 @@ const OwnerEditForm = () => {
                         </Col>
                     </Row>
                     <Form.Group controlId="owner_formDocuments">
-                        <Form.Label>Upload Documents (PDF only)</Form.Label>
+                        <Form.Label>Adjuntar Documentos (Sólo .PDF)</Form.Label>
                         <Form.Control
                             type="file"
                             multiple
@@ -603,7 +604,7 @@ const OwnerEditForm = () => {
                                         <Spinner animation="border" size="sm"/> Updating...
                                     </>
                                 ) : (
-                                    "Update Owner"
+                                    "Actualizar Ficha Cliente"
                                 )}
                             </Button>
                         )
@@ -611,21 +612,21 @@ const OwnerEditForm = () => {
 
                     {isSuperuser && (
                         <Button variant="danger" onClick={handleDeleteOwner} style={{marginLeft: '10px'}}>
-                            Delete Owner
+                            Borrar Cliente
                         </Button>
                     )}
 
                 </Form>
             )}
 
-            <h3 className="mt-5">Linked Vehicles</h3>
+            <h3 className="mt-5">Vehículos Asociados</h3>
             {loadingVehicles ? (
                 <Spinner animation="border"/>
             ) : (
                 <>
                     <Form.Control
                         type="text"
-                        placeholder="Search by license plate or owner ID"
+                        placeholder="Buscar por Matrícula o DNI"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="mb-3"
@@ -633,10 +634,10 @@ const OwnerEditForm = () => {
                     <Table striped bordered hover className="mt-3">
                         <thead>
                         <tr>
-                            <th>License Plate</th>
-                            <th>Brand</th>
-                            <th>Model</th>
-                            <th>Type</th>
+                            <th>Matrícula</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Tipo</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -663,7 +664,7 @@ const OwnerEditForm = () => {
                 </>
             )}
             <Button variant="secondary" onClick={navigateToVehicleRegistration} className="mt-3">
-                Register Vehicle
+                +Registrar Nuevo Vehículo
             </Button>
 
         </div>

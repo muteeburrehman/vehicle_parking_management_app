@@ -1,12 +1,12 @@
 // src/apiService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/subscriptions/cancel';
-const Base_URL = 'http://localhost:8000'
+const API_URL = process.env.REACT_APP_BASE_URL;
+
 
 export const cancelSubscription = async (data) => {
   try {
-    const response = await axios.post(API_URL, data);
+    const response = await axios.post(`${API_URL}/subscriptions/cancel`, data);
     return response.data;
   } catch (error) {
     throw error.response.data; // Throw the error response for handling in the component
@@ -15,7 +15,7 @@ export const cancelSubscription = async (data) => {
 
 export const getCancellationById = async (cancellationId) => {
   try {
-    const response = await axios.get(`${Base_URL}/cancellations/${cancellationId}`);
+    const response = await axios.get(`${API_URL}/cancellations/${cancellationId}`);
     return response.data;
   } catch (error) {
     // Handle error responses
@@ -32,7 +32,7 @@ export const getCancellationById = async (cancellationId) => {
 
 export const getAllCancellations = async () => {
   try {
-    const response = await axios.get(`${Base_URL}/subscriptions/cancellations`);
+    const response = await axios.get(`${API_URL}/subscriptions/cancellations`);
     return response.data;
   } catch (error) {
     throw new Error(error.response.data || 'Failed to fetch cancellations.');
@@ -43,7 +43,7 @@ export const getAllCancellations = async () => {
 
 export const updateCancellation = async (cancellationId, data) => {
   try {
-    const response = await axios.put(`${API_URL}/${cancellationId}`, data);
+    const response = await axios.put(`${API_URL}/subscriptions/cancel/${cancellationId}`, data);
 
     return response.data;
   } catch (error) {
@@ -57,7 +57,7 @@ export const uploadDocument = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await axios.post('http://localhost:8000/api/upload-document', formData, {
+    const response = await axios.post(`${API_URL}/api/upload-document`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

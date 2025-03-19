@@ -27,6 +27,7 @@ const VehicleHistoryDetail = () => {
     const [error, setError] = useState(null);
     const [documentPreviews, setDocumentPreviews] = useState([]);
     const navigate = useNavigate();
+    const backendURL = process.env.REACT_APP_BASE_URL;
 
     useEffect(() => {
         const getVehicleHistory = async () => {
@@ -36,7 +37,7 @@ const VehicleHistoryDetail = () => {
                 if (historyData.documents) {
                     const previews = historyData.documents.map(doc => ({
                         name: doc.split('/').pop(),
-                        src: `http://localhost:8000/vehicle_uploads/${encodeURIComponent(doc.split('/').pop())}`,
+                        src: `${backendURL}/vehicle_uploads/${encodeURIComponent(doc.split('/').pop())}`,
                         isExisting: true,
                     }));
                     setDocumentPreviews(previews);
@@ -49,7 +50,7 @@ const VehicleHistoryDetail = () => {
         };
 
         getVehicleHistory();
-    }, [historyId]);
+    }, [historyId, backendURL]);
 
     const handleViewDocument = (index) => {
         const document = documentPreviews[index];

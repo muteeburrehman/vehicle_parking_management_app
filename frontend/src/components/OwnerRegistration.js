@@ -79,11 +79,12 @@ const OwnerRegistration = () => {
             errors.email = 'Invalid email format';
         }
 
-        // Validate bank account number
-        if (!ownerData.bank_account_number) {
-            errors.bank_account_number = 'Bank account number is required';
-        } else if (!validateIBAN(ownerData.bank_account_number)) {
-            errors.bank_account_number = 'Invalid IBAN format';
+
+        // Validate bank account number - only if it's provided
+        if (ownerData.bank_account_number) {
+            if (!validateIBAN(ownerData.bank_account_number)) {
+                errors.bank_account_number = 'Invalid IBAN format';
+            }
         }
 
         setValidationErrors(errors);
@@ -200,8 +201,9 @@ const OwnerRegistration = () => {
 
     return (
         <div className="register_owner_container mt-5">
-            <img src={companyLogo} alt="Company Logo" className="register_owner_company_logo mb-3"/>
-            <h2 className="register_owner_heading">Owner Registration</h2>
+            <img src={companyLogo} alt="Company Logo" style={{width: '100px', height: 'auto'}}
+                 className="register_owner_company_logo mb-3"/>
+            <h2 className="register_owner_heading">Registro de Nuevo Cliente</h2>
             <Form onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Col md={6}>
@@ -209,7 +211,7 @@ const OwnerRegistration = () => {
                             <Form.Label>DNI</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter DNI"
+                                placeholder="DNI"
                                 name="dni"
                                 value={ownerData.dni}
                                 onChange={handleInputChange}
@@ -223,10 +225,10 @@ const OwnerRegistration = () => {
                     </Col>
                     <Col md={6}>
                         <Form.Group controlId="owner_formFirstName">
-                            <Form.Label>First Name</Form.Label>
+                            <Form.Label>Nombre</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter First Name"
+                                placeholder="Nombre"
                                 name="first_name"
                                 value={ownerData.first_name}
                                 onChange={handleInputChange}
@@ -242,10 +244,10 @@ const OwnerRegistration = () => {
                 <Row className="mb-3">
                     <Col md={4}>
                         <Form.Group controlId="owner_formLastName">
-                            <Form.Label>Last Name</Form.Label>
+                            <Form.Label>Apellidos</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter Last Name"
+                                placeholder="Apellidos"
                                 name="last_name"
                                 value={ownerData.last_name}
                                 onChange={handleInputChange}
@@ -262,7 +264,7 @@ const OwnerRegistration = () => {
                             <Form.Label>Email</Form.Label>
                             <Form.Control
                                 type="email"
-                                placeholder="Enter Email"
+                                placeholder="Email"
                                 name="email"
                                 value={ownerData.email}
                                 onChange={handleInputChange}
@@ -276,7 +278,7 @@ const OwnerRegistration = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="formReducedMobilityExpiration" className="mb-3">
-                            <Form.Label>Reduced Mobility Expiration</Form.Label>
+                            <Form.Label>Vencimiento Movilidad Reducida (Opcional)</Form.Label>
                             <Form.Control
                                 type="date"
                                 name="reduced_mobility_expiration"
@@ -290,15 +292,14 @@ const OwnerRegistration = () => {
                 <Row className="mb-3">
                     <Col md={4}>
                         <Form.Group controlId="owner_formBankAccount">
-                            <Form.Label>Bank Account Number (IBAN)</Form.Label>
+                            <Form.Label>(IBAN) Cuenta Bancaria</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter IBAN"
+                                placeholder="IBAN"
                                 name="bank_account_number"
                                 value={ownerData.bank_account_number}
                                 onChange={handleInputChange}
                                 isInvalid={!!validationErrors.bank_account_number}
-                                required
                             />
                             <Form.Control.Feedback type="invalid">
                                 {validationErrors.bank_account_number}
@@ -307,10 +308,10 @@ const OwnerRegistration = () => {
                     </Col>
                     <Col md={4}>
                         <Form.Group controlId="owner_formSageClientNumber">
-                            <Form.Label>Sage Client Number</Form.Label>
+                            <Form.Label>Nº Cliente de SAGE</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Sage Client Number"
+                                placeholder="Nº Cliente SAGE"
                                 name="sage_client_number"
                                 value={ownerData.sage_client_number}
                                 onChange={handleInputChange}
@@ -320,10 +321,10 @@ const OwnerRegistration = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="owner_formPhoneNumber">
-                            <Form.Label>Phone Number</Form.Label>
+                            <Form.Label>Teléfono</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter Phone Number"
+                                placeholder="Teléfono"
                                 name="phone_number"
                                 value={ownerData.phone_number}
                                 onChange={handleInputChange}
@@ -333,11 +334,11 @@ const OwnerRegistration = () => {
                 </Row>
                 <Row className="mb-3">
                     <Form.Group controlId="owner_formObservations">
-                        <Form.Label>Observations</Form.Label>
+                        <Form.Label>Observaciones</Form.Label>
                         <Form.Control
                             as="textarea"
                             rows={3}
-                            placeholder="Enter any observations"
+                            placeholder="Observaciones"
                             name="observations"
                             value={ownerData.observations}
                             onChange={handleInputChange}
@@ -348,7 +349,7 @@ const OwnerRegistration = () => {
                 {/* Document Upload Section */}
                 <Row className="mb-3">
                     <Form.Group controlId="formDocuments">
-                        <Form.Label>Upload Documents (PDF only)</Form.Label>
+                        <Form.Label>Adjuntar Documentos (Sólo PDF)</Form.Label>
                         <Form.Control
                             type="file"
                             accept="application/pdf"
@@ -363,7 +364,7 @@ const OwnerRegistration = () => {
                 {documentPreviews.length > 0 && (
                     <Row className="mb-3">
                         <Col>
-                            <h5>Document Previews</h5>
+                            <h5>Documentos Añadidos</h5>
 
                             <DocumentPreviewRow
                                 documentPreviews={documentPreviews}
@@ -380,23 +381,23 @@ const OwnerRegistration = () => {
                 {error && <Alert variant="danger">{error}</Alert>}
                 {successMessage && <Alert variant="success">{successMessage}</Alert>}
                 <Button variant="primary" type="submit" disabled={loading}>
-                    {loading ? <Spinner animation="border" size="sm"/> : 'Register Owner'}
+                    {loading ? <Spinner animation="border" size="sm"/> : 'Registrar Cliente'}
                 </Button>
 
             </Form>
             <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Confirm Registration</Modal.Title>
+                    <Modal.Title>Confirmar Registro</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    This bank account number already exists. Do you still want to add it?
+                    Este IBAN ya existe en otro abonado. Esta seguro que quiere añadirlo?
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
-                        Cancel
+                        Cancelar
                     </Button>
                     <Button variant="primary" onClick={handleConfirmAddition}>
-                        Yes, Add Anyway
+                        Sí, registrarlo igualmente
                     </Button>
                 </Modal.Footer>
             </Modal>

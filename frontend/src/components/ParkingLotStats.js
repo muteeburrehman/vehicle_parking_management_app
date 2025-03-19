@@ -25,8 +25,8 @@ const ParkingLotStats = () => {
         });
         setVisibleIndexes(initialVisibility);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to fetch parking lot data. Please try again later.');
+        console.error('Error buscando los datos:', error);
+        setError('Fallo al recopilar datos de los aparcamientos. Por favor intentelo mas  tarde.');
       }
     };
 
@@ -60,7 +60,7 @@ const ParkingLotStats = () => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'EUR'
     }).format(amount);
   };
 
@@ -79,7 +79,7 @@ const ParkingLotStats = () => {
   const renderPieChart = (breakdown, parkingLotName) => {
     const chartData = createChartData(breakdown, parkingLotName);
     if (breakdown.every(item => item.count === 0)) {
-      return <div className="no-data">No active subscriptions</div>;
+      return <div className="no-data">No Hay Abonos Activos</div>;
     }
 
     return (
@@ -118,15 +118,15 @@ const ParkingLotStats = () => {
 
   return (
     <div className="parking-lot-stats">
-      <h2 className="title">Subscription Statistics</h2>
+      <h2 className="title">Estadísticas</h2>
       <div className="stats-grid">
         {Object.entries(stats).map(([parkingLotName, data]) => (
           <div key={parkingLotName} className="stats-card">
             <h3>{parkingLotName}</h3>
             <div className="summary">
-              <p className="total">Total Subscriptions: {data.total_subscriptions}</p>
+              <p className="total">Abonos totales: {data.total_subscriptions}</p>
               <p className="total-billing">
-                Expected Monthly Billing: {formatCurrency(data.total_expected_billing)}
+                Facturación Mensual Esperada: {formatCurrency(data.total_expected_billing)}
               </p>
             </div>
             {renderPieChart(data.subscription_breakdown, parkingLotName)}

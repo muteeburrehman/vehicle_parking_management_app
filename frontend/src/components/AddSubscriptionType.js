@@ -32,7 +32,7 @@ const AddSubscriptionType = () => {
             <h2 className="mb-4">Add Subscription Type</h2>
             <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="formSubscriptionName">
-                    <Form.Label>Name:</Form.Label>
+                    <Form.Label>Nombre:</Form.Label>
                     <Form.Control
                         type="text"
                         className="mb-3"

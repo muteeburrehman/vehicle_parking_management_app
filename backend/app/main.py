@@ -49,28 +49,28 @@ app.include_router(parking_stats.router)
 
 app.include_router(approve_cancellation.router)
 @app.get("/")
-def read_root():
-    return {"message": "Welcome to the API!"}
+def read_root(): 
+    return {"message": "Bienvenidos a la API!"}
 
 def create_default_users(db: Session):
     # Create admin user if not exists
-    admin_email = "admin@gmail.com"
+    admin_email = "edelgado@amgevicesa.es"
     if not get_user_by_email(db, email=admin_email):
         admin_user = UserCreate(
             email=admin_email,
-            password="admin123",
-            confirm_password="admin123",  # Add confirm_password here
+            password="Ceuta1234",
+            confirm_password="Ceuta1234",  # Add confirm_password here
             role="admin"
         )
         create_user(db=db, user=admin_user)  # Use the CRUD function to create the user
 
     # Create superuser if not exists
-    superuser_email = "superuser@gmail.com"
+    superuser_email = "smarin@amgevicesa.es"
     if not get_user_by_email(db, email=superuser_email):
         superuser_user = UserCreate(
             email=superuser_email,
-            password="superuser123",
-            confirm_password="superuser123",  # Add confirm_password here
+            password="B8z33s27.",
+            confirm_password="B8z33s27.",  # Add confirm_password here
             role="superuser"
         )
         create_user(db=db, user=superuser_user)  # Use the CRUD function to create the user

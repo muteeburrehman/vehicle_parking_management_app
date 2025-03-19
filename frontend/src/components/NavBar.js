@@ -10,7 +10,7 @@ const CustomNavbar = () => {
         <Navbar bg="dark" variant="dark" expand="lg">
             <Container>
                 <Navbar.Brand as={Link} to="/">
-                    CAR PARKING APP
+                    GECA - Gestión de Clientes de Aparcamientos
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
@@ -18,7 +18,7 @@ const CustomNavbar = () => {
                         {user ? (
                             <>
                                 <Navbar.Text>
-                                    Signed in as: {user.email} ({user.role})
+                                    Sesion iniciada como: {user.email} ({user.role})
                                 </Navbar.Text>
                                 <Button onClick={logout} variant="outline-light" className="ms-2">
                                     Logout

@@ -22,7 +22,7 @@ const SubscriptionHistoryList = () => {
                 [ownerId]: ownerData // Store owner data by ID
             }));
         } catch (err) {
-            console.error('Failed to fetch owner info:', err.message);
+            console.error('Fallo al acceder a la información del cliente:', err.message);
         }
     };
 
@@ -95,32 +95,32 @@ const SubscriptionHistoryList = () => {
 
     return (
         <div>
-            <h2 className="mb-4">Subscription History</h2>
+            <h2 className="mb-4">Histórico de Abonos</h2>
             <Form className="mb-4">
                 <Form.Group controlId="search">
                     <Form.Control
                         type="text"
-                        placeholder="Search by Owner ID or License Plate..."
+                        placeholder="Busca por DNI o Matrícula..."
                         value={searchQuery}
                         onChange={handleSearchChange}
                     />
                 </Form.Group>
             </Form>
             {filteredHistories.length === 0 ? (
-                <Alert variant="info">No subscription histories found.</Alert>
+                <Alert variant="info">No se ha encontrado históricos de abonos.</Alert>
             ) : (
                 <Table striped bordered hover responsive>
                     <thead>
                         <tr>
 
                             <th>DNI</th>
-                            <th>Name</th>
-                            <th>Last Name</th>
-                            <th>Subscription Type</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Tipo de abono</th>
                             <th>Email</th>
-                            <th>Telephone</th>
-                            <th>Observations</th>
-                            <th>Registration Date</th>
+                            <th>Telefono</th>
+                            <th>Observaciones</th>
+                            <th>Fecha de Registro</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -71,14 +71,14 @@ const EditSubscription = () => {
     const isAdmin = user.role === 'admin';
     const isSuperuser = user.role === 'superuser';
     const fileInputRef = useRef(null);
-    const [isFormChanged, setIsFormChanged] = useState(false);
+    const [, setIsFormChanged] = useState(false);
 
     const [parkingLots, setParkingLots] = useState([]);
     const [selectedParkingLot, setSelectedParkingLot] = useState('');
     const [filteredSubscriptionTypes, setFilteredSubscriptionTypes] = useState([]);
 
 
-    const backendURL = 'http://localhost:8000'; // Update this based on your backend configuration
+    const backendURL = process.env.REACT_APP_BASE_URL; // Update this based on your backend configuration
 
     // Add new useEffect to fetch parking lots
     useEffect(() => {
@@ -155,7 +155,7 @@ const EditSubscription = () => {
         };
 
         fetchSubscription();
-    }, [id, fetchSubscriptionById, subscriptionTypes]);
+    }, [id, fetchSubscriptionById, subscriptionTypes,backendURL]);
 
 
     // Add new useEffect to filter subscription types based on parking lot
@@ -338,63 +338,86 @@ const EditSubscription = () => {
     }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!validateForm()) return;
+    e.preventDefault();
+    if (!validateForm()) return;
 
-        try {
-            const existingDocuments = documentPreviews.filter(doc => doc.isExisting).map(doc => doc.name);
-            const newDocuments = documents.filter(doc => doc instanceof File);
-            const removedDocuments = existingDocuments.filter(doc =>
-                !documentPreviews.some(preview => preview.name === doc.split('/').pop() && preview.isExisting)
-            );
+    try {
+        const existingDocuments = documentPreviews.filter(doc => doc.isExisting).map(doc => doc.name);
+        const newDocuments = documents.filter(doc => doc instanceof File);
+        const removedDocuments = existingDocuments.filter(doc =>
+            !documentPreviews.some(preview => preview.name === doc.split('/').pop() && preview.isExisting)
+        );
 
-            const subscriptionData = {
-                ...formData,
-                id: id,  // Make sure to include the subscription ID
-                subscription_type_id: parseInt(formData.subscription_type_id, 10),
-                modified_by: user.email,
-                modification_time: new Date().toISOString(),
-                parking_lot: selectedParkingLot,
-                lisence_plate1: formData.lisence_plate1 || '',
-                lisence_plate2: formData.lisence_plate2 || '',
-                lisence_plate3: formData.lisence_plate3 || '',
-                effective_date: formData.effective_date || '',
-                large_family_expiration: formData.large_family_expiration || '',
-                new_documents: newDocuments,
-                remove_documents: removedDocuments,
-                existing_documents: existingDocuments,
-                generate_work_order: isFormChanged,  // Include the work order generation flag
-            };
+        const subscriptionData = {
+            ...formData,
+            id: id,
+            subscription_type_id: parseInt(formData.subscription_type_id, 10),
+            modified_by: user.email,
+            modification_time: new Date().toISOString(),
+            parking_lot: selectedParkingLot,
+            lisence_plate1: formData.lisence_plate1 || '',
+            lisence_plate2: formData.lisence_plate2 || '',
+            lisence_plate3: formData.lisence_plate3 || '',
+            effective_date: formData.effective_date || '',
+            large_family_expiration: formData.large_family_expiration || '',
+            new_documents: newDocuments,
+            remove_documents: removedDocuments,
+            existing_documents: existingDocuments,
+            generate_work_order: true,  // Always generate work order when changes are made
+        };
 
-            console.log('Form data before submitting:', subscriptionData);
+        console.log('Form data before submitting:', subscriptionData);
 
-            const response = await updateSubscription(subscriptionData);
-            console.log('Form data after update:', response);
+        const response = await updateSubscription(subscriptionData);
+        console.log('Form data after update:', response);
 
-            setUpdateSuccess(true);
-            setModifiedBy(user.email);
-            setModificationTime(formatModificationTime(new Date()));
-            setIsModified(false);
-            setIsFormChanged(false);
-
-            // If a new work order was generated, add it to the document previews
-
-            if (response.documents) {
-                const newWorkOrder = response.documents.find(doc => doc.startsWith('work_order_'));
-                if (newWorkOrder) {
-                    setDocumentPreviews(prev => [...prev, {
-                        name: newWorkOrder,
-                        src: `${backendURL}/subscription_files/${newWorkOrder}`,
-                        isExisting: true,
-                    }]);
-                }
-            }
-
-
-        } catch (err) {
-            console.error('Failed to update subscription:', err);
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
-    };
+
+        // Update document previews with focus on work orders
+        if (response.documents) {
+    const updatedPreviews = response.documents.map(doc => {
+        const fileName = doc.split('/').pop();
+        return {
+            name: fileName,
+            src: `${backendURL}/subscription_files/${fileName}`,
+            isExisting: true,
+            isWorkOrder: fileName.startsWith('Orden_De_Trabajo')
+        };
+    });
+
+    // Combine existing previews with new ones
+    // Prioritize keeping existing documents and work orders
+    const combinedPreviews = [
+        ...documentPreviews.filter(preview =>
+            !updatedPreviews.some(newPreview => newPreview.name === preview.name)
+        ),
+        ...updatedPreviews
+    ];
+
+    setDocumentPreviews(combinedPreviews);
+}
+
+        setUpdateSuccess(true);
+        setModifiedBy(user.email);
+        setModificationTime(formatModificationTime(new Date()));
+        setIsModified(false);
+        setIsFormChanged(false);
+        setDocuments([]); // Clear uploaded documents
+
+        // Optional: Scroll to work order or show a toast notification
+        const workOrderPreview = documentPreviews.find(preview => preview.name.startsWith('Orden_De_Trabajo_modification'));
+        if (workOrderPreview) {
+            // You could add a scroll or highlight effect here
+            console.log('Work order generated:', workOrderPreview.name);
+        }
+
+    } catch (err) {
+        console.error('Failed to update subscription:', err);
+    }
+};
 
     const handleCancelSubscription = () => {
         navigate('/cancel-subscription', {state: {formData}});
@@ -428,7 +451,7 @@ const EditSubscription = () => {
 
     return (
         <Container className="mt-5">
-            <h2>Edit Subscription</h2>
+            <h2>Editar Abono</h2>
             {updateSuccess && (
                 <Alert variant="success">
                     Subscription updated successfully.
@@ -455,7 +478,7 @@ const EditSubscription = () => {
                     </Col>
                     <Col md={3}>
                         <Form.Group controlId="first_name" className="mb-3">
-                            <Form.Label>First Name:</Form.Label>
+                            <Form.Label>Nombre:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerInfo.first_name}
@@ -465,7 +488,7 @@ const EditSubscription = () => {
                     </Col>
                     <Col md={3}>
                         <Form.Group controlId="last_name" className="mb-3">
-                            <Form.Label>Last Name:</Form.Label>
+                            <Form.Label>Apellidos:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerInfo.last_name}
@@ -487,7 +510,7 @@ const EditSubscription = () => {
                 <Row>
                     <Col md={4}>
                         <Form.Group controlId="bank_account_number" className="mb-3">
-                            <Form.Label>Bank Account:</Form.Label>
+                            <Form.Label>IBAN:</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={ownerInfo.bank_account_number}
@@ -498,7 +521,7 @@ const EditSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="effective_date" className="mb-3">
-                            <Form.Label>Effective Date</Form.Label>
+                            <Form.Label>Fecha de Efecto</Form.Label>
                             <Form.Control
                                 type="date"
                                 name="effective_date"
@@ -512,7 +535,7 @@ const EditSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="large_family_expiration" className="mb-3">
-                            <Form.Label>Large Family Expiration Date</Form.Label>
+                            <Form.Label>Vencimiento Familia numerosa</Form.Label>
                             <Form.Control
                                 type="date"
                                 name="large_family_expiration"
@@ -530,7 +553,7 @@ const EditSubscription = () => {
                     <Col md={4}>
                         <Form.Group controlId="access_card" className="mb-3">
 
-                            <Form.Label>Access Card:</Form.Label>
+                            <Form.Label>Nº de tarjeta:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="access_card"
@@ -544,14 +567,14 @@ const EditSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="parkingLot" className="mb-3">
-                            <Form.Label>Parking Lot:</Form.Label>
+                            <Form.Label>Aparcamiento:</Form.Label>
                             <Form.Select
                                 name="parkingLot"
                                 value={selectedParkingLot}
                                 onChange={handleChange}
                                 disabled={isUser}
                             >
-                                <option value="">Select Parking Lot</option>
+                                <option value="">Selecciona Aparcamiento</option>
                                 {parkingLots.map((lot) => (
                                     <option key={lot.id} value={lot.name}>
                                         {lot.name}
@@ -563,7 +586,7 @@ const EditSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="subscription_type_id" className="mb-3">
-                            <Form.Label>Subscription Type:</Form.Label>
+                            <Form.Label>Tipo de Abono:</Form.Label>
                             <Form.Select
                                 name="subscription_type_id"
                                 value={formData.subscription_type_id || ''}
@@ -572,10 +595,10 @@ const EditSubscription = () => {
                                 required
                                 disabled={isUser || !selectedParkingLot}
                             >
-                                <option value="">Select Subscription Type</option>
+                                <option value="">Seleccione tipo de abono</option>
                                 {filteredSubscriptionTypes.map((type) => (
                                     <option key={type.id} value={type.id}>
-                                        {type.name} - ${type.price}
+                                        {type.name} - €{type.price}
                                     </option>
                                 ))}
                             </Form.Select>
@@ -594,7 +617,7 @@ const EditSubscription = () => {
                     {['lisence_plate1', 'lisence_plate2', 'lisence_plate3'].map((plate, index) => (
                         <Col md={4} key={plate}>
                             <Form.Group controlId={plate} className="mb-3">
-                                <Form.Label>License Plate {index + 1}:</Form.Label>
+                                <Form.Label>Matrícula {index + 1}:</Form.Label>
                                 <Form.Select
                                     name={plate}
                                     value={formData[plate] || ''}
@@ -603,7 +626,7 @@ const EditSubscription = () => {
                                     required={index === 0}
                                     disabled={isUser}
                                 >
-                                    <option value="">Select License Plate</option>
+                                    <option value="">Selecione Matrícula</option>
                                     {vehicles.map((vehicle) => (
                                         <option
                                             key={vehicle.id}
@@ -643,7 +666,7 @@ const EditSubscription = () => {
                     </Col>
                     <Col md={4}>
                         <Form.Group controlId="remote_control_park" className="mb-3">
-                            <Form.Label>Remote Control Park:</Form.Label>
+                            <Form.Label>Mando a distancia:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="remote_control_number"
@@ -656,7 +679,7 @@ const EditSubscription = () => {
 
                     <Col md={4}>
                         <Form.Group controlId="parking_spot" className="mb-3">
-                            <Form.Label>Parking Spot:</Form.Label>
+                            <Form.Label>Plaza de Aparcamiento:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="parking_spot"
@@ -668,7 +691,7 @@ const EditSubscription = () => {
                     </Col>
                 </Row>
                 <Form.Group controlId="observations" className="mb-3">
-                    <Form.Label>Observations:</Form.Label>
+                    <Form.Label>Observaciones:</Form.Label>
                     <Form.Control
                         as="textarea"
                         name="observations"
@@ -681,7 +704,7 @@ const EditSubscription = () => {
 
 
                 <Form.Group controlId="subscription_formDocuments">
-                    <Form.Label>Upload Documents (PDF only)</Form.Label>
+                    <Form.Label>Añadir documentos (PDF only)</Form.Label>
                     <Form.Control
                         type="file"
                         multiple
@@ -703,7 +726,7 @@ const EditSubscription = () => {
                 <Row>
                     <Col md={4}>
                         <Form.Group controlId="created_by" className="mb-3">
-                            <Form.Label>Created By:</Form.Label>
+                            <Form.Label>Creado por:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="created_by"
@@ -714,7 +737,7 @@ const EditSubscription = () => {
                     </Col>
                     <Col md={4}>
                         <Form.Group controlId="modified_by" className="mb-3">
-                            <Form.Label>Modified By:</Form.Label>
+                            <Form.Label>Modificado por:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="modified_by"
@@ -725,7 +748,7 @@ const EditSubscription = () => {
                     </Col>
                     <Col md={4}>
                         <Form.Group controlId="modification_time" className="mb-3">
-                            <Form.Label>Modification Time:</Form.Label>
+                            <Form.Label>Fecha de modificación:</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="modification_time"
@@ -751,20 +774,20 @@ const EditSubscription = () => {
                                 /> Updating...
                             </>
                         ) : (
-                            'Update Subscription'
+                            'Actualizar Abono'
                         )}
                     </Button>
                 )
                 }
                 {isSuperuser && (
                     <Button variant="danger" onClick={handleCancelSubscription} className="me-2">
-                        Cancel Subscription
+                        Cancelar Abono
                     </Button>
                 )
                 }
                 {(isSuperuser || isAdmin) && (
                     <Button variant={"secondary"} onClick={navigateToList}>
-                        Subscription List
+                        Lista de Abono
                     </Button>
                 )}
             </Form>

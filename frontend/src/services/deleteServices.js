@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000'; // Base URL for your API
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 // Service to delete an owner by DNI
 export const deleteOwner = async (dni) => {

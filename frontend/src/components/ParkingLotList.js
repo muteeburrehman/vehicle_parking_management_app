@@ -29,7 +29,7 @@ const ParkingLotList = () => {
 
   return (
     <Container>
-      <h2 className="text-center my-4 text-primary">Available Parking Lots</h2>
+      <h2 className="text-center my-4 text-primary">Conteo de Plazas en Aparcamientos</h2>
       <Row>
         {parkingLots.map((lot) => {
           const stats = parkingLotStats[lot.name] || {};
@@ -43,11 +43,11 @@ const ParkingLotList = () => {
                   <Card.Title className="text-center mb-3">{lot.name}</Card.Title>
                   <Card.Text className="text-center">
                     <Badge bg={carSpaceStatus} className="mb-2">
-                      <FaCar /> Car Spaces: {stats.free_car_spaces}/{lot.total_car_spaces}
+                      <FaCar /> Plazas de Coche: {stats.free_car_spaces}/{lot.total_car_spaces}
                     </Badge>
                     <br />
                     <Badge bg={motorcycleSpaceStatus}>
-                      <FaMotorcycle /> Motorcycle Spaces: {stats.free_motorcycle_spaces}/{lot.total_motorcycle_spaces}
+                      <FaMotorcycle /> Plazas de Moto: {stats.free_motorcycle_spaces}/{lot.total_motorcycle_spaces}
                     </Badge>
                   </Card.Text>
                 </Card.Body>

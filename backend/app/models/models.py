@@ -114,6 +114,8 @@ class Subscription_types(Base):
     # Add this line to create a relationship with Subscriptions
     subscriptions = relationship("Subscriptions", back_populates="subscription_type")
 
+    # Add relationship with Cancellations
+    cancellations = relationship("Cancellations", back_populates="subscription_type")
 
 class Subscriptions(Base):
     __tablename__ = "subscriptions"
@@ -188,6 +190,8 @@ class Cancellations(Base):
     modification_time = Column(DateTime, default=datetime.now(), nullable=True)
     created_by = Column(String, ForeignKey("users.email"), nullable=False)
     modified_by = Column(String, ForeignKey("users.email"), nullable=True)
+
+    subscription_type = relationship("Subscription_types", back_populates="cancellations")
 
 class ApprovedCancellations(Base):
     __tablename__ = "approved_cancellations"

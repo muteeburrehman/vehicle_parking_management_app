@@ -20,7 +20,7 @@ const UpdateParkingLotForm = () => {
         const currentConfig = await parkingLotService.getParkingLotConfig(id);
         setConfig(currentConfig);
       } catch (error) {
-        console.error('Error fetching parking lot config:', error);
+        console.error('Error recopilando información de la configuración de aparcamientos:', error);
       } finally {
         setIsLoading(false);
       }
@@ -41,9 +41,9 @@ const UpdateParkingLotForm = () => {
     e.preventDefault();
     try {
       await parkingLotService.updateParkingLotConfig(id, config);
-      alert('Parking lot configuration updated successfully!');
+      alert('Configuración del aparcamiento actualizada con éxito!');
     } catch (error) {
-      alert('Error updating parking lot configuration');
+      alert('Error actualizando la configuración del aparcamiento');
     }
   };
 
@@ -55,70 +55,70 @@ const UpdateParkingLotForm = () => {
     <Container>
       <Row className="justify-content-md-center">
         <Col md={6}>
-          <h2 className="text-center mb-4">Update Parking Lot</h2>
+          <h2 className="text-center mb-4">Actualizar Aparcamiento</h2>
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="name">
-              <Form.Label>Parking Lot Name</Form.Label>
+              <Form.Label>Nombre del aparcamiento</Form.Label>
               <Form.Control
                 type="text"
                 name="name"
                 value={config.name}
                 onChange={handleChange}
                 required
-                placeholder="Enter parking lot name"
+                placeholder="Introduzca nombre del aparcamiento"
               />
             </Form.Group>
 
             <Form.Group controlId="total_car_spaces" className="mt-3">
-              <Form.Label>Total Car Spaces</Form.Label>
+              <Form.Label>Plazas totales de coches</Form.Label>
               <Form.Control
                 type="number"
                 name="total_car_spaces"
                 value={config.total_car_spaces}
                 onChange={handleChange}
                 required
-                placeholder="Enter total car spaces"
+                placeholder="Introduzca el nº total de plazas para coche"
               />
             </Form.Group>
 
             <Form.Group controlId="min_car_spaces" className="mt-3">
-              <Form.Label>Minimum Car Spaces</Form.Label>
+              <Form.Label>Mínimo de plazas libres de coche</Form.Label>
               <Form.Control
                 type="number"
                 name="min_car_spaces"
                 value={config.min_car_spaces}
                 onChange={handleChange}
                 required
-                placeholder="Enter minimum car spaces"
+                placeholder="Introduzca el nº mínimo de plazas libres de coche deseadas"
               />
             </Form.Group>
 
             <Form.Group controlId="total_motorcycle_spaces" className="mt-3">
-              <Form.Label>Total Motorcycle Spaces</Form.Label>
+              <Form.Label>Plazas totales para moto</Form.Label>
               <Form.Control
                 type="number"
                 name="total_motorcycle_spaces"
                 value={config.total_motorcycle_spaces}
                 onChange={handleChange}
                 required
-                placeholder="Enter total motorcycle spaces"
+                placeholder="Introduzca el nº total de plazas para coche"
               />
             </Form.Group>
 
             <Form.Group controlId="min_motorcycle_spaces" className="mt-3">
-              <Form.Label>Minimum Motorcycle Spaces</Form.Label>
+              <Form.Label>Mínimo de plazas libres de moto</Form.Label>
               <Form.Control
                 type="number"
                 name="min_motorcycle_spaces"
                 value={config.min_motorcycle_spaces}
                 onChange={handleChange}
                 required
-                placeholder="Enter minimum motorcycle spaces"
+                placeholder="ntroduzca el nº mínimo de plazas libres de moto deseadas"
               />
             </Form.Group>
 
             <Button variant="primary" type="submit" className="mt-4 w-100">
-              Update Parking Lot
+              Actualizar Aparcamiento
             </Button>
           </Form>
         </Col>

@@ -85,32 +85,32 @@ const VehicleHistoryList = () => {
 
     return (
         <div>
-            <h2 className="mb-4">Owner History</h2>
+            <h2 className="mb-4">Histórico de Vehículos</h2>
             <Form className="mb-4">
                 <Form.Group controlId="search">
                     <Form.Control
                         type="text"
-                        placeholder="Search by Owner ID or License Plate"
+                        placeholder="Busca por DNI o matrícula."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </Form.Group>
             </Form>
             {filteredHistories.length === 0 ? (
-                <Alert variant="info">No vehicle histories found.</Alert>
+                <Alert variant="info">No se han encontrado histórico de vehiculos.</Alert>
             ) : (
                 <Table striped bordered hover responsive>
                     <thead>
                     <tr>
-                        <th>License Plate</th>
+                        <th>Matrícula</th>
                         <th>DNI</th>
-                        <th>Name</th>
-                        <th>Last Name</th>
-                        <th>Telephone</th>
+                        <th>Nombre</th>
+                        <th>Apellidos</th>
+                        <th>Telefono</th>
                         <th>Email</th>
-                        <th>Brand</th>
-                        <th>Model</th>
-                        <th>Registration Date</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Fecha de registro</th>
                     </tr>
                     </thead>
                     <tbody>

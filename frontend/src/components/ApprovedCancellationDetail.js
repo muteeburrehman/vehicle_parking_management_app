@@ -13,6 +13,7 @@ const ApprovedCancellationDetail = () => {
     const [error, setError] = useState('');
     const [subscriptionTypes, setSubscriptionTypes] = useState([]);
     const [documentPreviews, setDocumentPreviews] = useState([]);
+    const backendURL = process.env.REACT_APP_BASE_URL;
 
     const checkUrlExists = async (url) => {
         try {
@@ -24,8 +25,8 @@ const ApprovedCancellationDetail = () => {
     };
 
     const getDocumentUrl = useCallback(async (docName) => {
-        const cancelledPath = `http://localhost:8000/cancelled_subscription_files/${encodeURIComponent(docName.trim())}`;
-        const regularPath = `http://localhost:8000/subscription_files/${encodeURIComponent(docName.trim())}`;
+        const cancelledPath = `${backendURL}/cancelled_subscription_files/${encodeURIComponent(docName.trim())}`;
+        const regularPath = `${backendURL}/subscription_files/${encodeURIComponent(docName.trim())}`;
 
         const isCancelledPathValid = await checkUrlExists(cancelledPath);
         if (isCancelledPathValid) {
@@ -38,7 +39,7 @@ const ApprovedCancellationDetail = () => {
         }
 
         return cancelledPath;
-    }, []);
+    }, [backendURL]);
 
     const parseDocuments = (documentsData) => {
         if (!documentsData) return [];
@@ -144,7 +145,7 @@ const ApprovedCancellationDetail = () => {
         return (
             <Container className="mt-5">
                 <Alert variant="warning">Approved cancellation not found.</Alert>
-                <Link to="/subscriptions/approved-cancellations/">
+                <Link to="/approved-cancellation-list">
                     <Button variant="secondary">Back to Approved Cancellations List</Button>
                 </Link>
             </Container>
@@ -153,7 +154,7 @@ const ApprovedCancellationDetail = () => {
 
     return (
         <Container className="mt-5">
-            <Link to="/subscriptions/approved-cancellations/">
+            <Link to="/approved-cancellation-list">
                 <Button variant="secondary" className="mb-3">
                     &larr; Back to Approved Cancellations List
                 </Button>

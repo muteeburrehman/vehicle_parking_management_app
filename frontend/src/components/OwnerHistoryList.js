@@ -70,26 +70,26 @@ const OwnerHistoryList = () => {
 
     return (
         <div>
-            <h2 className="mb-4">Owner History</h2>
+            <h2 className="mb-4">Histórico de clientes</h2>
             <Form.Control
                 type="text"
-                placeholder="Search by DNI, First Name or Last Name"
+                placeholder="Busca por DNI, Nombre y Apellidos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="mb-4"
             />
             {filteredHistories.length === 0 ? (
-                <Alert variant="info">No owner histories found.</Alert>
+                <Alert variant="info">No se han encontrado histórico de clientes.</Alert>
             ) : (
                 <Table striped bordered hover responsive>
                     <thead>
                         <tr>
                             <th>DNI</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Telephone</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Telefono</th>
                             <th>Email</th>
-                            <th>Registration Date</th>
+                            <th>Fecha de Registro</th>
                         </tr>
                     </thead>
                     <tbody>

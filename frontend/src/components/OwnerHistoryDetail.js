@@ -27,6 +27,7 @@ const OwnerHistoryDetail = () => {
     const [error, setError] = useState(null);
     const [documentPreviews, setDocumentPreviews] = useState([]);
     const navigate = useNavigate();
+    const backendURL = process.env.REACT_APP_BASE_URL;
 
     useEffect(() => {
         const getOwnerHistory = async () => {
@@ -36,7 +37,7 @@ const OwnerHistoryDetail = () => {
                 if (historyData.documents) {
                     const previews = historyData.documents.map(doc => ({
                         name: doc.split('/').pop(),
-                        src: `http://localhost:8000/uploads/${encodeURIComponent(doc.split('/').pop())}`,
+                        src: `${backendURL}/uploads/${encodeURIComponent(doc.split('/').pop())}`,
                         isExisting: true,
                     }));
                     setDocumentPreviews(previews);
@@ -49,7 +50,7 @@ const OwnerHistoryDetail = () => {
         };
 
         getOwnerHistory();
-    }, [historyId]);
+    }, [historyId, backendURL]);
 
     const handleViewDocument = (index) => {
         const document = documentPreviews[index];
@@ -113,7 +114,7 @@ const OwnerHistoryDetail = () => {
 
                                 <tr>
                                     <td><strong>Reduced Mobility Expiration</strong></td>
-                                    <td>{history.reduced_mobility_expiration.split('T')[0]}</td>
+                                    <td>{history.reduced_mobility_expiration ? history.reduced_mobility_expiration.split('T')[0] : ''}</td>
                                 </tr>
 
                                 </tbody>

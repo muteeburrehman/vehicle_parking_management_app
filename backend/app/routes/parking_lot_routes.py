@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict
 from backend.app.db.database import get_db
 
-from backend.app.models.models import ParkingLot, Subscription_types, Subscriptions
+from backend.app.models.models import ParkingLot, Subscription_types, Subscriptions, Cancellations
 from backend.app.schemas.subscription import Subscription_Types_Response
 from backend.app.queries.subscription import get_subscriptions_query
 
@@ -55,20 +55,34 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
 
     stats = {}
     for parking_lot in parking_lots:
+        # Filter subscription types based on parking lot name
         subscription_types = db.query(Subscription_types).filter(
             Subscription_types.name.startswith(parking_lot.name)
         ).all()
 
+        # Get subscriptions that belong to the parking lot
         subscriptions = db.query(Subscriptions).join(Subscription_types).filter(
             Subscription_types.name.startswith(parking_lot.name)
         ).all()
 
+        # Get cancellations related to the parking lot
+        cancellations = db.query(Cancellations).join(Subscription_types, Cancellations.subscription_type_id == Subscription_types.id).filter(
+            Subscription_types.name.startswith(parking_lot.name)
+        ).all()
+
+        # Count occupied car spaces based on subscriptions
         occupied_car_spaces = sum(1 for sub in subscriptions if "24H" in sub.subscription_type.name.upper() and "MOTOS" not in sub.subscription_type.name.upper())
         occupied_motorcycle_spaces = sum(1 for sub in subscriptions if "24H MOTOS" in sub.subscription_type.name.upper())
 
-        free_car_spaces = parking_lot.total_car_spaces - occupied_car_spaces
-        free_motorcycle_spaces = parking_lot.total_motorcycle_spaces - occupied_motorcycle_spaces
+        # Count cancellation-related car spaces based on cancellations
+        cancelled_car_spaces = sum(1 for cancel in cancellations if "24H" in cancel.subscription_type.name.upper() and "MOTOS" not in cancel.subscription_type.name.upper())
+        cancelled_motorcycle_spaces = sum(1 for cancel in cancellations if "24H MOTOS" in cancel.subscription_type.name.upper())
 
+        # Calculate available spaces
+        free_car_spaces = parking_lot.total_car_spaces - occupied_car_spaces - cancelled_car_spaces
+        free_motorcycle_spaces = parking_lot.total_motorcycle_spaces - occupied_motorcycle_spaces - cancelled_motorcycle_spaces
+
+        # Determine the status based on available spaces
         if free_car_spaces < parking_lot.min_car_spaces or free_motorcycle_spaces < parking_lot.min_motorcycle_spaces:
             status = 'critical'
         elif free_car_spaces < (parking_lot.total_car_spaces * 0.2) or free_motorcycle_spaces < (parking_lot.total_motorcycle_spaces * 0.2):
@@ -76,15 +90,22 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
         else:
             status = 'good'
 
+        # Collect the stats for this parking lot
         stats[parking_lot.name] = ParkingLotStats(
             total_car_spaces=parking_lot.total_car_spaces,
             total_motorcycle_spaces=parking_lot.total_motorcycle_spaces,
             free_car_spaces=free_car_spaces,
             free_motorcycle_spaces=free_motorcycle_spaces,
+            cancellation_count=len(cancellations),
+            cancelled_car_spaces=cancelled_car_spaces,
+            cancelled_motorcycle_spaces=cancelled_motorcycle_spaces,
             status=status
         )
 
     return stats
+
+
+
 
 @router.get("/parking-lot-config", response_model=List[ParkingLotResponse])
 def get_all_parking_lots(db: Session = Depends(get_db)):

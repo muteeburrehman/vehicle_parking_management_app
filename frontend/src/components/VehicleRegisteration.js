@@ -68,7 +68,7 @@ const VehicleRegistration = () => {
     const validateField = async () => {
         const licensePlateExists = await checkLicensePlateExists(vehicleData.lisence_plate);
         if (licensePlateExists) {
-            setLicensePlateError('This license plate is already registered. Please enter a different license plate.');
+            setLicensePlateError('Esta matrícula ya esta registrada en el sistema. Por favor introduzca una matrícula diferente.');
             return false; // Validation failed
         }
         // Clear error if valid
@@ -109,7 +109,7 @@ const VehicleRegistration = () => {
 
             }, dni);
 
-            setSuccessMessage('Vehicle successfully registered!');
+            setSuccessMessage('Vehículo registrado correctamente!');
 
             // Reset form and document previews after successful registration
             setVehicleData({
@@ -135,15 +135,15 @@ const VehicleRegistration = () => {
     return (
         <div className="register_vehicle_container mt-5">
             <img src={companyLogo} alt="Company Logo" className="register_owner_company_logo mb-3"/>
-            <h2 className="register_vehicle_heading">Vehicle Registration</h2>
+            <h2 className="register_vehicle_heading">Registro de Vehículos</h2>
             <Form onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Col md={6}>
                         <Form.Group controlId="vehicle_formLicensePlate">
-                            <Form.Label>License Plate</Form.Label>
+                            <Form.Label>Matrícula</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter License Plate"
+                                placeholder="Introduzca matrícula"
                                 name="lisence_plate"
                                 value={vehicleData.lisence_plate}
                                 onChange={handleInputChange}
@@ -155,10 +155,10 @@ const VehicleRegistration = () => {
                     </Col>
                     <Col md={6}>
                         <Form.Group controlId="vehicle_formBrand">
-                            <Form.Label>Brand</Form.Label>
+                            <Form.Label>Marca</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter Brand"
+                                placeholder="Marca"
                                 name="brand"
                                 value={vehicleData.brand}
                                 onChange={handleInputChange}
@@ -170,10 +170,10 @@ const VehicleRegistration = () => {
                 <Row className="mb-3">
                     <Col md={6}>
                         <Form.Group controlId="vehicle_formModel">
-                            <Form.Label>Model</Form.Label>
+                            <Form.Label>Modelo</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter Model"
+                                placeholder="Modelo"
                                 name="model"
                                 value={vehicleData.model}
                                 onChange={handleInputChange}
@@ -183,10 +183,10 @@ const VehicleRegistration = () => {
                     </Col>
                     <Col md={6}>
                         <Form.Group controlId="vehicle_formType">
-                            <Form.Label>Vehicle Type</Form.Label>
+                            <Form.Label>Tipo de Vehículo</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter Vehicle Type"
+                                placeholder="Introduzca tipo de vehículo"
                                 name="vehicle_type"
                                 value={vehicleData.vehicle_type}
                                 onChange={handleInputChange}
@@ -198,10 +198,10 @@ const VehicleRegistration = () => {
                 <Row className="mb-3">
                     <Col md={6}>
                         <Form.Group controlId="vehicle_formOwnerId">
-                            <Form.Label>Owner ID (DNI)</Form.Label>
+                            <Form.Label>DNI (Propietario)</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter Owner ID"
+                                placeholder="Introduzca DNI del propietario"
                                 name="owner_id"
                                 value={vehicleData.owner_id} // This will now reflect the DNI from URL
                                 onChange={handleInputChange}
@@ -212,11 +212,11 @@ const VehicleRegistration = () => {
                     </Col>
                     <Col md={6}>
                         <Form.Group controlId="vehicle_formObservations">
-                            <Form.Label>Observations</Form.Label>
+                            <Form.Label>Observaciones</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                placeholder="Any observations..."
+                                placeholder="Observaciones..."
                                 name="observations"
                                 value={vehicleData.observations}
                                 onChange={handleInputChange}
@@ -227,7 +227,7 @@ const VehicleRegistration = () => {
                 <Row className="mb-3">
                     <Col md={12}>
                         <Form.Group controlId="vehicle_formDocuments">
-                            <Form.Label>Documents (PDF)</Form.Label>
+                            <Form.Label>Documentos(PDF)</Form.Label>
                             <Form.Control
                                 type="file"
                                 accept="application/pdf"

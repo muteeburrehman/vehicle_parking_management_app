@@ -41,16 +41,16 @@ const OwnerList = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="owner_h2">Owner List</h2>
+             <h2 className="vehicle_h2" style={{ textTransform: "uppercase" }}>Clientes</h2>
 
              <Button className="mb-3" variant="primary" onClick={handleAddNew}>
-                Add Owner
+                Añadir Cliente
             </Button>
 
             {/* Search bar */}
             <InputGroup className="mb-3">
                 <FormControl
-                    placeholder="Search by DNI, First Name, or Last Name"
+                    placeholder="Buscar por DNI, Nombre o Apellidos"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -63,18 +63,18 @@ const OwnerList = () => {
             )}
             {error && <Alert className="owner_alert" variant="danger">Error fetching owners: {error.message}</Alert>}
             {!loading && !error && filteredOwners.length === 0 && (
-                <Alert className="owner_alert" variant="info">No owners available.</Alert>
+                <Alert className="owner_alert" variant="info">No hay Clientes Disponibles.</Alert>
             )}
             {!loading && !error && filteredOwners.length > 0 && (
                 <Table className="owner_table" striped bordered hover responsive>
                     <thead>
                         <tr>
                             <th>DNI</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Telephone</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Teléfono</th>
                             <th>Email</th>
-                            <th>Registration Date</th>
+                            <th>Fecha de Registro</th>
                             {/*<th>Created By</th>*/}
                             {/*<th>Modified By</th>*/}
                             {/*<th>Modification Time</th>*/}

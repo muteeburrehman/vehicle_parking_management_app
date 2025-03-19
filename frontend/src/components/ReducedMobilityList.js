@@ -36,11 +36,11 @@ const ReducedMobilityList = () => {
     const daysUntilExpiration = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
 
     if (daysUntilExpiration < 0) {
-      return { status: 'Expired', variant: 'danger', bgClass: 'table-danger' };
+      return { status: 'Vencido', variant: 'danger', bgClass: 'table-danger' };
     } else if (daysUntilExpiration <= 30) {
-      return { status: 'Expiring Soon', variant: 'warning', bgClass: 'table-warning' };
+      return { status: 'Vence Pronto', variant: 'warning', bgClass: 'table-warning' };
     } else {
-      return { status: 'Valid', variant: 'success', bgClass: 'table-success' };
+      return { status: 'En Vigor', variant: 'success', bgClass: 'table-success' };
     }
   };
 
@@ -90,13 +90,13 @@ const ReducedMobilityList = () => {
     <Container className="mt-4">
       <Card>
         <Card.Header>
-          <Card.Title as="h2" className="mb-0">Reduced Mobility Expiration Status</Card.Title>
+          <Card.Title as="h2" className="mb-0">Estado de Vencimientos: Movilidad Reducida</Card.Title>
         </Card.Header>
 
         <Card.Body>
           <InputGroup className="mb-3">
             <Form.Control
-              placeholder="Search by DNI, First Name, or Last Name"
+              placeholder="Buscar por DNI, Nombre o Apellidos"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -104,19 +104,19 @@ const ReducedMobilityList = () => {
 
           {filteredOwners.length === 0 ? (
             <Alert variant="info">
-              No owners found with reduced mobility expiration dates.
+              No se encuentran clientes con fechas de caducidad de mobilidad reducida.
             </Alert>
           ) : (
             <Table responsive hover bordered>
               <thead>
                 <tr>
                   <th>DNI</th>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Phone</th>
+                  <th>Nombre</th>
+                  <th>Apellidos</th>
+                  <th>Teléfono</th>
                   <th>Email</th>
-                  <th>Expiration Date</th>
-                  <th>Status</th>
+                  <th>Fecha de Vencimiento</th>
+                  <th>Estado</th>
                 </tr>
               </thead>
               <tbody>

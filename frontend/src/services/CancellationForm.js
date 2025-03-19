@@ -1,0 +1,260 @@
+import React, { useState, useEffect } from 'react';
+import { Form, Button, Alert, Container, Modal } from 'react-bootstrap';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { cancelSubscription } from '../services/cancellationService';
+import useAuth from "../hooks/useAuth";
+
+const ApprovalModal = ({ showApproveModal, setShowApproveModal, cancellationDate, setCancellationDate, handleApprove, approvalLoading }) => {
+  return (
+    <Modal show={showApproveModal} onHide={() => setShowApproveModal(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>Approve Cancellation</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form>
+          <Form.Group>
+            <Form.Label>Cancellation Date</Form.Label>
+            <Form.Control
+              type="date"
+              value={cancellationDate}
+              onChange={(e) => setCancellationDate(e.target.value)}
+              required
+            />
+          </Form.Group>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowApproveModal(false)}>
+          Close
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleApprove}
+          disabled={approvalLoading}
+        >
+          {approvalLoading ? 'Approving...' : 'Approve'}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+const CancellationForm = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    owner_id: '',
+    subscription_type_id: 0,
+    parking_lot: '',
+    access_card: '',
+    lisence_plate1: '',
+    lisence_plate2: '',
+    lisence_plate3: '',
+    observations: '',
+    parking_spot: '',
+  });
+
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [cancellationDate, setCancellationDate] = useState();
+  const [approvalLoading, setApprovalLoading] = useState(false);
+
+  useEffect(() => {
+    // If there's pre-filled data from the edit form, use it
+    if (location.state && location.state.formData) {
+      setFormData(location.state.formData);
+    }
+  }, [location.state]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const dataToSend = {
+        ...formData,
+        subscription_type_id: parseInt(formData.subscription_type_id, 10),
+        lisence_plate1: formData.lisence_plate1 || null,
+        lisence_plate2: formData.lisence_plate2 || null,
+        lisence_plate3: formData.lisence_plate3 || null,
+        modified_by: user.email,
+        observations: formData.observations,
+      };
+      console.log(dataToSend);
+
+      // Show the approval modal
+      setShowApproveModal(true);
+    } catch (err) {
+      setError(err.detail || 'An error occurred while cancelling the subscription.');
+      setSuccess(false);
+    }
+  };
+
+  const handleApprove = async () => {
+  // Validate cancellation date
+  if (!cancellationDate) {
+    setError('Please select a cancellation date.');
+    return;
+  }
+
+  try {
+    setApprovalLoading(true);
+
+    // Remove undefined properties
+    const cleanDataToSend = Object.fromEntries(
+      Object.entries({
+        id: formData.id || null,
+        owner_id: formData.owner_id,
+        subscription_type_id: formData.subscription_type_id,
+        access_card: formData.access_card || null,
+        lisence_plate1: formData.lisence_plate1 || null,
+        lisence_plate2: formData.lisence_plate2 || null,
+        lisence_plate3: formData.lisence_plate3 || null,
+        effective_date: formData.effective_date || formData.registration_date || new Date().toISOString(),
+        effective_cancellation_date: cancellationDate,
+        large_family_expiration: formData.large_family_expiration || null,
+        documents: formData.documents || [],
+        tique_x_park: formData.tique_x_park || null,
+        remote_control_number: formData.remote_control_number || null,
+        observations: formData.observations || null,
+        parking_spot: formData.parking_spot || null,
+        registration_date: formData.registration_date || new Date().toISOString(),
+        modified_by: user.email,
+        created_by: formData.created_by || user.email,
+      }).filter(([_, v]) => v !== undefined)
+    );
+
+    console.log('Sending cleaned data to backend:', cleanDataToSend);
+    await cancelSubscription(cleanDataToSend);
+
+    // Rest of the success handling remains the same
+    setSuccess(true);
+    setError(null);
+
+    setFormData({
+      owner_id: '',
+      subscription_type_id: 0,
+      access_card: '',
+      lisence_plate1: '',
+      lisence_plate2: '',
+      lisence_plate3: '',
+      observations: '',
+      parking_spot: '',
+    });
+
+    setCancellationDate('');
+
+    setTimeout(() => {
+      navigate('/subscription-list');
+    }, 2000);
+  } catch (err) {
+    // Improved error handling
+    const errorMessage = err.response?.data?.detail ||
+      (err instanceof Error
+        ? err.message
+        : (typeof err === 'string'
+          ? err
+          : 'An error occurred while approving the cancellation.'));
+
+    setError(errorMessage);
+    setSuccess(false);
+  } finally {
+    setApprovalLoading(false);
+    setShowApproveModal(false);
+  }
+};
+  return (
+    <Container className="mt-4">
+      <h2>Cancel Subscription</h2>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">Cancellation successful! Redirecting...</Alert>}
+      <Form onSubmit={handleSubmit}>
+        <Form.Group controlId="owner_id" className="mb-3">
+          <Form.Label>DNI:</Form.Label>
+          <Form.Control
+            type="text"
+            name="dni"
+            value={formData.owner_id}
+            onChange={handleChange}
+            required
+            readOnly
+          />
+        </Form.Group>
+        <Form.Group controlId="subscription_type_id" className="mb-3">
+          <Form.Label>Subscription Type ID:</Form.Label>
+          <Form.Control
+            type="number"
+            name="subscription_type_id"
+            value={formData.subscription_type_id}
+            onChange={handleChange}
+            required
+            readOnly
+          />
+        </Form.Group>
+        <Form.Group controlId="access_card" className="mb-3">
+          <Form.Label>Access Card:</Form.Label>
+          <Form.Control
+            type="text"
+            name="access_card"
+            value={formData.access_card}
+            onChange={handleChange}
+            readOnly
+          />
+        </Form.Group>
+
+        {['lisence_plate1', 'lisence_plate2', 'lisence_plate3'].map((plate, index) => (
+          <Form.Group controlId={plate} className="mb-3" key={plate}>
+            <Form.Label>License Plate {index + 1}:</Form.Label>
+            <Form.Control
+              type="text"
+              name={plate}
+              value={formData[plate]}
+              onChange={handleChange}
+              readOnly
+            />
+          </Form.Group>
+        ))}
+        <Form.Group controlId="observations" className="mb-3">
+          <Form.Label>Observations:</Form.Label>
+          <Form.Control
+            as="textarea"
+            name="observations"
+            value={formData.observations}
+            onChange={handleChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="parking_spot" className="mb-3">
+          <Form.Label>Parking Spot:</Form.Label>
+          <Form.Control
+            type="text"
+            name="parking_spot"
+            value={formData.parking_spot}
+            onChange={handleChange}
+            readOnly
+          />
+        </Form.Group>
+        <Button variant="danger" type="submit">
+          Confirm Cancellation
+        </Button>
+      </Form>
+       <ApprovalModal
+        showApproveModal={showApproveModal}
+        setShowApproveModal={setShowApproveModal}
+        cancellationDate={cancellationDate}
+        setCancellationDate={setCancellationDate}
+        handleApprove={handleApprove}
+        approvalLoading={approvalLoading}
+      />
+    </Container>
+  );
+};
+
+export default CancellationForm;

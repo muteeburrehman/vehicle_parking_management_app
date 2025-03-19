@@ -94,7 +94,11 @@ const CancellationForm = () => {
       // Show the approval modal
       setShowApproveModal(true);
     } catch (err) {
-      setError(err.detail || 'An error occurred while cancelling the subscription.');
+      const errorMessage =
+        err?.detail ||
+        err?.message ||
+        'An error occurred while cancelling the subscription';
+      setError(errorMessage);
       setSuccess(false);
     }
   };
@@ -103,18 +107,17 @@ const CancellationForm = () => {
     try {
       setApprovalLoading(true);
       const dataToSend = {
-      ...formData,
-      cancellation_date: cancellationDate,
-      effective_cancellation_date: cancellationDate,
-    };
+        ...formData,
+        cancellation_date: cancellationDate,
+        effective_cancellation_date: cancellationDate,
+        large_family_expiration: formData.large_family_expiration || null
+      };
       console.log('Sending data to backend:', dataToSend);
       await cancelSubscription(dataToSend);
 
-      // Set success and reset error
       setSuccess(true);
       setError(null);
 
-      // Reset the form fields
       setFormData({
         owner_id: '',
         parking_lot: '',
@@ -127,12 +130,15 @@ const CancellationForm = () => {
         parking_spot: '',
       });
 
-      // Redirect to subscription list after a brief delay
       setTimeout(() => {
         navigate('/subscription-list');
       }, 2000);
     } catch (err) {
-      setError(err.detail || 'An error occurred while approving the cancellation.');
+      const errorMessage =
+        err?.detail ||
+        err?.message ||
+        'An error occurred while approving the cancellation';
+      setError(errorMessage);
       setSuccess(false);
     } finally {
       setApprovalLoading(false);
@@ -143,7 +149,13 @@ const CancellationForm = () => {
   return (
     <Container className="mt-4">
       <h2>Cancel Subscription</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && (
+        <Alert variant="danger">
+          {typeof error === 'object'
+            ? (error.detail || error.message || JSON.stringify(error))
+            : error}
+        </Alert>
+      )}
       {success && <Alert variant="success">Cancellation successful! Redirecting...</Alert>}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="owner_id" className="mb-3">

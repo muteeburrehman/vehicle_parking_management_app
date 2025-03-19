@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import List, Dict
 from backend.app.db.database import get_db
-from backend.app.models.models import ParkingLot, Subscription_types, Subscriptions
+from backend.app.models.models import ParkingLot, Subscription_types, Subscriptions, Cancellations
 
 router = APIRouter()
 
@@ -39,7 +39,15 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
             .all()
         )
 
-        total = len(subscriptions)
+        # Count cancellations for each subscription type
+        cancellations = (
+            db.query(Cancellations)
+            .join(Subscription_types)
+            .filter(Subscription_types.name.startswith(parking_lot.name))
+            .all()
+        )
+
+        total = len(subscriptions) + len(cancellations)
         total_billing = 0
 
         # Count subscriptions by type and calculate billing
@@ -47,6 +55,14 @@ def get_parking_lot_stats(db: Session = Depends(get_db)):
             sub_name = sub.subscription_type.name
             subscription_data[sub_name]["count"] += 1
             total_billing += subscription_data[sub_name]["price"]
+
+
+
+        # Now handle cancellations by adjusting the counts and total billing
+        for cancel in cancellations:
+            cancel_name = cancel.subscription_type.name
+            subscription_data[cancel_name]["count"] += 1
+            total_billing += subscription_data[cancel_name]["price"]
 
         # Calculate percentages and create breakdown
         breakdown = [

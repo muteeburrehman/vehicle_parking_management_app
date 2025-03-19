@@ -80,12 +80,12 @@ const CancellationList = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="text-center mb-4">Pending Cancellations</h2>
+            <h2 className="text-center mb-4">Cancelaciones pendientes de firma</h2>
             <Form className="mb-4">
                 <Form.Group controlId="search">
                     <Form.Control
                         type="text"
-                        placeholder="Search by Owner ID or License Plate..."
+                        placeholder="Busca por DNI o Matrícula..."
                         value={searchQuery}
                         onChange={handleSearchChange}
                     />
@@ -98,14 +98,14 @@ const CancellationList = () => {
                     <thead>
                         <tr>
                             <th>DNI</th>
-                            <th>Name</th>
-                            <th>Last Name</th>
-                            <th>Subscription Type</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Tipo de abono</th>
                             <th>Email</th>
-                            <th>Telephone</th>
-                            <th>Observations</th>
-                            <th>Registration Date</th>
-                            <th>Cancellation Date</th>
+                            <th>Telefono</th>
+                            <th>Observaciones</th>
+                            <th>Fecha de Registro</th>
+                            <th>Fecha de Baja</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,7 +128,7 @@ const CancellationList = () => {
                         {filteredCancellations.length === 0 && (
                             <tr>
                                 <td colSpan="9" className="text-center">
-                                    No cancellations found.
+                                    No se encuentran abonos pendientes de baja.
                                 </td>
                             </tr>
                         )}

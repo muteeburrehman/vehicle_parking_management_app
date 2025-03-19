@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8000';
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 export const updateVehicle = async (lisence_plate, formData) => {
     try {
