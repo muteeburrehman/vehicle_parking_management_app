@@ -13,6 +13,8 @@ services:
       - ./backend/app/subscription_files:/app/subscription_files
       - ./backend/app/vehicle_uploads:/app/vehicle_uploads
       - ./backend/app/cancelled_subscription_files:/app/cancelled_subscription_files
+      - ./backend/app/uploads:/app/uploads
+      - ./backend/app/templates:/app/templates  # Added this line for templates
     environment:
       - PYTHONUNBUFFERED=1
     restart: always

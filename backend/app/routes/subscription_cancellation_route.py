@@ -4,7 +4,7 @@ from bdb import effective
 from datetime import datetime
 from pathlib import PosixPath
 from typing import List
-from pathlib import Path
+
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from fastapi.logger import logger
@@ -23,7 +23,7 @@ from backend.app.schemas.subscription_cancellation import CancellationResponse, 
 router = APIRouter()
 
 base_path = os.getcwd()
-UPLOAD_DIR = Path(base_path) / "cancelled_subscription_files"
+UPLOAD_DIR = PosixPath(base_path) / "cancelled_subscription_files"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellations, db: Session):

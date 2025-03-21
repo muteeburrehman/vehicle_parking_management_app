@@ -3,6 +3,7 @@ import uuid
 from bdb import effective
 from datetime import datetime
 from os import remove
+from pathlib import PosixPath
 from typing import List, Optional
 from urllib.parse import urljoin
 
@@ -33,13 +34,13 @@ from backend.app.queries.subscription import create_subscription_type_query, get
     get_subscription_type_by_id_query, create_subscription_query, get_subscription_by_id_query, get_subscriptions_query, \
     get_subscription_by_id
 
-from pathlib import Path
+
 
 router = APIRouter()
 
 # UPLOAD_DIR = Path("C:/Users/Doom/Desktop/APP APARCAMIENTOS/car_parking_system/backend/app/subscription_files")
 base_path = os.getcwd()
-UPLOAD_DIR = Path(base_path) / "subscription_files"
+UPLOAD_DIR = PosixPath(base_path) / "subscription_files"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -129,7 +130,7 @@ async def handle_document_updates(
 
     # Remove specified documents
     for doc_path in current_documents:
-        doc_name = Path(doc_path).name
+        doc_name = PosixPath(doc_path).name
         if doc_name not in remove_documents:
             updated_documents.append(doc_name)
         else:
@@ -323,7 +324,7 @@ async def create_subscription_endpoint(
         db.commit()
 
         # Construct the response model with URLs
-        base_url = "http://localhost:8000/subscription_files/"  # Update as needed
+        base_url = "http://157.180.31.108:8000/subscription_files/"  # Update as needed
         document_urls = [urljoin(base_url, filename) for filename in document_filenames]
 
         # history entry
@@ -413,9 +414,47 @@ def update_parking_lot_spaces(db: Session, subscription_type_id: int, change: in
 
 # Set up Jinja2 environment
 # template_dir = r'C:\Users\Doom\Desktop\APP APARCAMIENTOS\car_parking_system\backend\app\templates'
-template_dir = Path(base_path) / "templates"
-env = Environment(loader=FileSystemLoader(template_dir))
 
+# In your code, add these debug lines
+import os
+print(f"Current working directory in container: {os.getcwd()}")
+print(f"Files in current directory: {os.listdir('.')}")
+print(f"Files in app directory (if exists): {os.listdir('./app') if os.path.exists('./app') else 'No app directory'}")
+# For Docker setup
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+# Get the absolute path to the templates directory
+template_dir = os.path.join(os.getcwd(), "templates")
+if not os.path.exists(template_dir):
+    # Then try with app directory
+    template_dir = os.path.join(os.getcwd(), "app", "templates")
+    if not os.path.exists(template_dir):
+        # Finally try with backend/app
+        template_dir = os.path.join(os.getcwd(), "backend", "app", "templates")
+
+# Add these debug statements
+print(f"Final template directory path: {template_dir}")
+print(f"Template directory exists: {os.path.exists(template_dir)}")
+if os.path.exists(template_dir):
+    print(f"Files in template directory: {os.listdir(template_dir)}")
+    print(f"work_order_template.html exists: {os.path.exists(os.path.join(template_dir, 'work_order_template.html'))}")
+
+# Create the Jinja2 environment with explicit debug=True to get more information
+env = Environment(
+    loader=FileSystemLoader(template_dir),
+    autoescape=select_autoescape(['html', 'xml']),
+
+)
+
+# Test the template loading explicitly
+try:
+    template = env.get_template('work_order_template.html')
+    print("Successfully loaded the template!")
+except Exception as e:
+    print(f"Error loading template: {e}")
+    # List all available templates
+    if hasattr(env.loader, 'list_templates'):
+        print(f"Available templates: {env.loader.list_templates()}")
 
 @router.put("/subscription/{id}", response_model=SubscriptionResponse)
 async def edit_subscription_endpoint(
@@ -618,7 +657,7 @@ async def edit_subscription_endpoint(
             raise HTTPException(status_code=500, detail=f"Error guardando cambios: {str(e)}")
 
         # Construct the response
-        base_url = "http://localhost:8000/subscription_files/"
+        base_url = "http://157.180.31.108:8000/subscription_files/"
         document_urls = []
         if subscription.documents:
             document_filenames = subscription.documents.split(",")
