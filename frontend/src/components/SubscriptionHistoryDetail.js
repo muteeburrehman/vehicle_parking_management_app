@@ -48,34 +48,79 @@ const SubscriptionHistoryDetail = () => {
         return subType ? subType.name : 'Unknown'; // Return subscription type name or 'Unknown' if not found
     };
 
-    useEffect(() => {
-        const getSubscriptionHistory = async () => {
-            try {
-                // Fetch subscription history by ID
-                const historyData = await fetchSubscriptionHistoryById(historyId);
-                setHistory(historyData);
+  const checkUrlExists = async (url) => {
+        try {
+            const response = await fetch(url, {method: 'HEAD'});
+            return response.ok;
+        } catch {
+            return false;
+        }
+    };
 
-                // Fetch subscription types
-                const subscriptionTypesData = await getSubscriptionTypes();
-                setSubscriptionTypes(subscriptionTypesData);
+  useEffect(() => {
+    const getSubscriptionHistory = async () => {
+        try {
+            // Fetch subscription history by ID
+            const historyData = await fetchSubscriptionHistoryById(historyId);
+            setHistory(historyData);
 
-                if (historyData.documents) {
-                    const previews = historyData.documents.map(doc => ({
-                        name: doc.split('/').pop(),
-                        src: `${backendURL}/subscription_files/${encodeURIComponent(doc.split('/').pop())}`,
-                        isExisting: true,
-                    }));
-                    setDocumentPreviews(previews);
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+            // Fetch subscription types
+            const subscriptionTypesData = await getSubscriptionTypes();
+            setSubscriptionTypes(subscriptionTypesData);
+
+            if (historyData.documents) {
+                const previews = await Promise.all(
+                    historyData.documents.map(async (doc) => {
+                        const fileName = doc.split('/').pop();
+
+                        // Define paths for cancelled and regular documents
+                        const cancelledPath = `${backendURL}/cancelled_subscription_files/${encodeURIComponent(fileName.trim())}`;
+                        const regularPath = `${backendURL}/subscription_files/${encodeURIComponent(fileName.trim())}`;
+
+                        // Check if cancelledPath is valid
+                        const isCancelledPathValid = await checkUrlExists(cancelledPath);
+                        if (isCancelledPathValid) {
+                            return {
+                                name: fileName,
+                                src: cancelledPath,
+                                isExisting: true,
+                            };
+                        }
+
+                        // Check if regularPath is valid
+                        const isRegularPathValid = await checkUrlExists(regularPath);
+                        if (isRegularPathValid) {
+                            return {
+                                name: fileName,
+                                src: regularPath,
+                                isExisting: true,
+                            };
+                        }
+
+                        // Return default invalid document if neither path is valid
+                        return {
+                            name: fileName,
+                            src: "",
+                            isExisting: false,
+                        };
+                    })
+                );
+
+                // Filter out invalid documents
+                setDocumentPreviews(previews.filter(preview => preview.isExisting));
             }
-        };
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        getSubscriptionHistory();
-    }, [historyId,backendURL]);
+    getSubscriptionHistory();
+}, [historyId, backendURL]); // Add dependencies to useEffect
+
+
+
 
     const handleViewDocument = (index) => {
         const document = documentPreviews[index];

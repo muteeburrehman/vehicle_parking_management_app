@@ -51,10 +51,10 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     # Prepare data for the template
     template_data = {
         'order_no': f"{safe_get(cancelled_subscription, 'id')}/24",
-        'date': safe_get(cancelled_subscription, 'modification_time', datetime.now()).strftime('%m/%d/%Y'),
+        'date': safe_get(cancelled_subscription, 'modification_time', datetime.now()).strftime('%d/%m/%Y'),
         'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
-        'effective_date': safe_get(cancelled_subscription, 'effective_date', datetime.now()).strftime('%m/%d/%Y'),
-        'effective_cancellation_date': safe_get(cancelled_subscription, 'effective_cancellation_date', datetime.now()).strftime('%m/%d/%Y'),
+        'effective_date': safe_get(cancelled_subscription, 'effective_date', datetime.now()).strftime('%d/%m/%Y'),
+        'effective_cancellation_date': safe_get(cancelled_subscription, 'effective_cancellation_date', datetime.now()).strftime('%d/%m/%Y'),
         'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
         'phone': safe_get(owner, 'phone_number', ''),
         'email': safe_get(owner, 'email', ''),
@@ -102,7 +102,7 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
     # Save the PDF
-    filename = f"cancellation_Orden De Trabajo_{safe_get(cancelled_subscription, 'id', 'unknown')}.pdf"
+    filename = f"cancellation_ODT_{safe_get(cancelled_subscription, 'id', 'unknown')}.pdf"
     file_path = UPLOAD_DIR / filename
     with open(file_path, "wb") as f:
         f.write(pdf)
