@@ -1,161 +1,128 @@
-Car Parking Management System
-Overview
-The Car Parking Management System is a comprehensive solution designed to manage vehicle parking records, owner information, and subscription services. This application streamlines the process of tracking parking privileges, special accommodations, and maintaining historical records of all entities in the system.
+# Vehicle Parking Management System
+## Overview
+The Vehicle Parking Management System is a comprehensive solution designed to manage vehicle parking records, owner information, and subscription services. This application streamlines the process of tracking parking privileges, special accommodations, and maintaining historical records of all entities in the system.
 Features
-User Management
+## User Management
 
-Three-tiered access system:
+### Three-tiered access system:
 
-Superuser: Full access to all features and administrative capabilities
-Admin: Management access with some restrictions compared to superuser
-User: Basic access with limited administrative privileges
-
-
-
-Owner Management
-
-Registration of vehicle owners
-Profile management and updates
-Historical tracking of owner information changes
-
-Vehicle Management
-
-Vehicle registration and details tracking
-Assignment of vehicles to owners
-Historical tracking of vehicle information changes
-
-Subscription Services
-
-Standard parking subscriptions
-Special subscription types:
-
-Reduced Mobility Subscriptions: Special accommodations for individuals with mobility challenges
-Large Family Subscriptions: Special rates for qualifying families
+- Superuser: Full access to all features and administrative capabilities
+- Admin: Management access with some restrictions compared to superuser
+- User: Basic access with limited privileges
 
 
-Subscription cancellation processing
-Subscription modification tracking
 
-Parking Management
+### Owner Management
 
-Parking lot configuration
-Parking space allocation
-Parking usage statistics
+- Registration of vehicle owners
+- Profile management and updates
+- Historical tracking of owner information changes
 
-Document Management
+### Vehicle Management
 
-Work order generation
-Document storage for subscriptions
-Cancellation documentation
+- Vehicle registration and details tracking
+- Assignment of vehicles to owners
+- Historical tracking of vehicle information changes
 
-Technical Architecture
-Backend
+### Subscription Services
 
-FastAPI Python framework
-SQLite database
-RESTful API endpoints
-JWT authentication
+- Standard parking subscriptions
+- Special subscription types:
 
-Frontend
+### Reduced Mobility Subscriptions:
+- Special accommodations for individuals with mobility challenges
+### Large Family Subscriptions: 
+- Special rates for qualifying families
 
-React.js framework
-Context API for state management
-Responsive design
-Interactive charts for statistical data
 
-Deployment
+### Subscription cancellation processing
+### Subscription modification tracking
 
-Docker containerization
-Docker Compose orchestration
-Volume mapping for persistent data
+### Parking Management
 
-Installation
-Prerequisites
+- Parking lot configuration
+- Parking space allocation
+- Parking usage statistics
 
-Docker and Docker Compose
-Git
+### Document Management
 
-Setup Instructions
+- Work order generation
+- Document storage for subscriptions
+- Cancellation documentation
 
-Clone the repository:
-git clone [repository-url]
+## Technical Architecture
+### Backend
+
+- FastAPI Python framework
+- SQLite database
+- RESTful API endpoints
+- JWT authentication
+
+### Frontend
+
+- React.js framework
+- Context API for state management
+- Responsive design
+- Interactive charts for statistical data
+
+- Deployment
+
+- Docker containerization
+- Docker Compose orchestration
+- Volume mapping for persistent data
+
+## Installation
+### Prerequisites
+
+- Docker and Docker Compose
+- Git
+
+## Setup Instructions
+
+### Clone the repository:
+```bash
+git clone git@github.com:muteeburrehman/vehicle_parking_management_app.git
 cd car_parking_app_windows_version
-
-Build and start the containers:
+```
+### Build and start the containers:
+```bash
 docker-compose build
 docker-compose up -d
+```
 
-Access the application:
+### Access the application:
 
-Frontend: http://localhost:3000
-Backend API: http://localhost:8000
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
 
 
+## Common Tasks
+### Managing Owners
 
-Usage
-Initial Login
-The system comes pre-configured with two default users:
+- Register new owners through the owner registration form
+- View and edit owner information
+- Track historical changes to owner data
 
-Superuser: smarin@amgevicesa.es (Password provided separately)
-Admin: edelgado@amgevicesa.es (Password provided separately)
+### Managing Vehicles
 
-Common Tasks
-Managing Owners
+- Register vehicles and associate them with owners
+- Update vehicle information
+- Review vehicle history
 
-Register new owners through the owner registration form
-View and edit owner information
-Track historical changes to owner data
+### Managing Subscriptions
 
-Managing Vehicles
+- Create new subscriptions
+- Process subscription modifications
+- Handle cancellation requests
+- Generate subscription documentation
 
-Register vehicles and associate them with owners
-Update vehicle information
-Review vehicle history
+### Special Accommodations
 
-Managing Subscriptions
+- Process reduced mobility applications
+- Manage large family subscription requests
 
-Create new subscriptions
-Process subscription modifications
-Handle cancellation requests
-Generate subscription documentation
-
-Special Accommodations
-
-Process reduced mobility applications
-Manage large family subscription requests
-
-File Structure
-car_parking_app_windows_version/
-├── backend/                      # Backend FastAPI application
-│   ├── app/                      # Application modules
-│   │   ├── db/                   # Database connection and models
-│   │   ├── models/               # Data models
-│   │   ├── queries/              # Database query operations
-│   │   ├── routes/               # API endpoints
-│   │   ├── schemas/              # Pydantic schemas
-│   │   ├── templates/            # HTML templates for reports
-│   │   └── utils/                # Utility functions
-│   ├── Dockerfile                # Backend container configuration
-│   ├── main.py                   # Application entry point
-│   └── requirements.txt          # Python dependencies
-├── frontend/                     # React frontend application
-│   ├── public/                   # Static assets
-│   ├── src/                      # Source code
-│   │   ├── assets/               # Images and icons
-│   │   ├── components/           # React components
-│   │   ├── context/              # Context providers
-│   │   ├── hooks/                # Custom hooks
-│   │   └── services/             # API services
-│   ├── Dockerfile                # Frontend container configuration
-│   └── package.json              # NPM dependencies
-├── subscription_files/           # Storage for subscription documents
-├── vehicle_uploads/              # Storage for vehicle-related uploads
-├── cancelled_subscription_files/ # Storage for cancellation documents
-└── docker-compose.yml           # Container orchestration configuration
-Maintenance
-Database Backups
+## Maintenance
+### Database Backups
 The SQLite database is mounted as a volume to ensure data persistence. Regular backups are recommended.
-File Storage
+### File Storage
 All uploaded files are stored in mapped volumes for persistence between container restarts.
-Support
-For technical support or feature requests, please contact the development team.
