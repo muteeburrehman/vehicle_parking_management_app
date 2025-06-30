@@ -4,17 +4,16 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
     container_name: car_parking_backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     volumes:
-      - ./backend/app/db:/app/db  # Ensure database.db is accessible inside /app/db
+      - ./backend/app/db:/app/db
       - ./backend/app/subscription_files:/app/subscription_files
       - ./backend/app/vehicle_uploads:/app/vehicle_uploads
       - ./backend/app/cancelled_subscription_files:/app/cancelled_subscription_files
       - ./backend/app/uploads:/app/uploads
-      - ./backend/app/templates:/app/templates  # Added this line for templates
+      - ./backend/app/templates:/app/templates
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
@@ -22,12 +21,23 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
     container_name: car_parking_frontend
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
+    env_file:
+      - ./frontend/.env.production
     depends_on:
       - backend
-    env_file:
-      - ./frontend/.env.production  # Ensure production environment variables load
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
     restart: always

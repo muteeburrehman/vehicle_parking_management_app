@@ -21,20 +21,30 @@ const CancellationList = () => {
                     getAllCancellations(),
                     getSubscriptionTypes(),
                 ]);
-                setCancellations(cancellationData);
-                setSubscriptionTypes(types);
 
-                // Fetch owner data for each cancellation
-                const ownerPromises = cancellationData.map(cancellation =>
-                    fetchOwnerByDNI(cancellation.owner_id)
-                );
-                const ownerData = await Promise.all(ownerPromises);
-                const ownersMap = ownerData.reduce((acc, owner, index) => {
-                    acc[cancellationData[index].owner_id] = owner;
-                    return acc;
-                }, {});
-                setOwners(ownersMap);
+                console.log('Cancellation data received:', cancellationData);
+
+                // Your backend returns an array directly, so use it as-is
+                const cancellationArray = Array.isArray(cancellationData) ? cancellationData : [];
+                const typesArray = Array.isArray(types) ? types : [];
+
+                setCancellations(cancellationArray);
+                setSubscriptionTypes(typesArray);
+
+                // Only fetch owner data if we have cancellations
+                if (cancellationArray.length > 0) {
+                    const ownerPromises = cancellationArray.map(cancellation =>
+                        fetchOwnerByDNI(cancellation.owner_id)
+                    );
+                    const ownerData = await Promise.all(ownerPromises);
+                    const ownersMap = ownerData.reduce((acc, owner, index) => {
+                        acc[cancellationArray[index].owner_id] = owner;
+                        return acc;
+                    }, {});
+                    setOwners(ownersMap);
+                }
             } catch (err) {
+                console.error('Error fetching cancellations:', err);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -66,12 +76,13 @@ const CancellationList = () => {
         setSearchQuery(event.target.value);
     };
 
-    const filteredCancellations = cancellations.filter(cancelled => {
-        const ownerIdMatch = cancelled.owner_id.toString().toLowerCase().includes(searchQuery.toLowerCase());
+    // Ensure cancellations is always an array before filtering
+    const filteredCancellations = Array.isArray(cancellations) ? cancellations.filter(cancelled => {
+        const ownerIdMatch = cancelled.owner_id?.toString().toLowerCase().includes(searchQuery.toLowerCase());
         const licensePlateMatch = [cancelled.license_plate1, cancelled.license_plate2, cancelled.license_plate3]
             .some(plate => plate && plate.toLowerCase().includes(searchQuery.toLowerCase()));
         return ownerIdMatch || licensePlateMatch;
-    });
+    }) : [];
 
     const getSubscriptionTypeName = (typeId) => {
         const subType = subscriptionTypes.find(type => type.id === typeId);
