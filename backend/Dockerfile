@@ -12,4 +12,4 @@ EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/backend
 
-CMD ["python", "/backend/app/main.py"]
+CMD ["python", "-m", "app.main"]
