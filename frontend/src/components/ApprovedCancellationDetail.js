@@ -156,7 +156,7 @@ const ApprovedCancellationDetail = () => {
         <Container className="mt-5">
             <Link to="/approved-cancellation-list">
                 <Button variant="secondary" className="mb-3">
-                    &larr; Back to Approved Cancellations List
+                    &larr; Volver a lista de bajas aprovadas
                 </Button>
             </Link>
 
@@ -164,7 +164,7 @@ const ApprovedCancellationDetail = () => {
 
             <Card>
                 <Card.Header className="bg-success text-white">
-                    <h4 className="mb-0">Approved Cancellation</h4>
+                    <h4 className="mb-0">Baja aprovadas</h4>
                 </Card.Header>
                 <Card.Body>
                     <Form>
@@ -179,7 +179,7 @@ const ApprovedCancellationDetail = () => {
                                     <Form.Control type="text" value={cancellation.owner_id} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Subscription Type</Form.Label>
+                                    <Form.Label>Tipo de abono</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={getSubscriptionTypeName(cancellation.subscription_type_id)}
@@ -187,33 +187,33 @@ const ApprovedCancellationDetail = () => {
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Access Card</Form.Label>
+                                    <Form.Label>Nº de tarjeta</Form.Label>
                                     <Form.Control type="text" value={cancellation.access_card || 'N/A'} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Effective Date</Form.Label>
+                                    <Form.Label>Fecha de efecto</Form.Label>
                                     <Form.Control type="text" value={formatDate(cancellation.effective_date)} disabled />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>License Plate 1</Form.Label>
+                                    <Form.Label>Matrícula 1</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate1 || 'N/A'} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>License Plate 2</Form.Label>
+                                    <Form.Label>Matrícula 2</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate2 || 'N/A'} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>License Plate 3</Form.Label>
+                                    <Form.Label>Matrícula 3</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate3 || 'N/A'} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Parking Spot</Form.Label>
+                                    <Form.Label>Plaza de aparcamiento</Form.Label>
                                     <Form.Control type="text" value={cancellation.parking_spot || 'N/A'} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Approval Date</Form.Label>
+                                    <Form.Label>Fecha de aprovación de la baja</Form.Label>
                                     <Form.Control type="text" value={formatDate(cancellation.modification_time)} disabled />
                                 </Form.Group>
                             </Col>
@@ -221,7 +221,7 @@ const ApprovedCancellationDetail = () => {
 
                         <Row className="mt-4">
                             <Col>
-                                <h5>Documents</h5>
+                                <h5>Documentos</h5>
                                 {documentPreviews.length > 0 ? (
                                     <DocumentPreviewRow
                                         documentPreviews={documentPreviews}
@@ -230,7 +230,7 @@ const ApprovedCancellationDetail = () => {
                                         readOnly={true}
                                     />
                                 ) : (
-                                    <p>No documents available</p>
+                                    <p>Sin documentos disponibles</p>
                                 )}
                             </Col>
                         </Row>

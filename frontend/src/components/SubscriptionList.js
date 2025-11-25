@@ -2,7 +2,7 @@ import React, {useEffect, useState, useMemo, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {getSubscriptions, getSubscriptionTypes, exportSubscriptions} from '../services/subscriptionService';
 import {fetchOwnerByDNI} from "../services/getOwnerService";
-import './SubscriptionList.css'; // Make sure to create this CSS file
+import './SubscriptionList.css';
 
 const SubscriptionList = () => {
     const [subscriptions, setSubscriptions] = useState([]);
@@ -14,6 +14,7 @@ const SubscriptionList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showExportModal, setShowExportModal] = useState(false);
     const [exportFields, setExportFields] = useState([]);
+    const [exportLoading, setExportLoading] = useState(false);
     const navigate = useNavigate();
 
     const fetchOwnerInfo = async (ownerId) => {
@@ -36,11 +37,10 @@ const SubscriptionList = () => {
                 const [subs, types] = await Promise.all([getSubscriptions(), getSubscriptionTypes()]);
                 setSubscriptions(subs);
                 setSubscriptionTypes(types);
-
-                // Fetch owner info for each subscription
                 subs.forEach(sub => fetchOwnerInfo(sub.owner_id));
             } catch (err) {
                 setError(err.message);
+                console.error("Error fetching subscriptions or types:", err);
             } finally {
                 setLoading(false);
             }
@@ -126,6 +126,15 @@ const SubscriptionList = () => {
                 case 'PROPIETARIO(SERV.DEPASO)':
                 case 'PROPIETARIO SERV. DE PASO':
                     return normalizedOwnerType.includes('PROPIETARIO') && normalizedOwnerType.includes('SERV DE PASO');
+                case 'TRASTERO':
+                    return normalizedSubTypeName.includes('TRASTERO');
+                case 'CONVENIO/FAM.NUM.':
+                case 'CONVENIO/FAM.NUM':
+                    return normalizedSubTypeName.includes('CONVENIO') || 
+                           normalizedSubTypeName.includes('FAM NUM') || 
+                           normalizedSubTypeName.includes('FAMILIA NUMEROSA');
+                case 'JUBILADO':
+                    return normalizedSubTypeName.includes('JUBILADO');
                 default:
                     return normalizedSubTypeName.includes(component) || normalizedOwnerType.includes(component);
             }
@@ -162,18 +171,35 @@ const SubscriptionList = () => {
     }, [activeFilters, searchTerm, subscriptions, matchesFilter, owners]);
 
     const handleExport = async () => {
+        if (exportFields.length === 0) {
+            setError("Por favor, seleccione al menos un campo para exportar.");
+            return;
+        }
+
         try {
+            setExportLoading(true);
             const blob = await exportSubscriptions(filteredSubscriptions.map(s => s.id), exportFields);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'subscriptions_export.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            setShowExportModal(false);
+            
+            if (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'subscriptions_export.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                setShowExportModal(false);
+                setExportFields([]);
+                setError(null);
+            } else {
+                setError('Falló la exportación de abonos: No se recibieron datos.');
+            }
         } catch (err) {
-            setError('Failed to export subscriptions: ' + err.message);
+            console.error('Error al exportar abonos:', err);
+            setError('Falló la exportación de abonos: ' + (err.message || 'Ocurrió un error desconocido.'));
+        } finally {
+            setExportLoading(false);
         }
     };
 
@@ -197,15 +223,32 @@ const SubscriptionList = () => {
         'owner_phone_number': 'Número de Teléfono del Propietario',
         'subscription_type_name': 'Nombre del Tipo de Abono',
         'subscription_type_parking_code': 'Código SAGE abono',
-        'large_family_expiration': 'vencimiento familia numerosa'
+        'large_family_expiration': 'Vencimiento Familia Numerosa'
     };
 
     const toggleExportField = (field) => {
-        setExportFields(prev =>
-            prev.includes(field)
+        setExportFields(prev => {
+            return prev.includes(field)
                 ? prev.filter(f => f !== field)
-                : [...prev, field]
-        );
+                : [...prev, field];
+        });
+    };
+
+    const handleSelectAll = () => {
+        const allFields = Object.keys(headingTranslation);
+        setExportFields(exportFields.length === allFields.length ? [] : allFields);
+    };
+
+    const openExportModal = () => {
+        setShowExportModal(true);
+        setError(null);
+        setExportFields([]);
+    };
+
+    const closeExportModal = () => {
+        setShowExportModal(false);
+        setExportFields([]);
+        setError(null);
     };
 
     const filterButtons = [
@@ -223,7 +266,10 @@ const SubscriptionList = () => {
         'PROPIETARIO',
         'PROPIETARIO (SERV. DE PASO)',
         'MOTO',
-        'COCHE'
+        'COCHE',
+        'TRASTERO',
+        'CONVENIO/FAM.NUM.',
+        'JUBILADO'
     ];
 
     const formatDate = (dateString) => {
@@ -248,8 +294,12 @@ const SubscriptionList = () => {
                 <button className="btn primary" onClick={handleAddNew}>
                     Añadir Nuevo Abono
                 </button>
-                <button className="btn secondary" onClick={() => setShowExportModal(true)}>
-                    Exportar a Excel
+                <button 
+                    className="btn secondary" 
+                    onClick={openExportModal}
+                    disabled={filteredSubscriptions.length === 0}
+                >
+                    Exportar a Excel ({filteredSubscriptions.length} registros)
                 </button>
             </div>
 
@@ -342,38 +392,85 @@ const SubscriptionList = () => {
                 )
             )}
 
+            {/* Export Modal */}
             {showExportModal && (
-                <div className="modal-overlay">
-                    <div className="modal">
+                <div className="modal-overlay" onClick={closeExportModal}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
                         <div className="modal-header">
-                            <h3>Exportar a Excel</h3>
-                            <button className="close-modal" onClick={() => setShowExportModal(false)}>×</button>
+                            <h3 className="modal-title">
+                                📊 Exportar a Excel
+                            </h3>
+                            <button 
+                                onClick={closeExportModal}
+                                className="modal-close-btn"
+                                aria-label="Cerrar modal"
+                            >
+                                ×
+                            </button>
                         </div>
+                        
+                        {/* Body */}
                         <div className="modal-body">
-                            <form className="export-form">
+                            <div className="export-info">
+                                <p>📄 <strong>{filteredSubscriptions.length}</strong> registros serán exportados</p>
+                                <p>✅ Selecciona los campos que deseas incluir en el archivo Excel:</p>
+                            </div>
+
+                            <div className="select-all-container">
+                                <button 
+                                    onClick={handleSelectAll}
+                                    className="select-all-btn"
+                                >
+                                    {exportFields.length === Object.keys(headingTranslation).length 
+                                        ? '❌ Deseleccionar todo' 
+                                        : '✅ Seleccionar todo'
+                                    }
+                                </button>
+                                <span className="selected-count">
+                                    {exportFields.length} de {Object.keys(headingTranslation).length} campos seleccionados
+                                </span>
+                            </div>
+                            
+                            <div className="export-fields-grid">
                                 {Object.entries(headingTranslation).map(([field, translation]) => (
-                                    <div key={field} className="checkbox-group">
+                                    <label key={field} className={`field-checkbox ${exportFields.includes(field) ? 'selected' : ''}`}>
                                         <input
                                             type="checkbox"
-                                            id={`export-${field}`}
                                             checked={exportFields.includes(field)}
                                             onChange={() => toggleExportField(field)}
                                         />
-                                        <label htmlFor={`export-${field}`}>{translation}</label>
-                                    </div>
+                                        <span className="checkbox-custom"></span>
+                                        <span className="field-name">{translation}</span>
+                                    </label>
                                 ))}
-                            </form>
+                            </div>
                         </div>
+                        
+                        {/* Footer */}
                         <div className="modal-footer">
-                            <button className="btn secondary" onClick={() => setShowExportModal(false)}>
-                                Cerrar
+                            <button 
+                                onClick={closeExportModal}
+                                className="btn-secondary"
+                                disabled={exportLoading}
+                            >
+                                Cancelar
                             </button>
                             <button
-                                className="btn primary"
                                 onClick={handleExport}
-                                disabled={exportFields.length === 0}
+                                disabled={exportFields.length === 0 || exportLoading}
+                                className="btn-primary"
                             >
-                                Exportar
+                                {exportLoading ? (
+                                    <>
+                                        <span className="spinner-small"></span>
+                                        Exportando...
+                                    </>
+                                ) : (
+                                    <>
+                                        📥 Exportar ({exportFields.length} campos)
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

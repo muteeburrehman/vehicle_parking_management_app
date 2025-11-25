@@ -56,7 +56,7 @@ const Signup = () => {
                             )}
                             <Form onSubmit={handleSubmit}>
                                 <Form.Group controlId="formEmail">
-                                    <Form.Label>Email address</Form.Label>
+                                    <Form.Label>Email</Form.Label>
                                     <Form.Control
                                         type="email"
                                         placeholder="Enter email"
@@ -66,7 +66,7 @@ const Signup = () => {
                                     />
                                 </Form.Group>
                                 <Form.Group controlId="formPassword" className="mt-3">
-                                    <Form.Label>Password</Form.Label>
+                                    <Form.Label>Contraseña</Form.Label>
                                     <Form.Control
                                         type="password"
                                         placeholder="Password"
@@ -76,7 +76,7 @@ const Signup = () => {
                                     />
                                 </Form.Group>
                                 <Form.Group controlId="formConfirmPassword" className="mt-3">
-                                    <Form.Label>Confirm Password</Form.Label>
+                                    <Form.Label>Confirme Contraseña</Form.Label>
                                     <Form.Control
                                         type="password"
                                         placeholder="Confirm Password"
@@ -94,7 +94,7 @@ const Signup = () => {
                                     {isLoading ? 'Signing Up...' : 'Sign Up'}
                                 </Button>
                                 <p className="text-center mt-3">
-                                    Already have an account? <Link to="/login">Login</Link>
+                                    Ya tienes una cuenta? <Link to="/login">Login</Link>
                                 </p>
                             </Form>
                         </Card.Body>

@@ -240,7 +240,7 @@ const VehicleRegistration = () => {
                 </Row>
                 <Row>
                     <Col md={12}>
-                        <h5>Document Previews:</h5>
+                        <h5>Previsualizaciones de documentos</h5>
                         <DocumentPreviewRow
                             documentPreviews={documentPreviews}
                             handleViewDocument={handleViewDocument}
@@ -253,7 +253,7 @@ const VehicleRegistration = () => {
                 {error && <Alert variant="danger">Error: {error.message}</Alert>}
                 <Button variant="primary" type="submit" disabled={loading}>
                     {loading ? <Spinner as="span" animation="border" size="sm" role="status"
-                                        aria-hidden="true"/> : 'Register Vehicle'}
+                                        aria-hidden="true"/> : 'Registrar Vehiculo'}
                 </Button>
             </Form>
         </div>

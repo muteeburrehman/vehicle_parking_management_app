@@ -87,7 +87,7 @@ const EditSubscription = () => {
                 const response = await parkingLotService.getAllParkingLots();
                 setParkingLots(response);
             } catch (error) {
-                console.error("Error fetching parking lots:", error);
+                console.error("Error recopilando aparcamientos:", error);
             }
         };
         fetchParkingLots();
@@ -149,7 +149,7 @@ const EditSubscription = () => {
                         setInitialDocuments(data.documents);
                     }
                 } catch (err) {
-                    console.error('Failed to fetch subscription:', err.response?.detail || err.message);
+                    console.error('Fallo al recopilar abonos:', err.response?.detail || err.message);
                 }
             }
         };
@@ -188,7 +188,7 @@ const EditSubscription = () => {
             const ownerData = await fetchOwnerByDNI(ownerId);
             setOwnerInfo(ownerData);
         } catch (err) {
-            console.error('Failed to fetch owner info:', err.message);
+            console.error('Fallo al recopilar datos del propietario:', err.message);
         }
     };
 
@@ -197,7 +197,7 @@ const EditSubscription = () => {
             const fetchedVehicles = await fetchVehiclesByOwnerId(ownerId);
             setVehicles(fetchedVehicles);
         } catch (err) {
-            console.error('Failed to fetch vehicles:', err.message);
+            console.error('Fallo al recopilar vehiculos:', err.message);
             setVehicles([]);
         }
     };
@@ -209,8 +209,8 @@ const EditSubscription = () => {
             )
             : subscriptionTypes; // Show all if no parking lot is selected
 
-        console.log("Selected Parking Lot:", selectedParkingLot);
-        console.log("Filtered Subscription Types:", updatedFilteredTypes);
+        console.log("Aparcamiento seleccionado:", selectedParkingLot);
+        console.log("Tipos de abono filtrados:", updatedFilteredTypes);
 
         setFilteredSubscriptionTypes(updatedFilteredTypes);
 
@@ -302,9 +302,9 @@ const EditSubscription = () => {
 
     const validateForm = () => {
         const errors = {};
-        if (!formData.owner_id) errors.owner_id = 'Owner ID is required.';
-        if (!formData.subscription_type_id) errors.subscription_type_id = 'Subscription Type is required.';
-        if (!formData.lisence_plate1) errors.lisence_plate1 = 'At least one License Plate is required.';
+        if (!formData.owner_id) errors.owner_id = 'DNI es obligatorio.';
+        if (!formData.subscription_type_id) errors.subscription_type_id = 'Se requiere el tipo de abono.';
+        if (!formData.lisence_plate1) errors.lisence_plate1 = 'Se requiere al menos una matrícula.';
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -319,7 +319,7 @@ const EditSubscription = () => {
                 window.open(fileURL);
             }
         } else {
-            console.error("Document does not exist at index:", index);
+            console.error("Documento no existe:", index);
         }
     };
 
@@ -411,11 +411,11 @@ const EditSubscription = () => {
         const workOrderPreview = documentPreviews.find(preview => preview.name.startsWith('Orden_De_Trabajo_modification'));
         if (workOrderPreview) {
             // You could add a scroll or highlight effect here
-            console.log('Work order generated:', workOrderPreview.name);
+            console.log('Orden de trabajo generada:', workOrderPreview.name);
         }
 
     } catch (err) {
-        console.error('Failed to update subscription:', err);
+        console.error('Fallo al actualizar datos de abono:', err);
     }
 };
 
@@ -454,7 +454,7 @@ const EditSubscription = () => {
             <h2>Editar Abono</h2>
             {updateSuccess && (
                 <Alert variant="success">
-                    Subscription updated successfully.
+                    Abono actualizado correctamente.
                 </Alert>
             )}
             <Form onSubmit={handleSubmit}>
@@ -762,7 +762,7 @@ const EditSubscription = () => {
                     </Col>
                 </Row>
                 {(isSuperuser || isAdmin) && (
-                    <Button variant="primary" type="submit" disabled={loading} className="me-2">
+                    <Button variant="primary" type="submit" disabled={loading} className="me-2 mb-3">
                         {loading ? (
                             <>
                                 <Spinner
@@ -780,13 +780,13 @@ const EditSubscription = () => {
                 )
                 }
                 {isSuperuser && (
-                    <Button variant="danger" onClick={handleCancelSubscription} className="me-2">
+                    <Button variant="danger" onClick={handleCancelSubscription} className="me-2 mb-3">
                         Cancelar Abono
                     </Button>
                 )
                 }
                 {(isSuperuser || isAdmin) && (
-                    <Button variant={"secondary"} onClick={navigateToList}>
+                    <Button variant={"secondary"} className="mb-3" onClick={navigateToList}>
                         Lista de Abono
                     </Button>
                 )}

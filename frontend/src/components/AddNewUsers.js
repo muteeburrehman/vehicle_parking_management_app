@@ -19,7 +19,7 @@ const AddNewUsers = () => {
         setErrors([]);
 
         if (password !== confirmPassword) {
-            setErrors(['Passwords do not match']);
+            setErrors(['Los Passwords no coinciden']);
             return;
         }
 
@@ -56,10 +56,10 @@ const AddNewUsers = () => {
                             )}
                             <Form onSubmit={handleSubmit}>
                                 <Form.Group controlId="formEmail">
-                                    <Form.Label>Email address</Form.Label>
+                                    <Form.Label>Email</Form.Label>
                                     <Form.Control
                                         type="email"
-                                        placeholder="Enter email"
+                                        placeholder="Introduzca email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -76,17 +76,17 @@ const AddNewUsers = () => {
                                     />
                                 </Form.Group>
                                 <Form.Group controlId="formConfirmPassword" className="mt-3">
-                                    <Form.Label>Confirm Password</Form.Label>
+                                    <Form.Label>Confirme Password</Form.Label>
                                     <Form.Control
                                         type="password"
-                                        placeholder="Confirm Password"
+                                        placeholder="Confirme Password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
                                     />
                                 </Form.Group>
                                 <Form.Group controlId="formRole" className="mt-3">
-                                    <Form.Label>Select Role</Form.Label>
+                                    <Form.Label>Seleccione Rol</Form.Label>
                                     <Form.Control
                                         as="select"
                                         value={role}

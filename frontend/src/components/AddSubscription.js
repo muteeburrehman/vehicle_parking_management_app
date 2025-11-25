@@ -48,7 +48,7 @@ const AddSubscription = () => {
                     const fetchedVehicles = await fetchVehiclesByOwnerId(ownerId);
                     setAvailablePlates(fetchedVehicles.map(v => v.lisence_plate));
                 } catch (error) {
-                    console.error("Error fetching vehicles:", error);
+                    console.error("Error recopilando vehículos:", error);
                 }
             } else {
                 setAvailablePlates([]);
@@ -76,7 +76,7 @@ const AddSubscription = () => {
                 const response = await parkingLotService.getAllParkingLots();
                 setParkingLots(response);
             } catch (error) {
-                console.error("Error fetching parking lots:", error);
+                console.error("Error recopilando aparcamientos:", error);
             }
         };
         fetchParkingLots();
@@ -89,8 +89,8 @@ const AddSubscription = () => {
             setOwnerInfo(ownerData);
             setOwnerError('');
         } catch (error) {
-            console.error("Error fetching owner info:", error);
-            setOwnerError("Error fetching owner information.");
+            console.error("Error recopilando información del propietario:", error);
+            setOwnerError("Error recopilando datos del propietario.");
             setOwnerInfo(null);
         }
     };
@@ -113,14 +113,14 @@ const AddSubscription = () => {
         try {
             const ownerExists = await checkDniExists(ownerId);
             if (!ownerExists) {
-                setOwnerError("Owner ID does not exist.");
+                setOwnerError("DNI no existe en nuestra base de datos.");
                 isValid = false;
             } else {
                 setOwnerError(''); // Clear error if the owner exists
             }
         } catch (error) {
-            setOwnerError("Error validating Owner ID.");
-            console.error("Error validating owner ID:", error);
+            setOwnerError("Error validando DNI.");
+            console.error("Error validando DNI:", error);
             isValid = false;
         }
 
@@ -147,12 +147,12 @@ const AddSubscription = () => {
             );
 
             if (duplicateSubscription) {
-                setSubscriptionError("License plate already registered for this subscription type.");
+                setSubscriptionError("Matricula ya registrada para este tipo de abono.");
                 return false;
             }
             return true;
         } catch (error) {
-            console.error("Error validating license plates:", error);
+            console.error("Error validando matrículas:", error);
             return false;
         }
     };
@@ -245,8 +245,8 @@ const AddSubscription = () => {
             // Navigate back to the subscription list
             navigate('/subscription-list');
         } catch (error) {
-            console.error("Error adding subscription:", error);
-            setSubscriptionError("Failed to add subscription. Please try again.");
+            console.error("Error añadiendo abono:", error);
+            setSubscriptionError("Fallo al añadir abono. Inténtelo de nuevo.");
         }
     };
 
@@ -268,7 +268,7 @@ const AddSubscription = () => {
                                 value={ownerId}
                                 onChange={handleOwnerIdChange}
                                 required
-                                placeholder="Enter DNI"
+                                placeholder="Introduzca DNI"
                             />
                         </Form.Group>
                     </Col>
@@ -433,7 +433,7 @@ const AddSubscription = () => {
                                 value={lisencePlate2}
                                 onChange={(e) => setLisencePlate2(e.target.value)}
                             >
-                                <option value="">Selecionne Matrícula 2 (optional)</option>
+                                <option value="">Selecionne Matrícula 2 (opcional)</option>
                                 {getAvailableOptions(lisencePlate2, [lisencePlate1, lisencePlate3]).map((plate) => (
                                     <option key={plate} value={plate}>
                                         {plate}
@@ -451,7 +451,7 @@ const AddSubscription = () => {
                                 value={lisencePlate3}
                                 onChange={(e) => setLisencePlate3(e.target.value)}
                             >
-                                <option value="">Seleccione Matrícula 3 (optional)</option>
+                                <option value="">Seleccione Matrícula 3 (opcional)</option>
                                 {getAvailableOptions(lisencePlate3, [lisencePlate1, lisencePlate2]).map((plate) => (
                                     <option key={plate} value={plate}>
                                         {plate}
@@ -495,7 +495,7 @@ const AddSubscription = () => {
                         type="text"
                         value={observations}
                         onChange={(e) => setObservations(e.target.value)}
-                        placeholder="Introduzca Cualquier Observación (optional)"
+                        placeholder="Introduzca Cualquier Observación (opcional)"
                     />
                 </Form.Group>
 

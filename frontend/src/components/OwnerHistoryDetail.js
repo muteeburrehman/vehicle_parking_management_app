@@ -72,16 +72,16 @@ const OwnerHistoryDetail = () => {
     }
 
     if (!history) {
-        return <Alert variant="info" className="mt-4">No owner history found.</Alert>;
+        return <Alert variant="info" className="mt-4">No se encontró historial del cliente.</Alert>;
     }
 
     return (
         <Container className="mt-4">
-            <h2 className="mb-4 text-center">Owner History Detail</h2>
+            <h2 className="mb-4 text-center">Detalle del historial del propietario</h2>
             <Button variant="secondary" onClick={() => navigate(-1)} className="mb-3">Back</Button>
             <Card className="shadow-sm">
                 <Card.Body>
-                    <Card.Title className="text-center mb-4">Details for History ID: <strong>{history.history_id}</strong></Card.Title>
+                    <Card.Title className="text-center mb-4">Detalles del hostorial con ID: <strong>{history.history_id}</strong></Card.Title>
                     <Row>
                         <Col md={6}>
                             <Table responsive striped hover>
@@ -92,28 +92,28 @@ const OwnerHistoryDetail = () => {
                                     <td>{history.dni}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>First Name:</strong></td>
+                                    <td><strong>Nombre:</strong></td>
                                     <td>{history.first_name}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Last Name:</strong></td>
+                                    <td><strong>Apellidos:</strong></td>
                                     <td>{history.last_name}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Email</strong></td>
+                                    <td><strong>Email:</strong></td>
                                     <td>{history.email}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Phone Number</strong></td>
+                                    <td><strong>Nº de teléfono:</strong></td>
                                     <td>{history.phone_number}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Bank Account Number</strong></td>
+                                    <td><strong>IBAN:</strong></td>
                                     <td>{history.bank_account_number}</td>
                                 </tr>
 
                                 <tr>
-                                    <td><strong>Reduced Mobility Expiration</strong></td>
+                                    <td><strong>Vencimiento de Movilidad reducida</strong></td>
                                     <td>{history.reduced_mobility_expiration ? history.reduced_mobility_expiration.split('T')[0] : ''}</td>
                                 </tr>
 
@@ -124,28 +124,28 @@ const OwnerHistoryDetail = () => {
                             <Table responsive striped hover>
                                 <tbody>
                                 <tr>
-                                    <td><strong>Sage Client Number</strong></td>
+                                    <td><strong>Nº Cliente de SAGE</strong></td>
                                     <td>{history.sage_client_number}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Observations:</strong></td>
+                                    <td><strong>Observaciones:</strong></td>
                                     <td>{history.observations}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Registration Date:</strong></td>
+                                    <td><strong>Fecha de registro:</strong></td>
                                     <td>{formatDateTime(history.registration_date)}</td>
                                 </tr>
 
                                 <tr>
-                                    <td><strong>Modification Time:</strong></td>
+                                    <td><strong>Fecha de modificación:</strong></td>
                                     <td>{formatDateTime(history.modification_time)}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Created By:</strong></td>
+                                    <td><strong>Creado por:</strong></td>
                                     <td>{history.created_by}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Modified By:</strong></td>
+                                    <td><strong>Modificado por:</strong></td>
                                     <td>{history.modified_by }</td>
                                 </tr>
                                 </tbody>
@@ -155,7 +155,7 @@ const OwnerHistoryDetail = () => {
 
                     <Row className="mt-4">
                         <Col>
-                            <h5 className="mb-3">Documents</h5>
+                            <h5 className="mb-3">Documentos</h5>
                             <DocumentPreviewRow
                                 documentPreviews={documentPreviews}
                                 handleViewDocument={handleViewDocument}

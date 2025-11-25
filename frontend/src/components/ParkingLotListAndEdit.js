@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { parkingLotService } from '../services/parkingLotService';
-import { Container, Row, Col, ListGroup, Form, Button, Alert, Card } from 'react-bootstrap';
+import { Container, Row, Col, ListGroup, Form, Button, Alert, Card, Modal } from 'react-bootstrap';
 import './ParkingLotListAndEdit.css'; // Custom CSS for additional styling
 
 const ParkingLotListAndEdit = () => {
@@ -9,6 +9,7 @@ const ParkingLotListAndEdit = () => {
   const [editForm, setEditForm] = useState({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchParkingLots();
@@ -47,6 +48,28 @@ const ParkingLotListAndEdit = () => {
     } catch (error) {
       setError('Fallo al Actualizar el Aparcamiento');
     }
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await parkingLotService.deleteParkingLot(selectedLot.id);
+      setSuccess('Aparcamiento Eliminado Correctamente');
+      setSelectedLot(null);
+      setEditForm({});
+      fetchParkingLots(); // Refresh the list
+      setShowDeleteModal(false);
+    } catch (error) {
+      setError(error.response?.data?.detail || 'Fallo al Eliminar el Aparcamiento');
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
   };
 
   return (
@@ -125,9 +148,23 @@ const ParkingLotListAndEdit = () => {
                     required
                   />
                 </Form.Group>
-                <Button variant="primary" type="submit" className="mt-4 w-100">
-                  Actualizar Aparcamiento
-                </Button>
+                <Row className="mt-4">
+                  <Col md={6}>
+                    <Button variant="primary" type="submit" className="w-100">
+                      Actualizar Aparcamiento
+                    </Button>
+                  </Col>
+                  <Col md={6}>
+                    <Button 
+                      variant="danger" 
+                      type="button" 
+                      className="w-100"
+                      onClick={handleDeleteClick}
+                    >
+                      Borrar aparcamiento
+                    </Button>
+                  </Col>
+                </Row>
               </Form>
             </Card>
           ) : (
@@ -137,6 +174,25 @@ const ParkingLotListAndEdit = () => {
           )}
         </Col>
       </Row>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={handleDeleteCancel}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmar Eliminación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          ¿Estás seguro de que quieres eliminar el aparcamiento "{selectedLot?.name}"? 
+          Esta acción no se puede deshacer.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleDeleteCancel}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={handleDeleteConfirm}>
+            Eliminar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

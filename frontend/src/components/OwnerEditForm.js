@@ -75,8 +75,8 @@ const OwnerEditForm = () => {
                     await getOwnerByDNI(dni);
                     await fetchVehicles(dni);
                 } catch (err) {
-                    console.error('Error fetching owner data:', err);
-                    toast.error("Failed to fetch owner data!");
+                    console.error('Error al recuperar datos del propietario:', err);
+                    toast.error("No se pudo obtener los datos del propietario!");
                 }
             }
         };
@@ -90,8 +90,8 @@ const OwnerEditForm = () => {
             const vehiclesData = await fetchVehiclesByOwnerId(ownerId);
             setVehicles(vehiclesData);
         } catch (error) {
-            console.error('Error fetching vehicles:', error);
-            toast.error("Failed to fetch vehicles!");
+            console.error('Error al cargar los vehículos:', error);
+            toast.error("No se pudo obtener los datos de los vehículos!");
         } finally {
             setLoadingVehicles(false);
         }
@@ -130,14 +130,34 @@ const OwnerEditForm = () => {
         }
     }, [loadingOwner, selectedOwner, backendURL]);
 
-    // Validate the form before submission
-
-    const validateIBAN = (iban) => {
-        // Basic IBAN validation regex
-        const ibanRegex = /^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$/;
-        return ibanRegex.test(iban.replace(/\s/g, ''));
+    // Spanish IBAN validation
+    const validateSpanishIBAN = (iban) => {
+        if (!iban) return true; // Allow empty IBAN
+        
+        // Remove spaces and convert to uppercase
+        const cleanIban = iban.replace(/\s/g, '').toUpperCase();
+        
+        // Spanish IBAN format: ES + 2 check digits + 20 digits
+        const spanishIbanRegex = /^ES\d{22}$/;
+        
+        if (!spanishIbanRegex.test(cleanIban)) {
+            return false;
+        }
+        
+        // IBAN checksum validation (mod-97 algorithm)
+        const rearranged = cleanIban.slice(4) + cleanIban.slice(0, 4);
+        const numericString = rearranged.replace(/[A-Z]/g, (char) => 
+            (char.charCodeAt(0) - 55).toString()
+        );
+        
+        // Calculate mod 97 for large numbers
+        let remainder = 0;
+        for (let i = 0; i < numericString.length; i++) {
+            remainder = (remainder * 10 + parseInt(numericString[i])) % 97;
+        }
+        
+        return remainder === 1;
     };
-
 
     // Validate the form before submission
     const validateForm = async () => {
@@ -145,27 +165,25 @@ const OwnerEditForm = () => {
 
         // Validate DNI
         if (!ownerData.dni) {
-            errors.dni = 'DNI is required';
+            errors.dni = 'Debe introducir el DNI';
         }
 
         // Validate first name and last name
         if (!ownerData.first_name) {
-            errors.first_name = 'First name is required';
+            errors.first_name = 'Debe de introducir un Nombre';
         }
         if (!ownerData.last_name) {
-            errors.last_name = 'Last name is required';
+            errors.last_name = 'Debe de introducir los Apellidos';
         }
 
         // Validate email format if email is provided
         if (ownerData.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(ownerData.email)) {
-            errors.email = 'Invalid email format';
+            errors.email = 'Formato de E-mail inválido';
         }
 
-        // Validate bank account number (IBAN)
-        if (!ownerData.bank_account_number) {
-            errors.bank_account_number = 'Bank account number is required';
-        } else if (!validateIBAN(ownerData.bank_account_number)) {
-            errors.bank_account_number = 'Invalid IBAN format';
+        // Validate Spanish IBAN format - only if it's provided
+        if (ownerData.bank_account_number && !validateSpanishIBAN(ownerData.bank_account_number)) {
+            errors.bank_account_number = 'Formato de IBAN español inválido (debe comenzar con ES seguido de 22 dígitos)';
         }
 
         setValidationErrors(errors);
@@ -227,8 +245,8 @@ const OwnerEditForm = () => {
                 window.open(fileURL);
             }
         } else {
-            console.error("Document does not exist at index:", index);
-            toast.error("Document not found!");
+            console.error("Documento inexistente en la posición:", index);
+            toast.error("No se encuentra el Documento!");
         }
     };
 
@@ -282,7 +300,7 @@ const OwnerEditForm = () => {
         }
 
         if (!hasChanges) {
-            setSuccessMessage('No changes to update.');
+            setSuccessMessage('No hay cambios para actualizar.');
             return;
         }
 
@@ -305,7 +323,7 @@ const OwnerEditForm = () => {
             }));
             setDocumentPreviews(updatedPreviews);
 
-            setSuccessMessage('Owner successfully updated!');
+            setSuccessMessage('Cliente actualizado correctamente!');
             setIsFormModified(false);
 
             await getAllOwners();
@@ -333,20 +351,20 @@ const OwnerEditForm = () => {
         navigate(`/owner/${dni}/vehicle-registration`);
     };
     const handleDeleteOwner = async () => {
-        const confirmDelete = window.confirm("Are you sure you want to delete this owner?");
+        const confirmDelete = window.confirm("Está seguro que quiere borrar este cliente?");
         if (confirmDelete) {
             try {
                 await deleteOwner(dni);
-                setToastMessage("Owner deleted successfully!");
-                setToastVariant('success');
+                setToastMessage("Cliente borrado correctamente!");
+                setToastVariant('Éxito');
                 setShowToast(true);
-                setSuccessMessage('Owner deleted successfully');
+                setSuccessMessage('Cliente borrado con éxito');
                 await getAllOwners();
                 setTimeout(() => {
                     navigate("/");
                 }, 2000);
             } catch (err) {
-                console.error('Failed to delete owner:', err);
+                console.error('Fallo al borrar el cliente:', err);
                 setToastMessage(`Failed to delete owner: ${err.response?.data?.detail || err.message}`);
                 setToastVariant('danger');
                 setShowToast(true);
@@ -373,8 +391,9 @@ const OwnerEditForm = () => {
                 <Spinner animation="border"/>
             ) : (
                 <Form onSubmit={handleSubmit}>
+                    {/* Row 1: DNI, First Name, Last Name, Email */}
                     <Row className="mb-3">
-                        <Col md={6}>
+                        <Col md={3}>
                             <Form.Group controlId="owner_formDni">
                                 <Form.Label>DNI</Form.Label>
                                 <Form.Control
@@ -392,7 +411,7 @@ const OwnerEditForm = () => {
                                 </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
-                        <Col md={6}>
+                        <Col md={3}>
                             <Form.Group controlId="owner_formFirstName">
                                 <Form.Label>Nombre</Form.Label>
                                 <Form.Control
@@ -410,9 +429,7 @@ const OwnerEditForm = () => {
                                 </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
-                    </Row>
-                    <Row className="mb-3">
-                        <Col md={4}>
+                        <Col md={3}>
                             <Form.Group controlId="owner_formLastName">
                                 <Form.Label>Apellidos</Form.Label>
                                 <Form.Control
@@ -430,7 +447,7 @@ const OwnerEditForm = () => {
                                 </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
-                        <Col md={4}>
+                        <Col md={3}>
                             <Form.Group controlId="owner_formEmail">
                                 <Form.Label>Email</Form.Label>
                                 <Form.Control
@@ -447,58 +464,28 @@ const OwnerEditForm = () => {
                                 </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
-
-                        <Col md={4}>
-                            <Form.Group controlId="reduced_mobility_expiration">
-                                <Form.Label>Vencimiento Movilidad Reducida</Form.Label>
-                                <Form.Control
-                                    type="date"
-                                    name="reduced_mobility_expiration"
-                                    value={ownerData.reduced_mobility_expiration}
-                                    onChange={handleInputChange}
-                                    readOnly={isUser}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {validationErrors.email}
-                                </Form.Control.Feedback>
-                            </Form.Group>
-                        </Col>
                     </Row>
+
+                    {/* Row 2: IBAN, SAGE Client Number, Phone, Reduced Mobility Expiration */}
                     <Row className="mb-3">
-                        <Col md={4}>
+                        <Col md={3}>
                             <Form.Group controlId="owner_formBankAccount">
-                                <Form.Label>(IBAN) Cuenta Bancaria</Form.Label>
+                                <Form.Label>IBAN (Opcional)</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="IBAN"
+                                    placeholder="ES00 0000 0000 0000 0000 0000"
                                     name="bank_account_number"
                                     value={ownerData.bank_account_number}
                                     onChange={handleInputChange}
                                     isInvalid={!!validationErrors.bank_account_number}
-                                    required
                                     readOnly={isUser}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     {validationErrors.bank_account_number}
                                 </Form.Control.Feedback>
                             </Form.Group>
-
-
                         </Col>
-                        <Col md={4}>
-                            <Form.Group controlId="owner_formPhoneNumber">
-                                <Form.Label>Teléfono</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Teléfono"
-                                    name="phone_number"
-                                    value={ownerData.phone_number}
-                                    onChange={handleInputChange}
-                                    readOnly={isUser}
-                                />
-                            </Form.Group>
-                        </Col>
-                        <Col md={4}>
+                        <Col md={3}>
                             <Form.Group controlId="owner_formSageClientNumber">
                                 <Form.Label>Nº Cliente SAGE</Form.Label>
                                 <Form.Control
@@ -511,7 +498,34 @@ const OwnerEditForm = () => {
                                 />
                             </Form.Group>
                         </Col>
+                        <Col md={3}>
+                            <Form.Group controlId="owner_formPhoneNumber">
+                                <Form.Label>Teléfono</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Teléfono"
+                                    name="phone_number"
+                                    value={ownerData.phone_number}
+                                    onChange={handleInputChange}
+                                    readOnly={isUser}
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={3}>
+                            <Form.Group controlId="reduced_mobility_expiration">
+                                <Form.Label>Vencimiento Movilidad Reducida</Form.Label>
+                                <Form.Control
+                                    type="date"
+                                    name="reduced_mobility_expiration"
+                                    value={ownerData.reduced_mobility_expiration}
+                                    onChange={handleInputChange}
+                                    readOnly={isUser}
+                                />
+                            </Form.Group>
+                        </Col>
                     </Row>
+
+                    {/* Row 3: Observations */}
                     <Row className="mb-3">
                         <Form.Group controlId="owner_formObservations">
                             <Form.Label>Observaciones</Form.Label>
@@ -526,6 +540,8 @@ const OwnerEditForm = () => {
                             />
                         </Form.Group>
                     </Row>
+
+                    {/* Row 4: Created by info */}
                     <Row className="mb-3">
                         <Col md={6}>
                             <Form.Group controlId="owner_formCreatedBy">
@@ -546,6 +562,8 @@ const OwnerEditForm = () => {
                             </Form.Group>
                         </Col>
                     </Row>
+
+                    {/* Row 5: Modified by info */}
                     <Row className="mb-3">
                         <Col md={6}>
                             <Form.Group controlId="owner_formModifiedBy">
@@ -570,6 +588,8 @@ const OwnerEditForm = () => {
                             </Form.Group>
                         </Col>
                     </Row>
+
+                    {/* Documents section */}
                     <Form.Group controlId="owner_formDocuments">
                         <Form.Label>Adjuntar Documentos (Sólo .PDF)</Form.Label>
                         <Form.Control
@@ -597,6 +617,7 @@ const OwnerEditForm = () => {
                             <Button
                                 variant="primary"
                                 type="submit"
+                                className="mb-3"
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -611,7 +632,7 @@ const OwnerEditForm = () => {
                     }
 
                     {isSuperuser && (
-                        <Button variant="danger" onClick={handleDeleteOwner} style={{marginLeft: '10px'}}>
+                        <Button variant="danger" className="mb-3" onClick={handleDeleteOwner} style={{marginLeft: '10px'}}>
                             Borrar Cliente
                         </Button>
                     )}
@@ -656,7 +677,7 @@ const OwnerEditForm = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="text-center">No vehicles found for this owner.</td>
+                                <td colSpan="4" className="text-center">No se encontraron vehículos para este propietario.</td>
                             </tr>
                         )}
                         </tbody>

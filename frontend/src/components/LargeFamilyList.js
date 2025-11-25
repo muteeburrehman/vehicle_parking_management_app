@@ -57,11 +57,11 @@ const LargeFamilyList = () => {
         const daysUntilExpiration = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
 
         if (daysUntilExpiration < 0) {
-            return {status: 'Expired', variant: 'danger', bgClass: 'table-danger'};
+            return {status: 'Expirado', variant: 'danger', bgClass: 'table-danger'};
         } else if (daysUntilExpiration <= 30) {
-            return {status: 'Expiring Soon', variant: 'warning', bgClass: 'table-warning'};
+            return {status: 'Expira pronto', variant: 'warning', bgClass: 'table-warning'};
         } else {
-            return {status: 'Valid', variant: 'success', bgClass: 'table-success'};
+            return {status: 'Válido', variant: 'success', bgClass: 'table-success'};
         }
     };
 
@@ -107,7 +107,7 @@ const LargeFamilyList = () => {
         return (
             <Container className="d-flex justify-content-center align-items-center" style={{minHeight: '200px'}}>
                 <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">Cargando...</span>
                 </Spinner>
             </Container>
         );

@@ -46,6 +46,7 @@ import ApproveCancellationList from "./components/ApproveCancellationList";
 import ApprovedCancellationDetail from "./components/ApprovedCancellationDetail";
 import ReducedMobilityList from "./components/ReducedMobilityList";
 import LargeFamilyList from "./components/LargeFamilyList";
+import UsersList from './components/UsersList';
 
 const NotFound = () => (
     <Container className="mt-5">
@@ -70,7 +71,7 @@ function App() {
                             <Routes>
                                 <Route path="/login" element={<Login/>}/>
                                 <Route path="/signup" element={<Signup/>}/>
-
+                                <Route path="/users-list" element={<ProtectedRoute><UsersList/></ProtectedRoute>}/>
                                 <Route path="/" element={<ProtectedRoute><Navigate to="/owners"/></ProtectedRoute>}/>
 
                                 <Route path="/add-new-user" element={<ProtectedRoute><AddNewUsers/></ProtectedRoute>}/>

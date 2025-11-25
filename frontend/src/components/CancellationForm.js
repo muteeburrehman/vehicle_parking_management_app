@@ -8,12 +8,12 @@ const ApprovalModal = ({ showApproveModal, setShowApproveModal, cancellationDate
   return (
     <Modal show={showApproveModal} onHide={() => setShowApproveModal(false)}>
       <Modal.Header closeButton>
-        <Modal.Title>Approve Cancellation</Modal.Title>
+        <Modal.Title>Validar Baja</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
           <Form.Group>
-            <Form.Label>Cancellation Date</Form.Label>
+            <Form.Label>Fecha de baja</Form.Label>
             <Form.Control
               type="date"
               value={cancellationDate}
@@ -25,14 +25,14 @@ const ApprovalModal = ({ showApproveModal, setShowApproveModal, cancellationDate
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={() => setShowApproveModal(false)}>
-          Close
+          Cerrar
         </Button>
         <Button
           variant="primary"
           onClick={handleApprove}
           disabled={approvalLoading}
         >
-          {approvalLoading ? 'Approving...' : 'Approve'}
+          {approvalLoading ? 'Validando...' : 'Validada'}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -97,7 +97,7 @@ const CancellationForm = () => {
       const errorMessage =
         err?.detail ||
         err?.message ||
-        'An error occurred while cancelling the subscription';
+        'Ha ocurrido un error mientras se cancelaba el abono';
       setError(errorMessage);
       setSuccess(false);
     }
@@ -137,7 +137,7 @@ const CancellationForm = () => {
       const errorMessage =
         err?.detail ||
         err?.message ||
-        'An error occurred while approving the cancellation';
+        'Ha ocurrido un error mientras se validaba la baja';
       setError(errorMessage);
       setSuccess(false);
     } finally {
@@ -148,7 +148,7 @@ const CancellationForm = () => {
 
   return (
     <Container className="mt-4">
-      <h2>Cancel Subscription</h2>
+      <h2>Cancelar abono</h2>
       {error && (
         <Alert variant="danger">
           {typeof error === 'object'
@@ -156,7 +156,7 @@ const CancellationForm = () => {
             : error}
         </Alert>
       )}
-      {success && <Alert variant="success">Cancellation successful! Redirecting...</Alert>}
+      {success && <Alert variant="success">Baja correcta! volviendo...</Alert>}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="owner_id" className="mb-3">
           <Form.Label>DNI:</Form.Label>
@@ -170,7 +170,7 @@ const CancellationForm = () => {
           />
         </Form.Group>
         <Form.Group controlId="subscription_type_id" className="mb-3">
-          <Form.Label>Subscription Type ID:</Form.Label>
+          <Form.Label>Código de abono:</Form.Label>
           <Form.Control
             type="number"
             name="subscription_type_id"
@@ -181,7 +181,7 @@ const CancellationForm = () => {
           />
         </Form.Group>
         <Form.Group controlId="access_card" className="mb-3">
-          <Form.Label>Access Card:</Form.Label>
+          <Form.Label>Nº de tarjeta:</Form.Label>
           <Form.Control
             type="text"
             name="access_card"
@@ -191,7 +191,7 @@ const CancellationForm = () => {
           />
         </Form.Group>
         <Form.Group controlId="parking_lot" className="mb-3">
-          <Form.Label>Parking Lot:</Form.Label>
+          <Form.Label>Aparcamiento:</Form.Label>
           <Form.Control
           type="text"
           name="parking_lot"
@@ -202,7 +202,7 @@ const CancellationForm = () => {
         </Form.Group>
         {['lisence_plate1', 'lisence_plate2', 'lisence_plate3'].map((plate, index) => (
           <Form.Group controlId={plate} className="mb-3" key={plate}>
-            <Form.Label>License Plate {index + 1}:</Form.Label>
+            <Form.Label>Matrícula {index + 1}:</Form.Label>
             <Form.Control
               type="text"
               name={plate}
@@ -213,7 +213,7 @@ const CancellationForm = () => {
           </Form.Group>
         ))}
         <Form.Group controlId="observations" className="mb-3">
-          <Form.Label>Observations:</Form.Label>
+          <Form.Label>Observaciones:</Form.Label>
           <Form.Control
             as="textarea"
             name="observations"
@@ -222,7 +222,7 @@ const CancellationForm = () => {
           />
         </Form.Group>
         <Form.Group controlId="parking_spot" className="mb-3">
-          <Form.Label>Parking Spot:</Form.Label>
+          <Form.Label>Plaza de aparcamiento:</Form.Label>
           <Form.Control
             type="text"
             name="parking_spot"
@@ -232,7 +232,7 @@ const CancellationForm = () => {
           />
         </Form.Group>
         <Button variant="danger" type="submit">
-          Confirm Cancellation
+          Corfirmar Baja
         </Button>
       </Form>
        <ApprovalModal

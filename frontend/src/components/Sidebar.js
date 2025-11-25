@@ -35,6 +35,7 @@ const Sidebar = () => {
     ...(isSuperUser && {
       ConfiguraciónAPP: [
         { to: "/add-new-user", icon: "user-plus", text: "+Añadir Usuario" },
+        { to: "/users-list", icon: "users", text: "Gestionar Usuarios" },
         { to: "/parking-lot/add", icon: "user-plus", text: "+Añadir Aparcamiento" },
         { to: "/parking-lot-list", icon: "columns", text: "Editar Aparcamiento" },
         { to: "/add-subscription-type", icon: "user-plus", text: "+Añadir Tipo de Abono" },

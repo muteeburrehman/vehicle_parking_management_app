@@ -51,21 +51,21 @@ const EditSubscriptionType = () => {
     };
 
 const handleDeleteSubscriptionType = async () => {
-        const confirmDelete = window.confirm("Are you sure you want to delete this subscription type?");
+        const confirmDelete = window.confirm("Esta seguro que quiere borrar este tipo de abono?");
         if (confirmDelete) {
             try {
                 await deleteSubscriptionType(id);
-                setToastMessage("Subscription Type deleted successfully!");
-                setToastVariant('success');
+                setToastMessage("Tipo de abono borrado correctamente!");
+                setToastVariant('Éxito');
                 setShowToast(true);
-                setSuccessMessage('Subscription Type deleted successfully');
+                setSuccessMessage('Tipo de abono borrado con éxito');
                 setTimeout(() => {
                     navigate("/subscription-type-list");
                 }, 2000);
             } catch (err) {
-                console.error('Failed to delete vehicle:', err);
-                setToastMessage(`Failed to delete subscription type: ${err.response?.data?.detail || err.message}`);
-                setToastVariant('danger');
+                console.error('Fallo al borrar el vehículo:', err);
+                setToastMessage(`Fallo al borrar tipo de abono: ${err.response?.data?.detail || err.message}`);
+                setToastVariant('Peligro');
                 setShowToast(true);
             }
         }
@@ -73,7 +73,7 @@ const handleDeleteSubscriptionType = async () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="mb-4">Edit Subscription Type</h2>
+            <h2 className="mb-4">Editar tipo de abono</h2>
 
             {loading ? (
                 <Spinner animation="border" role="status">
@@ -84,7 +84,7 @@ const handleDeleteSubscriptionType = async () => {
             ) : (
                 <Form onSubmit={handleSubmit}>
                     <Form.Group controlId="formSubscriptionName" className="mb-3">
-                        <Form.Label>Name:</Form.Label>
+                        <Form.Label>Nombre:</Form.Label>
                         <Form.Control
                             type="text"
                             name="name"
@@ -95,7 +95,7 @@ const handleDeleteSubscriptionType = async () => {
                     </Form.Group>
 
                     <Form.Group controlId="formSubscriptionPrice" className="mb-3">
-                        <Form.Label>Price:</Form.Label>
+                        <Form.Label>Precio:</Form.Label>
                         <Form.Control
                             type="number"
                             name="price"
@@ -106,7 +106,7 @@ const handleDeleteSubscriptionType = async () => {
                     </Form.Group>
 
                     <Form.Group controlId="formSubscriptionParkingCode" className="mb-3">
-                        <Form.Label>Parking Code:</Form.Label>
+                        <Form.Label>Código:</Form.Label>
                         <Form.Control
                             type="text"
                             name="parking_code"
@@ -116,14 +116,14 @@ const handleDeleteSubscriptionType = async () => {
                         />
                     </Form.Group>
 
-                     {successMessage && <Alert variant="success">{successMessage}</Alert>}
-                    {error && <Alert variant="danger">{error}</Alert>}
+                     {successMessage && <Alert variant="Éxito">{successMessage}</Alert>}
+                    {error && <Alert variant="peligro">{error}</Alert>}
 
                     <Button variant="primary" type="submit">
-                        Update Subscription Type
+                        Editar tipo de abono
                     </Button>
                      <Button variant="danger" onClick={handleDeleteSubscriptionType} style={{ marginLeft: '10px' }}>
-                        Delete Subscription Type
+                        Borrar tipo de abono
                     </Button>
                 </Form>
             )}

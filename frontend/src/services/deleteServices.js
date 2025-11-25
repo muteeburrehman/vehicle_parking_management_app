@@ -3,16 +3,19 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_BASE_URL;
 
 // Service to delete an owner by DNI
-export const deleteOwner = async (dni) => {
+export const deleteOwner = async (dni, deletedBy = "system") => {
     try {
-        const response = await axios.delete(`${API_URL}/owner/${dni}/`);
+        const response = await axios.delete(`${API_URL}/owner/${dni}/`, {
+            params: {
+                deleted_by: deletedBy
+            }
+        });
         return response.data;
     } catch (error) {
         console.error('Error deleting owner:', error.response?.data || error.message);
         throw error;
     }
 };
-
 // Service to delete a vehicle by license plate
 export const deleteVehicle = async (licensePlate) => {
     try {

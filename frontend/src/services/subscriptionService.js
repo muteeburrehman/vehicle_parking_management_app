@@ -175,8 +175,20 @@ export const updateSubscriptionType = async (subscriptionTypeId, updatedData) =>
 };
 
 // New function: Export subscriptions
+// New function: Export subscriptions
 export const exportSubscriptions = async (ids, fields) => {
     try {
+        // Validate inputs
+        if (!ids || ids.length === 0) {
+            throw new Error('No subscription IDs provided for export');
+        }
+        
+        if (!fields || fields.length === 0) {
+            throw new Error('No fields selected for export');
+        }
+
+        console.log('Exporting subscriptions:', { ids, fields }); // Debug log
+
         const params = new URLSearchParams({
             ids: ids.join(','),
             fields: fields.join(','),
@@ -185,12 +197,60 @@ export const exportSubscriptions = async (ids, fields) => {
 
         const response = await axios.get(`${API_URL}/subscriptions/export`, {
             params,
-            responseType: 'blob'
+            responseType: 'blob',
+            timeout: 60000, // 60 second timeout
+            headers: {
+                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            }
         });
 
+        // Validate response
+        if (!response.data || response.data.size === 0) {
+            throw new Error('Export file is empty or invalid');
+        }
+
+        // Check if response is actually a blob and not an error message
+        if (response.data.type && response.data.type.includes('json')) {
+            // If we got JSON back, it's probably an error
+            const text = await response.data.text();
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.detail || 'Export failed');
+        }
+
+        console.log('Export successful, blob size:', response.data.size); // Debug log
         return response.data;
+
     } catch (error) {
-        handleAxiosError(error, 'exporting subscriptions');
-        throw error;
+        console.error('Export error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            config: error.config
+        });
+        
+        // Handle specific error cases
+        if (error.code === 'ECONNABORTED') {
+            throw new Error('Export request timed out. Please try with fewer records or fields.');
+        }
+        
+        if (error.response?.status === 404) {
+            throw new Error('Export endpoint not found. Please check your API configuration.');
+        }
+        
+        if (error.response?.status === 400) {
+            const errorMsg = error.response.data?.detail || 'Invalid export request';
+            throw new Error(errorMsg);
+        }
+        
+        if (error.response?.status >= 500) {
+            throw new Error('Server error during export. Please try again later.');
+        }
+        
+        // Re-throw with original message if it's already a meaningful error
+        if (error.message && !error.message.includes('Network Error')) {
+            throw error;
+        }
+        
+        throw new Error('Export failed: ' + (error.message || 'Unknown error'));
     }
 };

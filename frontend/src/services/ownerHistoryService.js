@@ -4,9 +4,18 @@ const API_URL = process.env.REACT_APP_BASE_URL;
 
 export const fetchOwnerHistories = async () => {
     try {
-        const response = await axios.get(`${API_URL}/owner_histories`);
+        // Add the trailing slash to match your backend endpoint
+        const response = await axios.get(`${API_URL}/owner_histories/`);
+        console.log('Owner histories API response:', response.data);
         return response.data;
     } catch (error) {
+        console.error('Error fetching owner histories:', error);
+        console.error('Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            url: error.config?.url
+        });
         throw new Error('Error fetching owner histories: ' + error.message);
     }
 };
@@ -14,9 +23,11 @@ export const fetchOwnerHistories = async () => {
 // Fetch owner history by ID
 export const fetchOwnerHistoryById = async (historyId) => {
     try {
+        // Assuming your backend has a similar endpoint for individual records
         const response = await axios.get(`${API_URL}/owner_histories/${historyId}`);
         return response.data;
     } catch (error) {
+        console.error('Error fetching owner history by ID:', error);
         throw new Error(`Error fetching owner history ${historyId}: ` + error.message);
     }
 };

@@ -29,7 +29,7 @@ const AddSubscriptionType = () => {
 
     return (
         <Container className="mt-5">
-            <h2 className="mb-4">Add Subscription Type</h2>
+            <h2 className="mb-4">Añadir tipo de abono</h2>
             <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="formSubscriptionName">
                     <Form.Label>Nombre:</Form.Label>
@@ -39,36 +39,36 @@ const AddSubscriptionType = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        placeholder="Enter Subscription Type Name"
+                        placeholder="Introduzca nombre de tipo de abono"
                     />
                 </Form.Group>
 
                 <Form.Group controlId="formSubscriptionPrice">
-                    <Form.Label>Price:</Form.Label>
+                    <Form.Label>Precio:</Form.Label>
                     <Form.Control
                         type="number"
                         className="mb-3"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         required
-                        placeholder="Enter Subscription Price"
+                        placeholder="Introduzca precio del abono"
                     />
                 </Form.Group>
 
                  <Form.Group controlId="formSubscriptionParkingCode">
-                    <Form.Label>Parking Code:</Form.Label>
+                    <Form.Label>Código de abono:</Form.Label>
                     <Form.Control
                         type="text"
                         className="mb-3"
                         value={parking_code}
                         onChange={(e) => setParkingCode(e.target.value)}
                         required
-                        placeholder="Enter Subscription Code"
+                        placeholder="Introduzca código de abono"
                     />
                 </Form.Group>
 
                 <Button variant="primary" type="submit" disabled={loading}>
-                    {loading ? 'Adding...' : 'Add Subscription Type'}
+                    {loading ? 'Adding...' : 'Añádiendo tipo de abono'}
                 </Button>
             </Form>
             {error && <Alert variant="danger" className="mt-3">Error: {error.message}</Alert>}

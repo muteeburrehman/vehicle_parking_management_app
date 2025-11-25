@@ -14,7 +14,13 @@ const OwnerHistoryList = () => {
         const getOwnerHistories = async () => {
             try {
                 const histories = await fetchOwnerHistories();
-                setOwnerHistories(histories);
+                // Sort by modification_time in descending order (most recent first)
+                const sortedHistories = histories.sort((a, b) => {
+                    const dateA = new Date(a.modification_time || a.registration_date);
+                    const dateB = new Date(b.modification_time || b.registration_date);
+                    return dateB - dateA;
+                });
+                setOwnerHistories(sortedHistories);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -90,6 +96,7 @@ const OwnerHistoryList = () => {
                             <th>Telefono</th>
                             <th>Email</th>
                             <th>Fecha de Registro</th>
+                            <th style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>Fecha de Modificación</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,6 +108,9 @@ const OwnerHistoryList = () => {
                                 <td>{history.phone_number}</td>
                                 <td>{history.email}</td>
                                 <td>{formatDate(history.registration_date)}</td>
+                                <td style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>
+                                    {formatDate(history.modification_time)}
+                                </td>
                             </tr>
                         ))}
                     </tbody>

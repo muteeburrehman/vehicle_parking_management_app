@@ -28,10 +28,18 @@ const VehicleHistoryList = () => {
         const getVehicleHistories = async () => {
             try {
                 const histories = await fetchVehicleHistories();
-                setVehicleHistories(histories);
+                
+                // Sort by modification_time in descending order (most recent first)
+                const sortedHistories = histories.sort((a, b) => {
+                    const dateA = new Date(a.modification_time || a.registration_date);
+                    const dateB = new Date(b.modification_time || b.registration_date);
+                    return dateB - dateA;
+                });
+                
+                setVehicleHistories(sortedHistories);
 
                 // Fetch owner data for each vehicle history
-                const ownerIds = histories.map(history => history.owner_id);
+                const ownerIds = sortedHistories.map(history => history.owner_id);
                 await Promise.all(ownerIds.map(fetchOwnerInfo)); // Fetch all owner data in parallel
 
             } catch (err) {
@@ -111,6 +119,7 @@ const VehicleHistoryList = () => {
                         <th>Marca</th>
                         <th>Modelo</th>
                         <th>Fecha de registro</th>
+                        <th style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>Fecha de Modificación</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -128,6 +137,9 @@ const VehicleHistoryList = () => {
                                     <td>{history.brand}</td>
                                     <td>{history.model || 'N/A'}</td>
                                     <td>{formatDate(history.registration_date)}</td>
+                                    <td style={{ backgroundColor: '#fff3cd', fontWeight: 'bold' }}>
+                                        {formatDate(history.modification_time)}
+                                    </td>
                                 </tr>
                             );
                         })}

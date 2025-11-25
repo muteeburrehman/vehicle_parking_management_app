@@ -38,14 +38,35 @@ const OwnerRegistration = () => {
             [name]: value,
         });
     };
-    // Basic IBAN validation regex
-    const validateIBAN = (iban) => {
-        // eslint-disable-next-line no-useless-escape
 
-        const ibanRegex = /^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$/;
-        return ibanRegex.test(iban.replace(/\s/g, ''));
+    // Spanish IBAN validation
+    const validateSpanishIBAN = (iban) => {
+        if (!iban) return true; // Allow empty IBAN
+        
+        // Remove spaces and convert to uppercase
+        const cleanIban = iban.replace(/\s/g, '').toUpperCase();
+        
+        // Spanish IBAN format: ES + 2 check digits + 20 digits
+        const spanishIbanRegex = /^ES\d{22}$/;
+        
+        if (!spanishIbanRegex.test(cleanIban)) {
+            return false;
+        }
+        
+        // IBAN checksum validation (mod-97 algorithm)
+        const rearranged = cleanIban.slice(4) + cleanIban.slice(0, 4);
+        const numericString = rearranged.replace(/[A-Z]/g, (char) => 
+            (char.charCodeAt(0) - 55).toString()
+        );
+        
+        // Calculate mod 97 for large numbers
+        let remainder = 0;
+        for (let i = 0; i < numericString.length; i++) {
+            remainder = (remainder * 10 + parseInt(numericString[i])) % 97;
+        }
+        
+        return remainder === 1;
     };
-
 
     // Validate the form before submission
     const validateForm = async () => {
@@ -53,38 +74,35 @@ const OwnerRegistration = () => {
 
         // Validate DNI
         if (!ownerData.dni) {
-            errors.dni = 'DNI is required';
+            errors.dni = 'el DNI es obligatorio';
         } else {
             try {
                 const dniExists = await checkDniExists(ownerData.dni);
                 if (dniExists) {
-                    errors.dni = 'This DNI is already registered';
+                    errors.dni = 'Este DNI ya está registrado';
                 }
             } catch (error) {
-                console.error('Error checking DNI:', error);
-                errors.dni = 'Error checking DNI. Please try again.';
+                console.error('Error comprobando el DNI:', error);
+                errors.dni = 'Error al comprobar el DNI. Por favor, inténtelo de nuevo.';
             }
         }
 
         // Validate first name and last name
         if (!ownerData.first_name) {
-            errors.first_name = 'First name is required';
+            errors.first_name = 'El nombre es obligatorio';
         }
         if (!ownerData.last_name) {
-            errors.last_name = 'Last name is required';
+            errors.last_name = 'Los apellidos son obligatorios';
         }
 
         // Validate email format if email is provided
         if (ownerData.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(ownerData.email)) {
-            errors.email = 'Invalid email format';
+            errors.email = 'Formato de E-mail no válido';
         }
 
-
-        // Validate bank account number - only if it's provided
-        if (ownerData.bank_account_number) {
-            if (!validateIBAN(ownerData.bank_account_number)) {
-                errors.bank_account_number = 'Invalid IBAN format';
-            }
+        // Validate Spanish IBAN format - only if it's provided
+        if (ownerData.bank_account_number && !validateSpanishIBAN(ownerData.bank_account_number)) {
+            errors.bank_account_number = 'Formato de IBAN español inválido (debe comenzar con ES seguido de 22 dígitos)';
         }
 
         setValidationErrors(errors);
@@ -134,17 +152,20 @@ const OwnerRegistration = () => {
         }
 
         try {
-            const bankAccountExists = await checkBankAccountExists(ownerData.bank_account_number);
-            if (bankAccountExists) {
-                setShowConfirmModal(true);
-            } else {
-                await submitOwnerData();
+            // Only check bank account if it's provided
+            if (ownerData.bank_account_number) {
+                const bankAccountExists = await checkBankAccountExists(ownerData.bank_account_number);
+                if (bankAccountExists) {
+                    setShowConfirmModal(true);
+                    return;
+                }
             }
+            await submitOwnerData();
         } catch (error) {
             console.error('Error checking bank account:', error);
             setValidationErrors(prev => ({
                 ...prev,
-                bank_account_number: 'Error checking bank account. Please try again.'
+                bank_account_number: 'Error comprobando IBAN. Inténtelo de nuevo.'
             }));
         }
     };
@@ -167,7 +188,7 @@ const OwnerRegistration = () => {
                 modified_by: ''
             });
 
-            setSuccessMessage('Owner successfully registered!');
+            setSuccessMessage('Cliente registrado correctamente!');
             setOwnerData({
                 dni: '',
                 first_name: '',
@@ -189,7 +210,7 @@ const OwnerRegistration = () => {
             console.error('Failed to register owner:', error);
             setValidationErrors(prev => ({
                 ...prev,
-                submit: typeof error === 'string' ? error : 'An unexpected error occurred'
+                submit: typeof error === 'string' ? error : 'Ocurrió un error inesperado'
             }));
         }
     };
@@ -205,8 +226,9 @@ const OwnerRegistration = () => {
                  className="register_owner_company_logo mb-3"/>
             <h2 className="register_owner_heading">Registro de Nuevo Cliente</h2>
             <Form onSubmit={handleSubmit}>
+                {/* Row 1: DNI, First Name, Last Name, Email */}
                 <Row className="mb-3">
-                    <Col md={6}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formDni">
                             <Form.Label>DNI</Form.Label>
                             <Form.Control
@@ -223,7 +245,7 @@ const OwnerRegistration = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
-                    <Col md={6}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formFirstName">
                             <Form.Label>Nombre</Form.Label>
                             <Form.Control
@@ -240,9 +262,7 @@ const OwnerRegistration = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
-                </Row>
-                <Row className="mb-3">
-                    <Col md={4}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formLastName">
                             <Form.Label>Apellidos</Form.Label>
                             <Form.Control
@@ -259,7 +279,7 @@ const OwnerRegistration = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
-                    <Col md={4}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formEmail">
                             <Form.Label>Email</Form.Label>
                             <Form.Control
@@ -275,27 +295,16 @@ const OwnerRegistration = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
-
-                    <Col md={4}>
-                        <Form.Group controlId="formReducedMobilityExpiration" className="mb-3">
-                            <Form.Label>Vencimiento Movilidad Reducida (Opcional)</Form.Label>
-                            <Form.Control
-                                type="date"
-                                name="reduced_mobility_expiration"
-                                value={ownerData.reduced_mobility_expiration}
-                                onChange={handleInputChange}
-
-                            />
-                        </Form.Group>
-                    </Col>
                 </Row>
+
+                {/* Row 2: IBAN, SAGE Client Number, Phone, Reduced Mobility Expiration */}
                 <Row className="mb-3">
-                    <Col md={4}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formBankAccount">
-                            <Form.Label>(IBAN) Cuenta Bancaria</Form.Label>
+                            <Form.Label>IBAN (Opcional)</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="IBAN"
+                                placeholder="ES00 0000 0000 0000 0000 0000"
                                 name="bank_account_number"
                                 value={ownerData.bank_account_number}
                                 onChange={handleInputChange}
@@ -306,7 +315,7 @@ const OwnerRegistration = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Col>
-                    <Col md={4}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formSageClientNumber">
                             <Form.Label>Nº Cliente de SAGE</Form.Label>
                             <Form.Control
@@ -318,8 +327,7 @@ const OwnerRegistration = () => {
                             />
                         </Form.Group>
                     </Col>
-
-                    <Col md={4}>
+                    <Col md={3}>
                         <Form.Group controlId="owner_formPhoneNumber">
                             <Form.Label>Teléfono</Form.Label>
                             <Form.Control
@@ -331,7 +339,20 @@ const OwnerRegistration = () => {
                             />
                         </Form.Group>
                     </Col>
+                    <Col md={3}>
+                        <Form.Group controlId="formReducedMobilityExpiration">
+                            <Form.Label>Vencimiento Movilidad Reducida</Form.Label>
+                            <Form.Control
+                                type="date"
+                                name="reduced_mobility_expiration"
+                                value={ownerData.reduced_mobility_expiration}
+                                onChange={handleInputChange}
+                            />
+                        </Form.Group>
+                    </Col>
                 </Row>
+
+                {/* Row 3: Observations */}
                 <Row className="mb-3">
                     <Form.Group controlId="owner_formObservations">
                         <Form.Label>Observaciones</Form.Label>
@@ -365,26 +386,23 @@ const OwnerRegistration = () => {
                     <Row className="mb-3">
                         <Col>
                             <h5>Documentos Añadidos</h5>
-
                             <DocumentPreviewRow
                                 documentPreviews={documentPreviews}
                                 handleViewDocument={handleViewDocument}
                                 handleRemoveDocument={handleRemoveDocument}
                                 pdfIcon={pdfIcon}
                             />
-
                         </Col>
                     </Row>
                 )}
 
-
                 {error && <Alert variant="danger">{error}</Alert>}
                 {successMessage && <Alert variant="success">{successMessage}</Alert>}
-                <Button variant="primary" type="submit" disabled={loading}>
+                <Button variant="primary" type="submit" className="mb-3" disabled={loading}>
                     {loading ? <Spinner animation="border" size="sm"/> : 'Registrar Cliente'}
                 </Button>
-
             </Form>
+            
             <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Confirmar Registro</Modal.Title>
@@ -393,10 +411,10 @@ const OwnerRegistration = () => {
                     Este IBAN ya existe en otro abonado. Esta seguro que quiere añadirlo?
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+                    <Button variant="secondary" className="mb-3" onClick={() => setShowConfirmModal(false)}>
                         Cancelar
                     </Button>
-                    <Button variant="primary" onClick={handleConfirmAddition}>
+                    <Button variant="primary" className= "mb-3"  onClick={handleConfirmAddition}>
                         Sí, registrarlo igualmente
                     </Button>
                 </Modal.Footer>

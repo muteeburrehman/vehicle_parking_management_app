@@ -76,7 +76,7 @@ const CancellationDetailEdit = () => {
                     setDocumentPreviews(previews);
                 }
             } catch (error) {
-                setError(`Error fetching cancellation details: ${error.message}`);
+                setError(`Error recopilando detalles de bajas: ${error.message}`);
             } finally {
                 setLoading(false);
             }
@@ -96,12 +96,12 @@ const CancellationDetailEdit = () => {
         if (file) {
             const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!validTypes.includes(file.type)) {
-                setError('Please upload only PDF or Word documents');
+                setError('Por favor suba solo archivos .PDF o Word');
                 event.target.value = null;
                 return;
             }
             if (file.size > 5 * 1024 * 1024) {
-                setError('File size should not exceed 5MB');
+                setError('El archivo no puede pesar mas de 5MB');
                 event.target.value = null;
                 return;
             }
@@ -126,13 +126,13 @@ const CancellationDetailEdit = () => {
                 isExisting: true,
             }]);
             setNewDocument(null);
-            setSuccessMessage('Document uploaded successfully');
+            setSuccessMessage('Documento añadido correctamente');
             setHasUploadedDocument(true); // Enable approve button after successful upload
 
             const fileInput = document.querySelector('input[type="file"]');
             if (fileInput) fileInput.value = '';
         } catch (error) {
-            setError(`Error uploading document: ${error.message}`);
+            setError(`Error añadiendo documento: ${error.message}`);
         } finally {
             setUploadLoading(false);
         }
@@ -145,11 +145,11 @@ const CancellationDetailEdit = () => {
 
     const handleRemoveDocument = (index) => {
         setDocumentPreviews(prev => prev.filter((_, idx) => idx !== index));
-        setSuccessMessage('Document removed successfully');
+        setSuccessMessage('Documento quitado correctamente');
     };
     const handleApprove = async () => {
         if (!user?.email) {
-            setError('User authentication required');
+            setError('Requiere autentificación de usuario');
             return;
         }
 
@@ -175,12 +175,12 @@ const CancellationDetailEdit = () => {
             // Then approve the cancellation
             await approveCancellation(cancellation.id, updatedCancellation);
 
-            setSuccessMessage('Cancellation approved successfully');
+            setSuccessMessage('Baja aprovada correctamente');
             setTimeout(() => {
                 navigate('/approved-cancellation-list');
             }, 1500);
         } catch (error) {
-            setError(`Error approving cancellation: ${error.message || 'Unknown error occurred'}`);
+            setError(`Error confirmando baja: ${error.message || 'Ha ocurrido un error desconocido'}`);
         } finally {
             setApproveLoading(false);
         }
@@ -202,9 +202,9 @@ const CancellationDetailEdit = () => {
             };
 
             await updateCancellation(cancellation.id, updatedCancellation);
-            setSuccessMessage('Changes saved successfully');
+            setSuccessMessage('Cambios guardados correctamente');
         } catch (error) {
-            setError(`Error updating cancellation details: ${error.message}`);
+            setError(`Error actualizando detalles de baja: ${error.message}`);
         }
     };
 
@@ -219,9 +219,9 @@ const CancellationDetailEdit = () => {
     if (!cancellation) {
         return (
             <Container className="mt-5">
-                <Alert variant="warning">Cancellation not found.</Alert>
-                <Link to="/subscriptions/cancellations/">
-                    <Button variant="secondary">Back to Cancellations List</Button>
+                <Alert variant="warning">Baja no encontrada.</Alert>
+                <Link to="/cancel-subscription-list/">
+                    <Button variant="secondary">Volver a lista de bajas</Button>
                 </Link>
             </Container>
         );
@@ -229,9 +229,9 @@ const CancellationDetailEdit = () => {
 
     return (
         <Container className="mt-5">
-            <Link to="/subscriptions/cancellations/">
+            <Link to="/cancel-subscription-list/">
                 <Button variant="secondary" className="mb-3">
-                    &larr; Back to Cancellations List
+                    &larr; Volver a lista de bajas
                 </Button>
             </Link>
 
@@ -241,7 +241,7 @@ const CancellationDetailEdit = () => {
 
             <Card>
                 <Card.Header className="bg-primary text-white">
-                    <h4 className="mb-0">Pending Cancellation</h4>
+                    <h4 className="mb-0">Bajas pendientes</h4>
                 </Card.Header>
                 <Card.Body>
                     <Form>
@@ -256,48 +256,48 @@ const CancellationDetailEdit = () => {
                                     <Form.Control type="text" value={cancellation.owner_id} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Subscription Type</Form.Label>
+                                    <Form.Label>Tipo de abono</Form.Label>
                                     <Form.Control type="text"
                                                   value={getSubscriptionTypeName(cancellation.subscription_type_id)}
                                                   disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Access Card</Form.Label>
+                                    <Form.Label>Nº de tarjeta</Form.Label>
                                     <Form.Control type="text" value={cancellation.access_card || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Effective Date</Form.Label>
+                                    <Form.Label>Fecha de efecto</Form.Label>
                                     <Form.Control type="text" value={cancellation.effective_date ? cancellation.effective_date.split('T')[0] : 'N/A'}
 />
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Large Family Expiration</Form.Label>
+                                    <Form.Label>Vencimiento de Familia numerosa</Form.Label>
                                     <Form.Control type="text" value={cancellation.large_family_expiration ? cancellation.large_family_expiration.split('T')[0] : 'N/A'}
 />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Effective Cancellation Date</Form.Label>
+                                    <Form.Label>Fecha efectiva de baja</Form.Label>
                                     <Form.Control type="text" value={cancellation.effective_cancellation_date ? cancellation.effective_cancellation_date.split('T')[0] : 'N/A'}
 
 />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>License Plate 1</Form.Label>
+                                    <Form.Label>Matrícula 1</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate1 || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>License Plate 2</Form.Label>
+                                    <Form.Label>Matrícula 2</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate2 || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>License Plate 3</Form.Label>
+                                    <Form.Label>Matrícula 3 3</Form.Label>
                                     <Form.Control type="text" value={cancellation.lisence_plate3 || 'N/A'} disabled/>
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Parking Spot</Form.Label>
+                                    <Form.Label>Plaza de aparcamiento</Form.Label>
                                     <Form.Control type="text" value={cancellation.parking_spot || 'N/A'} disabled/>
                                 </Form.Group>
                             </Col>
@@ -305,7 +305,7 @@ const CancellationDetailEdit = () => {
 
                         <Row className="mt-4">
                             <Col>
-                                <h5>Documents</h5>
+                                <h5>Documentos</h5>
                                 {documentPreviews.length > 0 ? (
                                     <DocumentPreviewRow
                                         documentPreviews={documentPreviews}
@@ -315,11 +315,11 @@ const CancellationDetailEdit = () => {
                                         readOnly={false}
                                     />
                                 ) : (
-                                    <p>No documents available</p>
+                                    <p>No hay documentos disponibles</p>
                                 )}
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Upload New Document</Form.Label>
+                                    <Form.Label>Añadir nuevo documento</Form.Label>
                                     <Form.Control
                                         type="file"
                                         onChange={handleDocumentChange}
@@ -329,9 +329,10 @@ const CancellationDetailEdit = () => {
                                     <Form.Text className="text-muted">
                                         Accepted file types: PDF, DOC, DOCX (Max size: 5MB)
                                     </Form.Text>
-                                    <div className="mt-2">
+                                    <div className="mt-2 mb-3">
                                         <Button
                                             variant="primary"
+                                            className="mb-3"
                                             onClick={handleDocumentUpload}
                                             disabled={!newDocument || uploadLoading}
                                         >
@@ -348,7 +349,7 @@ const CancellationDetailEdit = () => {
                                                     Uploading...
                                                 </>
                                             ) : (
-                                                'Upload Document'
+                                                'Añadiendo documento'
                                             )}
                                         </Button>
                                     </div>
@@ -356,34 +357,40 @@ const CancellationDetailEdit = () => {
                             </Col>
                         </Row>
 
-                        <div className="mt-4">
-                            <Button variant="success" onClick={handleSubmit} className="me-2">
-                                Save Changes
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={handleApprove}
-                                className="me-2"
-                                disabled={approveLoading || !hasUploadedDocument}
-                            >
-                                {approveLoading ? (
-                                    <>
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                            className="me-2"
-                                        />
-                                        Approving...
-                                    </>
-                                ) : (
-                                    'Approve Cancellation'
-                                )}
-                            </Button>
+<div className="mt-4 mb-3">
+  <Button 
+    variant="success" 
+    onClick={handleSubmit} 
+    className="me-2 mb-3"
+  >
+    Guardar cambios
+  </Button>
 
-                        </div>
+  <Button
+    variant="primary"
+    onClick={handleApprove}
+    className="me-2 mb-3"
+    disabled={approveLoading || !hasUploadedDocument}
+  >
+    {approveLoading ? (
+      <>
+        <Spinner
+          as="span"
+          animation="border"
+          size="sm"
+          role="status"
+          aria-hidden="true"
+          className="me-2"
+        />
+        Validando...
+      </>
+    ) : (
+      'Valida Baja'
+    )}
+  </Button>
+</div>
+
+
                     </Form>
                 </Card.Body>
             </Card>

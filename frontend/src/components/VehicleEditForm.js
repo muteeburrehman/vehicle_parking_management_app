@@ -75,7 +75,7 @@ const VehicleEditForm = () => {
                     await getVehicleByLisencePlate(lisence_plate);
                 } catch (err) {
                     console.error('Error fetching vehicle data:', err);
-                    toast.error("Failed to fetch vehicle data!");
+                    toast.error("Fallo al recuperar datos de vehículo!");
                 }
             }
         };
@@ -171,7 +171,7 @@ const VehicleEditForm = () => {
             }
         } else {
             console.error("Document does not exist at index:", index);
-            toast.error("Document not found!");
+            toast.error("No se encuentra el Documento!");
         }
     };
 
@@ -237,7 +237,7 @@ const VehicleEditForm = () => {
 
         // Only proceed with the update if there are changes
         if (!hasChanges) {
-            setSuccessMessage('No changes to update.');
+            setSuccessMessage('Sin Cambios que Actualizar.');
             return;
         }
 
@@ -264,19 +264,19 @@ const VehicleEditForm = () => {
             }));
             setDocumentPreviews(updatedPreviews);
 
-            setSuccessMessage('Vehicle successfully updated!');
+            setSuccessMessage('Vehículo actualizado correctamente!');
             setIsFormModified(false);
 
             await getAllVehicles();
 
         } catch (err) {
             console.error('Failed to update vehicle:', err);
-            toast.error("Failed to update vehicle.");
+            toast.error("Fallo al actualizar vehículo.");
         }
     };
 
     const handleDeleteVehicle = async () => {
-        const confirmDelete = window.confirm("Are you sure you want to delete this vehicle?");
+        const confirmDelete = window.confirm("Está seguro que quiere borrar este vehículo?");
         if (confirmDelete) {
             try {
                 setIsCheckingSubscription(true);
@@ -284,7 +284,7 @@ const VehicleEditForm = () => {
                 const hasActiveSubscription = await checkActiveSubscription(lisence_plate);
 
                 if (hasActiveSubscription) {
-                    setToastMessage("Cannot delete vehicle: Active subscriptions exist");
+                    setToastMessage("No se puede borrar el vehículo: Existe un Abono Activo");
                     setToastVariant('warning');
                     setShowToast(true);
                     return;
@@ -292,17 +292,17 @@ const VehicleEditForm = () => {
 
                 // Proceed with deletion if no active subscriptions
                 await deleteVehicle(lisence_plate);
-                setToastMessage("Vehicle deleted successfully!");
+                setToastMessage("Vehículo borrado con éxito!");
                 setToastVariant('success');
                 setShowToast(true);
-                setSuccessMessage('Vehicle deleted successfully');
+                setSuccessMessage('Vehículo borrado con éxito!');
                 await getAllVehicles();
                 setTimeout(() => {
                     navigate("/vehicles");
                 }, 2000);
             } catch (err) {
-                console.error('Failed to delete vehicle:', err);
-                setToastMessage(`Failed to delete vehicle: ${err.response?.data?.detail || err.message}`);
+                console.error('Fallo al borrar vehículo:', err);
+                setToastMessage(`Fallo al borrar vehículo: ${err.response?.data?.detail || err.message}`);
                 setToastVariant('danger');
                 setShowToast(true);
             } finally {
@@ -314,7 +314,7 @@ const VehicleEditForm = () => {
     return (
         <div className="edit_vehicle_container mt-5">
             <img src={companyLogo} alt="Company Logo" className="register_owner_company_logo mb-3"/>
-            <h2 className="edit_vehicle_heading">Edit Vehicle</h2>
+            <h2 className="edit_vehicle_heading">Editar Vehículo</h2>
             {loadingVehicle ? (
                 <Spinner animation="border"/>
             ) : (
@@ -322,10 +322,10 @@ const VehicleEditForm = () => {
                     <Row>
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formPlateNumber" className="mb-3">
-                                <Form.Label>License Plate</Form.Label>
+                                <Form.Label>Matrícula</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter License Plate"
+                                    placeholder="Introduzca Matrícula"
                                     name="lisence_plate"
                                     value={vehicleData.lisence_plate}
                                     onChange={handleInputChange}
@@ -337,10 +337,10 @@ const VehicleEditForm = () => {
 
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formBrand" className="mb-3">
-                                <Form.Label>Brand</Form.Label>
+                                <Form.Label>Marca</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter Brand"
+                                    placeholder="Introduzca Marca"
                                     name="brand"
                                     value={vehicleData.brand}
                                     onChange={handleInputChange}
@@ -354,10 +354,10 @@ const VehicleEditForm = () => {
                     <Row>
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formModel" className="mb-3">
-                                <Form.Label>Model</Form.Label>
+                                <Form.Label>Modelo</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter Model"
+                                    placeholder="Introduzca modelo"
                                     name="model"
                                     value={vehicleData.model}
                                     onChange={handleInputChange}
@@ -369,7 +369,7 @@ const VehicleEditForm = () => {
 
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formType" className="mb-3">
-                                <Form.Label>Vehicle Type</Form.Label>
+                                <Form.Label>Tipo de Vehículo</Form.Label>
                                 <Form.Control
                                     type="text"
                                     placeholder="Enter Vehicle Type"
@@ -386,10 +386,10 @@ const VehicleEditForm = () => {
                     <Row>
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formOwnerDni" className="mb-3">
-                                <Form.Label>Owner DNI</Form.Label>
+                                <Form.Label>DNI cliente:</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Enter Owner DNI"
+                                    placeholder="Introduzca DNI del cliente"
                                     name="owner_id"
                                     value={vehicleData.owner_id}
                                     onChange={handleInputChange}
@@ -401,10 +401,10 @@ const VehicleEditForm = () => {
 
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formObservations" className="mb-3">
-                                <Form.Label>Observations</Form.Label>
+                                <Form.Label>Observaciones</Form.Label>
                                 <Form.Control
                                     as="textarea"
-                                    placeholder="Enter any observations"
+                                    placeholder="Introduzca cualquier observación"
                                     name="observations"
                                     value={vehicleData.observations}
                                     onChange={handleInputChange}
@@ -417,7 +417,7 @@ const VehicleEditForm = () => {
                     <Row>
                         <Col md={6}>
                             <Form.Group controlId="vehicle_createdBy" className="mb-3">
-                                <Form.Label>Created By</Form.Label>
+                                <Form.Label>Creado por</Form.Label>
                                 <Form.Control
                                     type="text"
                                     placeholder="Created by"
@@ -434,7 +434,7 @@ const VehicleEditForm = () => {
                     <Row className="mb-3">
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formModifiedBy">
-                                <Form.Label>Modified By:</Form.Label>
+                                <Form.Label>Modificado por:</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="modified_by"
@@ -445,7 +445,7 @@ const VehicleEditForm = () => {
                         </Col>
                         <Col md={6}>
                             <Form.Group controlId="vehicle_formModificationTime">
-                                <Form.Label>Modification Time:</Form.Label>
+                                <Form.Label>Fecha de modificación:</Form.Label>
                                 <Form.Control
                                     type="text"
                                     name="modification_time"
@@ -459,7 +459,7 @@ const VehicleEditForm = () => {
                     <Row>
                         <Col md={12}>
                             <Form.Group controlId="vehicle_formDocuments" className="mb-3">
-                                <Form.Label>Documents</Form.Label>
+                                <Form.Label>Documentos</Form.Label>
                                 <Form.Control
                                     type="file"
                                     multiple
@@ -484,29 +484,28 @@ const VehicleEditForm = () => {
                     {error && <Alert variant="danger">{error}</Alert>}
 
                     {(isSuperuser || isAdmin) && (
-                        <Button type="submit" disabled={loading}>
-                            {loading ? <Spinner animation="border" size="sm"/> : 'Update Vehicle'}
+                        <Button type="submit" className="mb-3"  disabled={loading}>
+                            {loading ? <Spinner animation="border" size="sm"/> : 'Actualizar Vehículo'}
                         </Button>
                     )}
 
-                    {isSuperuser && (
-                        <Button
-                            variant="danger"
-                            onClick={handleDeleteVehicle}
-                            style={{marginLeft: '10px'}}
-                            className="me-2"
-                            disabled={isCheckingSubscription}
-                        >
-                            {isCheckingSubscription ? 'Checking Subscriptions...' : 'Delete Vehicle'}
-                        </Button>
-                    )}
+                   {isSuperuser && (
+                   <Button
+                   variant="danger"
+                   onClick={handleDeleteVehicle}
+                   className="me-2 mb-3"
+                   disabled={isCheckingSubscription}
+                   >
+                   {isCheckingSubscription ? 'Checking Subscriptions...' : 'Borrar Vehículo'}
+                   </Button>
+)}
 
+{(isSuperuser || isAdmin) && (
+  <Button variant="secondary" className="mb-3">
+    Lista de Vehículos
+  </Button>
+)}
 
-                    {(isSuperuser || isAdmin) && (
-                        <Button variant={"secondary"} onClick={navigateToList}>
-                            Vehicle List
-                        </Button>
-                    )}
                 </Form>
 
             )}

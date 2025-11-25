@@ -37,7 +37,7 @@ const AddParkingLotForm = () => {
         navigate('/parking-lots');
       }, 2000);
     } catch (error) {
-      setError('Error adding parking lot configuration');
+      setError('Error añadiendo configuración de aparcamienton');
       setSuccess('');
     }
   };

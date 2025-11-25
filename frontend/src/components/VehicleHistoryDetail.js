@@ -72,43 +72,43 @@ const VehicleHistoryDetail = () => {
     }
 
     if (!history) {
-        return <Alert variant="info" className="mt-4">No vehicle history found.</Alert>;
+        return <Alert variant="info" className="mt-4">No se encontró historial del vehículo.</Alert>;
     }
 
     return (
         <Container className="mt-4">
-            <h2 className="mb-4 text-center">Vehicle History Detail</h2>
+            <h2 className="mb-4 text-center">Detalle del historial del vehículo</h2>
             <Button variant="secondary" onClick={() => navigate(-1)} className="mb-3">Back</Button>
             <Card className="shadow-sm">
                 <Card.Body>
-                    <Card.Title className="text-center mb-4">Details for History ID: <strong>{history.history_id}</strong></Card.Title>
+                    <Card.Title className="text-center mb-4">Detalles del historial con ID: <strong>{history.history_id}</strong></Card.Title>
                     <Row>
                         <Col md={6}>
                             <Table responsive striped hover>
                                 <tbody>
 
                                 <tr>
-                                    <td><strong>Lisence Plate:</strong></td>
+                                    <td><strong>Matrícula:</strong></td>
                                     <td>{history.lisence_plate}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Brand:</strong></td>
+                                    <td><strong>Marca:</strong></td>
                                     <td>{history.brand}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Model:</strong></td>
+                                    <td><strong>Modelo:</strong></td>
                                     <td>{history.model }</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Vehicle Type</strong></td>
+                                    <td><strong>Tipo de Vehículo</strong></td>
                                     <td>{history.vehicle_type}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>OwnerID</strong></td>
+                                    <td><strong>DNI Cliente</strong></td>
                                     <td>{history.owner_id }</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Observations</strong></td>
+                                    <td><strong>Observaciones</strong></td>
                                     <td>{history.observations }</td>
                                 </tr>
 
@@ -120,25 +120,25 @@ const VehicleHistoryDetail = () => {
                             <tbody>
 
                                 <tr>
-                                    <td><strong>Registration Date</strong></td>
+                                    <td><strong>Fecha de Registro</strong></td>
                                     <td>{formatDateTime(history.registration_date) }</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Created By:</strong></td>
+                                    <td><strong>Creado por:</strong></td>
                                     <td>{history.created_by }</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Modified BY:</strong></td>
+                                    <td><strong>Modificado por:</strong></td>
                                     <td>{history.modified_by}</td>
                                 </tr>
 
                                 <tr>
-                                    <td><strong>Modification Time:</strong></td>
+                                    <td><strong>Fecha de modificación:</strong></td>
                                     <td>{formatDateTime(history.modification_time)}</td>
                                 </tr>
 
                                 <tr>
-                                    <td><strong>Modified By:</strong></td>
+                                    <td><strong>Modificado por:</strong></td>
                                     <td>{history.modified_by }</td>
                                 </tr>
                                 </tbody>
@@ -148,7 +148,7 @@ const VehicleHistoryDetail = () => {
 
                     <Row className="mt-4">
                         <Col>
-                            <h5 className="mb-3">Documents</h5>
+                            <h5 className="mb-3">Documentos</h5>
                             <DocumentPreviewRow
                                 documentPreviews={documentPreviews}
                                 handleViewDocument={handleViewDocument}

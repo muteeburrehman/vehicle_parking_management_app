@@ -142,22 +142,22 @@ const SubscriptionHistoryDetail = () => {
     }
 
     if (!history) {
-        return <Alert variant="info" className="mt-4">No subscription history found.</Alert>;
+        return <Alert variant="info" className="mt-4">No se encuentra Historial de Abonos.</Alert>;
     }
 
     return (
         <Container className="mt-4">
-            <h2 className="mb-4 text-center">Subscription History Detail</h2>
+            <h2 className="mb-4 text-center">Volver al Historial de Abonos</h2>
             <Button variant="secondary" onClick={() => navigate(-1)} className="mb-3">Back</Button>
             <Card className="shadow-sm">
                 <Card.Body>
-                    <Card.Title className="text-center mb-4">Details for History ID: <strong>{history.history_id}</strong></Card.Title>
+                    <Card.Title className="text-center mb-4">DVolver al Historial de Abonos con ID: <strong>{history.history_id}</strong></Card.Title>
                     <Row>
                         <Col md={6}>
                             <Table responsive striped hover>
                                 <tbody>
                                     <tr>
-                                        <td><strong>Cancellation ID:</strong></td>
+                                        <td><strong>ID de Baja:</strong></td>
                                         <td>{history.id}</td>
                                     </tr>
                                     <tr>
@@ -165,36 +165,36 @@ const SubscriptionHistoryDetail = () => {
                                         <td>{history.owner_id}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Subscription Type:</strong></td>
+                                        <td><strong>Tipo de Abono:</strong></td>
                                         {/* Use getSubscriptionTypeName to resolve the subscription type name */}
                                         <td>{getSubscriptionTypeName(history.subscription_type_id)}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Effective Date:</strong></td>
+                                        <td><strong>Fecha de Efecto:</strong></td>
                                         <td>{formatDate(history.effective_date)}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Access Card:</strong></td>
+                                        <td><strong>Nº de tarjeta:</strong></td>
                                         <td>{history.access_card}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>License Plate 1:</strong></td>
+                                        <td><strong>Matrícula 1:</strong></td>
                                         <td>{history.lisence_plate1}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>License Plate 2:</strong></td>
+                                        <td><strong>Matrícula 2:</strong></td>
                                         <td>{history.lisence_plate2 || 'N/A'}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>License Plate 3:</strong></td>
+                                        <td><strong>Matrícula 3:</strong></td>
                                         <td>{history.lisence_plate3 || 'N/A'}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Parking Lot:</strong></td>
+                                        <td><strong>Aparcamiento:</strong></td>
                                         <td>{history.parking_lot}</td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Tique X Park:</strong></td>
+                                        <td><strong>Tique XPark:</strong></td>
                                         <td>{history.tique_x_park}</td>
                                     </tr>
                                 </tbody>
@@ -204,35 +204,35 @@ const SubscriptionHistoryDetail = () => {
                             <Table responsive striped hover>
                                 <tbody>
                                 <tr>
-                                    <td><strong>Remote Control Number:</strong></td>
+                                    <td><strong>Nº de Mando:</strong></td>
                                     <td>{history.remote_control_number}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Observations:</strong></td>
+                                    <td><strong>Observaciones:</strong></td>
                                     <td>{history.observations}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Registration Date:</strong></td>
+                                    <td><strong>Fecha de Registro:</strong></td>
                                     <td>{formatDateTime(history.registration_date)}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Parking Spot:</strong></td>
+                                    <td><strong>Plaza de Aparcamiento:</strong></td>
                                     <td>{history.parking_spot}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Created By:</strong></td>
+                                    <td><strong>Creado por:</strong></td>
                                     <td>{history.created_by}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Modified By:</strong></td>
+                                    <td><strong>Modificado por:</strong></td>
                                     <td>{history.modified_by}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Modification Time:</strong></td>
+                                    <td><strong>Fecha de Modificación:</strong></td>
                                     <td>{formatDateTime(history.modification_time)}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Large Family Expiration:</strong></td>
+                                    <td><strong>Vencimiento Familia Numerosa:</strong></td>
                                     <td>{history.large_family_expiration ? history.large_family_expiration.split('T')[0]: ''}</td>
                                 </tr>
 
@@ -243,7 +243,7 @@ const SubscriptionHistoryDetail = () => {
 
                     <Row className="mt-4">
                         <Col>
-                            <h5 className="mb-3">Documents</h5>
+                            <h5 className="mb-3">Documentos</h5>
                             <DocumentPreviewRow
                                 documentPreviews={documentPreviews}
                                 handleViewDocument={handleViewDocument}

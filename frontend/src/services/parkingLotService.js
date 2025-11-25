@@ -23,6 +23,16 @@ export const parkingLotService = {
     }
   },
 
+  deleteParkingLot: async (id) => {
+    try {
+      const response = await axios.delete(`${API_URL}/parking-lot-config/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting parking lot:', error);
+      throw error;
+    }
+  },
+
   getAllParkingLots: async () => {
     try {
       const response = await axios.get(`${API_URL}/parking-lot-config`);
