@@ -149,3 +149,35 @@ async def get_parking_lot_config(config_id: int, db: Session = Depends(get_db)):
     if not db_config:
         raise HTTPException(status_code=404, detail="Parking lot configuration not found")
     return db_config
+
+
+# Add this new endpoint to your existing FastAPI router in the backend
+
+@router.delete("/parking-lot-config/{config_id}")
+async def delete_parking_lot_config(config_id: int, db: Session = Depends(get_db)):
+    """
+    Delete a parking lot configuration.
+    """
+    db_config = db.query(ParkingLot).filter(ParkingLot.id == config_id).first()
+    if not db_config:
+        raise HTTPException(status_code=404, detail="Parking lot configuration not found")
+    
+    # Check if there are any active subscriptions for this parking lot
+    subscription_types = db.query(Subscription_types).filter(
+        Subscription_types.name.startswith(db_config.name)
+    ).all()
+    
+    subscription_type_ids = [st.id for st in subscription_types]
+    active_subscriptions = db.query(Subscriptions).filter(
+        Subscriptions.subscription_type_id.in_(subscription_type_ids)
+    ).count()
+    
+    if active_subscriptions > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete parking lot '{db_config.name}' because it has {active_subscriptions} active subscriptions"
+        )
+    
+    db.delete(db_config)
+    db.commit()
+    return {"message": f"Parking lot '{db_config.name}' deleted successfully"}

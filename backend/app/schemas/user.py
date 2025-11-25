@@ -14,7 +14,6 @@ class UserBase(BaseModel):
     email: EmailStr
     role: str
 
-
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=128, description="User's password")
     confirm_password: str = Field(..., min_length=6, max_length=128, description="Confirm password")
@@ -29,25 +28,43 @@ class UserCreate(UserBase):
             }
         }
 
+# New schema for updating users
+class UserUpdate(BaseModel):
+    email: EmailStr
+    role: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "role": "admin"
+            }
+        }
 
 class UserResponse(UserBase):
     id: int
-    access_token: str = Field(..., description="JWT access token")
+    access_token: Optional[str] = Field(None, description="JWT access token")
     token_type: str = Field(default="bearer", description="Type of token")
 
     class Config:
         from_attributes = True
 
+# Simple user response without token (for listing users)
+class UserListResponse(BaseModel):
+    id: int
+    email: EmailStr
+    role: str
+
+    class Config:
+        from_attributes = True
 
 class RequestDetails(BaseModel):
     email: str
     password: str
 
-
 class TokenSchema(BaseModel):
     access_token: str
     refresh_token: str
-
 
 class TokenCreate(BaseModel):
     user_id: int  # Changed to int for consistency

@@ -966,92 +966,116 @@ async def export_subscriptions(
         export_format: str = Query(..., description="Export format (only 'xlsx' is supported)"),
         db: Session = Depends(get_db)
 ):
+    print(f"[{datetime.now()}] Export endpoint hit.")
+    print(f"[{datetime.now()}] Received IDs: {ids}")
+    print(f"[{datetime.now()}] Received Fields: {fields}")
+    print(f"[{datetime.now()}] Export format: {export_format}")
+
     if export_format != 'xlsx':
+        print(f"[{datetime.now()}] Invalid format: {export_format}")
         raise HTTPException(status_code=400, detail="Only 'xlsx' export format is supported")
 
-    id_list = [int(id) for id in ids.split(',')]
-    field_list = fields.split(',')
+    try:
+        id_list = [int(id_str.strip()) for id_str in ids.split(',')]
+        field_list = [field.strip() for field in fields.split(',')]
+        print(f"[{datetime.now()}] Processed ID list: {id_list}")
+        print(f"[{datetime.now()}] Processed Field list: {field_list}")
 
-    subscriptions = get_subscription_by_id(db, id_list)
+        subscriptions = get_subscription_by_id(db, id_list)
+        if not subscriptions:
+            print(f"[{datetime.now()}] No subscriptions found for IDs: {id_list}")
+            # You might want to return an empty Excel or a 204 No Content here
+            # For now, let's proceed to see if it generates an empty Excel
+            # raise HTTPException(status_code=404, detail="No subscriptions found for the given IDs.")
+        print(f"[{datetime.now()}] Fetched {len(subscriptions)} subscriptions.")
 
-    data = []
-    heading_translation = {
-        'id': 'ID',
-        'owner_id': 'DNI',
-        'access_card': 'Tarjeta de Acceso',
-        'lisence_plate1': 'Matrícula 1',
-        'lisence_plate2': 'Matrícula 2',
-        'lisence_plate3': 'Matrícula 3',
-        'documents': 'Documentos',
-        'tique_x_park': 'TiqueXPark',
-        'remote_control_number': 'Número del mando',
-        'observations': 'Observaciones',
-        'parking_spot': 'Plaza de aparcamiento',
-        'registration_date': 'Fecha de Registro',
-        'effective_date': 'Fecha de Efecto',
-        'created_by': 'Creado Por',
-        'modified_by': 'Modificado Por',
-        'modification_time': 'Hora de Modificación',
-        'owner_email': 'Correo Electrónico del Propietario',
-        'owner_phone_number': 'Número de Teléfono del Propietario',
-        'subscription_type_name': 'Tipo de Suscripción',
-        'subscription_type_parking_code': 'Código',
-        'Large Family Expiration': 'Vencimiento familia numerosa'
-    }
-
-    for subscription in subscriptions:
-        # Fetch subscription type information
-        subscription_type = db.query(Subscription_types).filter(
-            Subscription_types.id == subscription.subscription_type_id).first()
-
-        # Get the owner's info using the owner_id from the subscription
-        owner = get_owner_by_dni(db, subscription.owner_id)
-        owner_email = owner.email if owner else None
-        owner_phone_number = owner.phone_number if owner else None
-
-        subscription_data = {
-            'id': subscription.id,
-            'owner_id': subscription.owner_id,
-            'access_card': subscription.access_card,
-            'lisence_plate1': subscription.lisence_plate1,
-            'lisence_plate2': subscription.lisence_plate2,
-            'lisence_plate3': subscription.lisence_plate3,
-            'documents': subscription.documents.split(',') if subscription.documents else [],
-            'tique_x_park': subscription.tique_x_park,
-            'remote_control_number': subscription.remote_control_number,
-            'observations': subscription.observations,
-            'parking_spot': subscription.parking_spot,
-            'registration_date': subscription.registration_date,
-            'effective_date': subscription.effective_date,
-            'created_by': subscription.created_by,
-            'modified_by': subscription.modified_by,
-            'modification_time': subscription.modification_time,
-            'owner_email': owner_email,
-            'owner_phone_number': owner_phone_number,
-            'subscription_type_name': subscription_type.name if subscription_type else None,
-            'subscription_type_parking_code': subscription_type.parking_code if subscription_type else None,
+        data = []
+        heading_translation = {
+            'id': 'ID',
+            'owner_id': 'DNI',
+            'access_card': 'Tarjeta de Acceso',
+            'lisence_plate1': 'Matrícula 1',
+            'lisence_plate2': 'Matrícula 2',
+            'lisence_plate3': 'Matrícula 3',
+            'documents': 'Documentos',
+            'tique_x_park': 'TiqueXPark',
+            'remote_control_number': 'Número del mando',
+            'observations': 'Observaciones',
+            'parking_spot': 'Plaza de aparcamiento',
+            'registration_date': 'Fecha de Registro',
+            'effective_date': 'Fecha de Efecto',
+            'created_by': 'Creado Por',
+            'modified_by': 'Modificado Por',
+            'modification_time': 'Hora de Modificación',
+            'owner_email': 'Correo Electrónico del Propietario',
+            'owner_phone_number': 'Número de Teléfono del Propietario',
+            'subscription_type_name': 'Tipo de Suscripción',
+            'subscription_type_parking_code': 'Código',
+            'large_family_expiration': 'Vencimiento familia numerosa' # Corrected key
         }
 
-        filtered_data = {k: v for k, v in subscription_data.items() if k in field_list}
-        data.append(filtered_data)
+        for subscription in subscriptions:
+            # Fetch subscription type information
+            subscription_type = db.query(Subscription_types).filter(
+                Subscription_types.id == subscription.subscription_type_id).first()
+            print(f"[{datetime.now()}] Processing subscription ID: {subscription.id}, Type ID: {subscription.subscription_type_id}")
 
-    df = pd.DataFrame(data)
+            # Get the owner's info using the owner_id from the subscription
+            owner = get_owner_by_dni(db, subscription.owner_id)
+            print(f"[{datetime.now()}] Fetched owner for DNI: {subscription.owner_id}")
+            owner_email = owner.email if owner else None
+            owner_phone_number = owner.phone_number if owner else None
 
-    # Rename columns to Spanish
-    df.rename(columns=heading_translation, inplace=True)
+            subscription_data = {
+                'id': subscription.id,
+                'owner_id': subscription.owner_id,
+                'access_card': subscription.access_card,
+                'lisence_plate1': subscription.lisence_plate1,
+                'lisence_plate2': subscription.lisence_plate2,
+                'lisence_plate3': subscription.lisence_plate3,
+                'documents': ','.join(subscription.documents.split(',')) if subscription.documents else None, # Join back for export
+                'tique_x_park': subscription.tique_x_park,
+                'remote_control_number': subscription.remote_control_number,
+                'observations': subscription.observations,
+                'parking_spot': subscription.parking_spot,
+                'registration_date': subscription.registration_date,
+                'effective_date': subscription.effective_date,
+                'large_family_expiration': subscription.large_family_expiration, # Make sure this key matches
+                'created_by': subscription.created_by,
+                'modified_by': subscription.modified_by,
+                'modification_time': subscription.modification_time,
+                'owner_email': owner_email,
+                'owner_phone_number': owner_phone_number,
+                'subscription_type_name': subscription_type.name if subscription_type else None,
+                'subscription_type_parking_code': subscription_type.parking_code if subscription_type else None,
+            }
 
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Abonos')
+            filtered_data = {k: v for k, v in subscription_data.items() if k in field_list}
+            data.append(filtered_data)
+        
+        print(f"[{datetime.now()}] Prepared {len(data)} rows for DataFrame.")
+        df = pd.DataFrame(data)
 
-    output.seek(0)
+        # Rename columns to Spanish
+        df.rename(columns=heading_translation, inplace=True)
+        print(f"[{datetime.now()}] DataFrame created and columns renamed.")
 
-    headers = {
-        'Content-Disposition': f'attachment; filename="Abonos_export.xlsx"'
-    }
-    return StreamingResponse(output, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                             headers=headers)
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Abonos')
+        print(f"[{datetime.now()}] Excel file written to BytesIO.")
 
+        output.seek(0)
+
+        headers = {
+            'Content-Disposition': f'attachment; filename="Abonos_export.xlsx"'
+        }
+        print(f"[{datetime.now()}] Returning StreamingResponse.")
+        return StreamingResponse(output, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                 headers=headers)
+    except Exception as e:
+        print(f"[{datetime.now()}] An unexpected error occurred in export_subscriptions: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error during export: {str(e)}")
 
 # FastAPI route to get subscriptions
 @router.get("/subscriptions/", response_model=List[SubscriptionResponse])

@@ -1,46 +1,42 @@
 from datetime import timedelta
-
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
+from typing import List
 
 from backend.app.models.models import User
+from backend.app.schemas.user import UserCreate, UserResponse, UserUpdate
+from backend.app.db.database import get_db
 from backend.app.queries.user import (
     create_user,
     get_user_by_email,
     get_user_by_id,
+    get_users,
     update_user,
     delete_user
 )
-from backend.app.schemas.user import UserCreate, UserResponse
-from backend.app.db.database import get_db
-from backend.app.utils.auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_password_hash
+from backend.app.utils.auth import (
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_password_hash,
+)
 
 router = APIRouter()
+# -----------------------------------------------------------
 
 
-@router.post("/users/",response_model=UserResponse, response_description="Create a new user")
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if the user already exists
-    db_user = get_user_by_email(db, email=user.email)
-    if db_user:
+@router.post("/users/", response_model=UserResponse)
+def create_user_endpoint(user: UserCreate, db: Session = Depends(get_db)):
+    existing = get_user_by_email(db, user.email)
+    if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Hash the user's password before saving it
-    encrypted_password = get_password_hash(user.password)
+    new_user = create_user(db, user)
 
-    # Create a new user object
-    new_user = User(email=user.email, password=encrypted_password, role=user.role)
+    access_token = create_access_token(
+        data={"sub": new_user.email},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
 
-    # Add the new user to the database
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    # Create the access token for the new user
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": new_user.email}, expires_delta=access_token_expires)
-
-    # Return the response with all required fields
     return {
         "id": new_user.id,
         "email": new_user.email,
@@ -49,20 +45,51 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/users/", response_model=List[UserResponse])
+def get_all_users(db: Session = Depends(get_db)):
+    users = get_users(db)
+    return users
 
-# @router.put("/users/{user_id}", response_description="Update a user")
-# def update_existing_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
-#     existing_user = get_user_by_id(db, user_id=user_id)
-#     if not existing_user:
-#         raise HTTPException(status_code=404, detail="User not found")
-#
-#     updated_user = update_user(db, user_id=user_id, user=user)
-#     return {"message": "User updated successfully", "user": updated_user}
-#
-#
-# @router.delete("/users/{user_id}", response_description="Delete a user")
-# def delete_existing_user(user_id: int, db: Session = Depends(get_db)):
-#     deleted_user = delete_user(db, user_id=user_id)
-#     if not deleted_user:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     return {"message": "User deleted successfully", "user": deleted_user}
+
+@router.get("/users/{user_id}", response_model=UserResponse)
+def get_user_endpoint(user_id: int, db: Session = Depends(get_db)):
+    user = get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+@router.put("/users/{user_id}", response_model=UserResponse)
+def update_user_endpoint(user_id: int, user_update: UserUpdate, db: Session = Depends(get_db)):
+
+    existing = get_user_by_id(db, user_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check for duplicate email
+    if user_update.email != existing.email:
+        email_owner = get_user_by_email(db, user_update.email)
+        if email_owner and email_owner.id != user_id:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+    updated_user = update_user(db, user_id, user_update)
+
+    return updated_user
+
+
+@router.delete("/users/{user_id}")
+def delete_user_endpoint(user_id: int, db: Session = Depends(get_db)):
+
+    existing = get_user_by_id(db, user_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    deleted_user = delete_user(db, user_id)
+
+    return {
+        "message": "User deleted successfully",
+        "deleted_user": {
+            "id": deleted_user.id,
+            "email": deleted_user.email
+        }
+    }

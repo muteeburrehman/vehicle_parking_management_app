@@ -11,3 +11,4 @@ weasyprint
 jinja2
 pandas
 python-dotenv
+openpyxl

@@ -293,8 +293,9 @@ def get_owners_endpoint(db: Session = Depends(get_db)):
     owners = get_all_owners(db)
     return owners
 
+
 @router.delete("/owner/{dni}/", response_model=dict)
-async def delete_owner_endpoint(dni: str, db: Session = Depends(get_db)):
+async def delete_owner_endpoint(dni: str, deleted_by: str = "system", db: Session = Depends(get_db)):
     # Fetch the owner by DNI
     owner = db.query(Owners).filter(Owners.dni == dni).first()
 
@@ -302,6 +303,25 @@ async def delete_owner_endpoint(dni: str, db: Session = Depends(get_db)):
     if not owner:
         raise HTTPException(status_code=404, detail="Owner not found")
 
+    # Create a history entry before deletion to track who deleted it and when
+    deletion_history_entry = Owners_history(
+        dni=owner.dni,
+        first_name=owner.first_name,
+        last_name=owner.last_name,
+        email=owner.email,
+        documents=owner.documents,
+        observations=f"DELETED: {owner.observations or ''}" if owner.observations else "DELETED",
+        bank_account_number=owner.bank_account_number,
+        sage_client_number=owner.sage_client_number,
+        phone_number=owner.phone_number,
+        registration_date=owner.registration_date,
+        reduced_mobility_expiration=owner.reduced_mobility_expiration,
+        created_by=owner.created_by,
+        modified_by=deleted_by,  # Track who deleted it
+        modification_time=datetime.now()  # Track when it was deleted
+    )
+    db.add(deletion_history_entry)
+    
     # Remove associated documents
     if owner.documents:
         for doc in owner.documents.split(','):
@@ -311,13 +331,13 @@ async def delete_owner_endpoint(dni: str, db: Session = Depends(get_db)):
                 print(f"Removed file: {file_path}")
 
     # Delete associated vehicles
-    vehicles = db.query(Vehicles).filter(Vehicles.owner_id == owner.dni).all()  # Assuming owner has a foreign key in Vehicles
+    vehicles = db.query(Vehicles).filter(Vehicles.owner_id == owner.dni).all()
     for vehicle in vehicles:
         db.delete(vehicle)
         print(f"Deleted vehicle: {vehicle}")
 
     # Delete associated subscriptions
-    subscriptions = db.query(Subscriptions).filter(Subscriptions.owner_id == owner.dni).all()  # Assuming owner has a foreign key in Subscriptions
+    subscriptions = db.query(Subscriptions).filter(Subscriptions.owner_id == owner.dni).all()
     for subscription in subscriptions:
         db.delete(subscription)
         print(f"Deleted subscription: {subscription}")
@@ -326,6 +346,7 @@ async def delete_owner_endpoint(dni: str, db: Session = Depends(get_db)):
     db.delete(owner)
     db.commit()
 
+    print(f"Created deletion history entry for owner: {dni}")
     return {"detail": "Owner and associated vehicles and subscriptions deleted successfully"}
 
 
