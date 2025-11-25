@@ -22,7 +22,6 @@ def update_user(db: Session, user_id: int, user: UserUpdate):
     if not existing_user:
         return None
 
-    # Update fields
     existing_user.email = user.email
     existing_user.role = user.role
 

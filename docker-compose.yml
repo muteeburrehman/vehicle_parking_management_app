@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   backend:
     build:
@@ -8,12 +6,12 @@ services:
     expose:
       - "8000"
     volumes:
-      - ./backend/app/db:/app/db
-      - ./backend/app/subscription_files:/app/subscription_files
-      - ./backend/app/vehicle_uploads:/app/vehicle_uploads
-      - ./backend/app/cancelled_subscription_files:/app/cancelled_subscription_files
-      - ./backend/app/uploads:/app/uploads
-      - ./backend/app/templates:/app/templates
+      - ./backend/app/db:/backend/app/db      # persistent database
+      - ./backend/app/subscription_files:/backend/app/subscription_files
+      - ./backend/app/vehicle_uploads:/backend/app/vehicle_uploads
+      - ./backend/app/cancelled_subscription_files:/backend/app/cancelled_subscription_files
+      - ./backend/app/uploads:/backend/app/uploads
+      - ./backend/app/templates:/backend/app/templates
     environment:
       - PYTHONUNBUFFERED=1
     restart: always
@@ -40,4 +38,17 @@ services:
     depends_on:
       - frontend
       - backend
+    restart: always
+
+  db_backup:
+    image: alpine:latest
+    container_name: db_backup
+    volumes:
+      - ./backend/app/db:/db
+      - ./backups:/backups
+    command: >
+      sh -c "while true; do 
+               cp /db/car_parking_app.db /backups/car_parking_app_$(date +%F_%H%M%S).db;
+               sleep 86400;
+             done"
     restart: always

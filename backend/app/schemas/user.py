@@ -32,12 +32,14 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: EmailStr
     role: str
+    password: Optional[str] = None
 
     class Config:
         json_schema_extra = {
             "example": {
                 "email": "user@example.com",
-                "role": "admin"
+                "role": "admin",
+                "password": "newpassword123"
             }
         }
 
