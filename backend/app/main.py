@@ -4,15 +4,15 @@ from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 
-from backend.app.db.database import engine
-from backend.app.models.models import Base
-from backend.app.queries.user import get_user_by_email, create_user
-from backend.app.routes import user_routes, auth_routes, owner_routes, vehicle_routes, subscription_routes, \
+from app.db.database import engine
+from app.models.models import Base
+from app.queries.user import get_user_by_email, create_user
+from app.routes import user_routes, auth_routes, owner_routes, vehicle_routes, subscription_routes, \
     subscription_cancellation_route, subscription_history_route, vehicle_history_route, owner_history_route, \
     parking_lot_routes, parking_stats
-from backend.app.routes import approve_cancellation
-from backend.app.routes.owner_routes import UPLOAD_DIR
-from backend.app.schemas.user import UserCreate
+from app.routes import approve_cancellation
+from app.routes.owner_routes import UPLOAD_DIR
+from app.schemas.user import UserCreate
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -48,8 +48,9 @@ app.include_router(parking_lot_routes.router)
 app.include_router(parking_stats.router)
 
 app.include_router(approve_cancellation.router)
+
 @app.get("/")
-def read_root(): 
+def read_root():
     return {"message": "Bienvenidos a la API!"}
 
 def create_default_users(db: Session):
@@ -74,11 +75,11 @@ def create_default_users(db: Session):
             role="superuser"
         )
         create_user(db=db, user=superuser_user)  # Use the CRUD function to create the user
+
 # Main entry point
 if __name__ == '__main__':
     # Create all the database tables
     Base.metadata.create_all(bind=engine)
-
 
     # Create default users
     with Session(engine) as db:
