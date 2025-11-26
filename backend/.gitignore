@@ -1,6 +1,52 @@
+cat > .gitignore << 'EOF'
 ./test.db
 test.db
 venv
 ./venv
 /home/muteeb/car_parking_system/backend/app/vehicle_uploads
 /home/muteeb/car_parking_system/backend/app/uploads
+
+# Database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Backup directories and files
+backups/
+*.backup
+
+# App-specific database directories
+backend/app/db/*.db
+backend/app/db/*.db-journal
+
+# Upload directories
+backend/app/uploads/
+backend/app/vehicle_uploads/
+backend/app/subscription_files/
+backend/app/cancelled_subscription_files/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
