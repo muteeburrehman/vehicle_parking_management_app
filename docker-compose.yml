@@ -6,7 +6,7 @@ services:
     expose:
       - "8000"
     volumes:
-      - ./backend/app/db:/backend/app/db      # DB persists
+      - ./backend/app/db:/backend/app/db
       - ./backend/app/subscription_files:/backend/app/subscription_files
       - ./backend/app/vehicle_uploads:/backend/app/vehicle_uploads
       - ./backend/app/cancelled_subscription_files:/backend/app/cancelled_subscription_files
@@ -14,7 +14,7 @@ services:
       - ./backend/app/templates:/backend/app/templates
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=sqlite:////backend/app/db/car_parking_app.db
+      - DATABASE_URL=sqlite:///app/db/car_parking_app.db  # Changed: 3 slashes, relative path
     restart: always
 
   frontend:
