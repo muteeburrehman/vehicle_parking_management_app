@@ -4,8 +4,8 @@ from sqlalchemy import text
 
 from sqlalchemy.orm import Session
 
-from backend.app.models.models import Vehicles
-from backend.app.schemas.vehicle import VehicleCreate, VehicleResponse
+from app.models.models import Vehicles
+from app.schemas.vehicle import VehicleCreate, VehicleResponse
 
 
 def add_vehicle(db: Session, vehicle: VehicleCreate, document_filenames: List[str]):

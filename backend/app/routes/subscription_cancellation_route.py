@@ -12,13 +12,13 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 from weasyprint import CSS, HTML
 
-from backend.app.db.database import get_db
-from backend.app.models.models import Subscriptions, Subscription_history, Cancellations, Owners, Vehicles, \
+from app.db.database import get_db
+from app.models.models import Subscriptions, Subscription_history, Cancellations, Owners, Vehicles, \
     Subscription_types
-from backend.app.queries.owner import get_owner_by_dni
-from backend.app.queries.vehicle import get_vehicle
-from backend.app.routes.subscription_routes import env
-from backend.app.schemas.subscription_cancellation import CancellationResponse, CancellationCreate
+from app.queries.owner import get_owner_by_dni
+from app.queries.vehicle import get_vehicle
+from app.routes.subscription_routes import env
+from app.schemas.subscription_cancellation import CancellationResponse, CancellationCreate
 
 router = APIRouter()
 

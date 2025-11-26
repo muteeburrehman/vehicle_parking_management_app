@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from backend.app.models.models import Subscription_types, Subscriptions
-from backend.app.schemas.subscription import Subscription_Types_Create, SubscriptionCreate
+from app.models.models import Subscription_types, Subscriptions
+from app.schemas.subscription import Subscription_Types_Create, SubscriptionCreate
 
 
 # CRUD for Subscription Types

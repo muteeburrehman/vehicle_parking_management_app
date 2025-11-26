@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from pydantic import BaseModel, Field, EmailStr
 from sqlalchemy import Column, DateTime
 
-from backend.app.db.database import Base
+from app.db.database import Base
 
 
 # Base schema for User

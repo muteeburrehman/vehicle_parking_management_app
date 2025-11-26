@@ -3,9 +3,9 @@ from typing import List
 from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 
-from backend.app.db.database import get_db
-from backend.app.models.models import Subscription_history
-from backend.app.schemas.subscription_history import SubscriptionHistoryResponse
+from app.db.database import get_db
+from app.models.models import Subscription_history
+from app.schemas.subscription_history import SubscriptionHistoryResponse
 
 router = APIRouter()
 

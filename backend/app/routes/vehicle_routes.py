@@ -8,10 +8,10 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from backend.app.db.database import get_db
-from backend.app.models.models import Owners, Vehicles, Subscriptions, Vehicles_history
-from backend.app.queries.vehicle import add_vehicle, get_all_vehicles, get_vehicle
-from backend.app.schemas.vehicle import VehicleResponse, VehicleCreate
+from app.db.database import get_db
+from app.models.models import Owners, Vehicles, Subscriptions, Vehicles_history
+from app.queries.vehicle import add_vehicle, get_all_vehicles, get_vehicle
+from app.schemas.vehicle import VehicleResponse, VehicleCreate
 
 router = APIRouter()
 

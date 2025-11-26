@@ -9,10 +9,10 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.params import Depends
 from starlette.staticfiles import StaticFiles
 
-from backend.app.db.database import get_db
-from backend.app.models.models import Owners, Subscriptions, Vehicles, Owners_history
-from backend.app.schemas.user import OwnersCreate, OwnersResponse
-from backend.app.queries.owner import create_owner, get_all_owners, get_owner_by_dni
+from app.db.database import get_db
+from app.models.models import Owners, Subscriptions, Vehicles, Owners_history
+from app.schemas.user import OwnersCreate, OwnersResponse
+from app.queries.owner import create_owner, get_all_owners, get_owner_by_dni
 
 router = APIRouter()
 

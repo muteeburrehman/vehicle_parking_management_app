@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from backend.app.models.models import Subscription_history
-from backend.app.schemas.subscription_history import SubscriptionHistoryCreate
+from app.models.models import Subscription_history
+from app.schemas.subscription_history import SubscriptionHistoryCreate
 
 
 # Create SubscriptionHistory

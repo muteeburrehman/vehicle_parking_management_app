@@ -21,16 +21,16 @@ from io import BytesIO
 import pandas as pd
 from fastapi.responses import StreamingResponse
 
-from backend.app.db.database import get_db
-from backend.app.models.models import Subscription_types, Subscriptions, Subscription_history, Owners, Vehicles, \
+from app.db.database import get_db
+from app.models.models import Subscription_types, Subscriptions, Subscription_history, Owners, Vehicles, \
     ParkingLot
-from backend.app.queries.owner import get_owner_by_dni
-from backend.app.queries.vehicle import get_vehicle
-from backend.app.routes.owner_routes import UPLOAD_DIR
+from app.queries.owner import get_owner_by_dni
+from app.queries.vehicle import get_vehicle
+from app.routes.owner_routes import UPLOAD_DIR
 
-from backend.app.schemas.subscription import Subscription_Types_Response, Subscription_Types_Create, SubscriptionCreate, \
+from app.schemas.subscription import Subscription_Types_Response, Subscription_Types_Create, SubscriptionCreate, \
     SubscriptionResponse
-from backend.app.queries.subscription import create_subscription_type_query, get_subscription_types_query, \
+from app.queries.subscription import create_subscription_type_query, get_subscription_types_query, \
     get_subscription_type_by_id_query, create_subscription_query, get_subscription_by_id_query, get_subscriptions_query, \
     get_subscription_by_id
 

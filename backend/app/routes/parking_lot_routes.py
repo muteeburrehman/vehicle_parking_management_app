@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Dict
-from backend.app.db.database import get_db
+from app.db.database import get_db
 
-from backend.app.models.models import ParkingLot, Subscription_types, Subscriptions, Cancellations
-from backend.app.schemas.subscription import Subscription_Types_Response
-from backend.app.queries.subscription import get_subscriptions_query
+from app.models.models import ParkingLot, Subscription_types, Subscriptions, Cancellations
+from app.schemas.subscription import Subscription_Types_Response
+from app.queries.subscription import get_subscriptions_query
 
-from backend.app.schemas.parking_lot_config import ParkingLotCreate, ParkingLotResponse, \
+from app.schemas.parking_lot_config import ParkingLotCreate, ParkingLotResponse, \
     ParkingLotStatsResponse, ParkingLotStats
 
 router = APIRouter()

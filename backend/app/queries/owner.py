@@ -7,8 +7,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 
-from backend.app.models.models import Owners
-from backend.app.schemas.user import OwnersCreate, OwnersResponse
+from app.models.models import Owners
+from app.schemas.user import OwnersCreate, OwnersResponse
 
 
 def create_owner(db: Session, owner: OwnersCreate, document_filenames: List[str]):

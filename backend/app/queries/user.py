@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from backend.app.models.models import User
-from backend.app.schemas.user import UserCreate, UserUpdate
-from backend.app.utils.auth import pwd_context
+from app.models.models import User
+from app.schemas.user import UserCreate, UserUpdate
+from app.utils.auth import pwd_context
 
 
 def create_user(db: Session, user: UserCreate):

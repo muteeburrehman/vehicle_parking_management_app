@@ -3,8 +3,8 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.db.database import get_db
-from backend.app.models.models import Cancellations, ApprovedCancellations, Subscription_history
+from app.db.database import get_db
+from app.models.models import Cancellations, ApprovedCancellations, Subscription_history
 
 router = APIRouter()
 

@@ -3,10 +3,10 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from backend.app.models.models import User
-from backend.app.schemas.user import UserCreate, UserResponse, UserUpdate
-from backend.app.db.database import get_db
-from backend.app.queries.user import (
+from app.models.models import User
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.db.database import get_db
+from app.queries.user import (
     create_user,
     get_user_by_email,
     get_user_by_id,
@@ -14,7 +14,7 @@ from backend.app.queries.user import (
     update_user,
     delete_user
 )
-from backend.app.utils.auth import (
+from app.utils.auth import (
     create_access_token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     get_password_hash,
