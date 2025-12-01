@@ -228,3 +228,13 @@ class ParkingLot(Base):
     total_motorcycle_spaces = Column(Integer, nullable=False)
     min_car_spaces = Column(Integer, nullable=False)
     min_motorcycle_spaces = Column(Integer, nullable=False)
+
+
+class WorkOrderCounter(Base):
+    """Tracks sequential work order numbers"""
+    __tablename__ = 'work_order_counters'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    counter_type = Column(String(50), unique=True, nullable=False)
+    current_number = Column(Integer, default=0, nullable=False)
+    year = Column(Integer, nullable=False)

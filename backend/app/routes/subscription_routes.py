@@ -33,6 +33,7 @@ from app.schemas.subscription import Subscription_Types_Response, Subscription_T
 from app.queries.subscription import create_subscription_type_query, get_subscription_types_query, \
     get_subscription_type_by_id_query, create_subscription_query, get_subscription_by_id_query, get_subscriptions_query, \
     get_subscription_by_id
+from app.utils.work_order_helper import get_next_work_order_number, generate_work_order_filename
 
 
 
@@ -719,6 +720,11 @@ async def edit_subscription_endpoint(
 
 
 async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_license_plates: dict):
+    """Generate work order PDF with unique sequential numbering"""
+
+    # Get next work order number FIRST (before any other operations)
+    work_order_num, work_order_formatted = get_next_work_order_number(db, counter_type='subscription')
+
     # Fetch owner information
     owner = get_owner_by_dni(db=db, owner_dni=subscription.owner_id)
     if not owner:
@@ -755,10 +761,10 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
         value = getattr(obj, attr, None)
         return value if value is not None else default
 
-    # Prepare data for the template
+    # Prepare data for the template - USE THE SEQUENTIAL WORK ORDER NUMBER
     template_data = {
-        'order_no': f"{safe_get(subscription, 'id')}/24",
-        'date': datetime.now().strftime('%m/%d/%Y'),
+        'order_no': work_order_formatted,  # This will be like "1/25", "2/25", etc.
+        'date': datetime.now().strftime('%d/%m/%Y'),
         'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
         'effective_date': safe_get(subscription, 'effective_date', datetime.now()).strftime('%d/%m/%Y'),
         'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
@@ -777,7 +783,6 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
         'subscription_type_name': safe_get(subscription_type, 'name', ''),
     }
 
-    # Rest of the function remains the same...
     # Render HTML template
     template = env.get_template('work_order_template.html')
     html_content = template.render(template_data)
@@ -807,16 +812,22 @@ async def generate_work_order_pdf(subscription: Subscriptions, db: Session, old_
     ''')
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
-    # Save the PDF
-    filename = f"ODT_{subscription.id}.pdf"
+    # Generate unique filename using the work order number
+    filename = generate_work_order_filename(work_order_num, order_type='subscription')
     file_path = UPLOAD_DIR / filename
+
     with open(file_path, "wb") as f:
         f.write(pdf)
 
-    return filename  # Return only the filename
+    return filename
 
 
 async def generate_work_order_modification_pdf(subscription: Subscriptions, db: Session, old_license_plates: dict):
+    """Generate modification work order PDF with unique sequential numbering"""
+
+    # Get next work order number FIRST
+    work_order_num, work_order_formatted = get_next_work_order_number(db, counter_type='subscription')
+
     # Fetch owner information
     owner = get_owner_by_dni(db=db, owner_dni=subscription.owner_id)
     if not owner:
@@ -853,11 +864,10 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
             if new_value:
                 new_license_plate.append(new_value)
 
-    # Prepare data for the template
-    # Prepare data for the template
+    # Prepare data for the template - USE THE SEQUENTIAL WORK ORDER NUMBER
     template_data = {
-        'order_no': f"{safe_get(subscription, 'id')}/24",
-        'date': datetime.now().strftime('%m/%d/%Y'),
+        'order_no': work_order_formatted,  # Sequential number like "1/25", "2/25"
+        'date': datetime.now().strftime('%d/%m/%Y'),
         'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
         'effective_date': safe_get(subscription, 'effective_date', datetime.now()).strftime('%d/%m/%Y'),
         'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
@@ -871,7 +881,6 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
         'license_plate2': safe_get(subscription, 'lisence_plate2', ''),
         'license_plate3': safe_get(subscription, 'lisence_plate3', ''),
         'observations': safe_get(subscription, 'observations', ''),
-        # Directly access the old license plates from the dictionary
         'old_license_plate1': old_license_plates.get('lisence_plate1', '') or '',
         'old_license_plate2': old_license_plates.get('lisence_plate2', '') or '',
         'old_license_plate3': old_license_plates.get('lisence_plate3', '') or '',
@@ -881,6 +890,7 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
         'has_license_plate_changes': bool(new_license_plate),
         'subscription_type_name': safe_get(subscription_type, 'name', ''),
     }
+
     # Render HTML template
     template = env.get_template('modification_work_order_template.html')
     html_content = template.render(template_data)
@@ -910,9 +920,8 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
     ''')
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
-    # Generate a unique filename using timestamp
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"ODT_mod_{subscription.id}_{timestamp}.pdf"
+    # Generate unique filename - NO LONGER uses timestamp, uses work order number
+    filename = generate_work_order_filename(work_order_num, order_type='subscription')
     file_path = UPLOAD_DIR / filename
 
     # Ensure the directory exists
@@ -922,8 +931,7 @@ async def generate_work_order_modification_pdf(subscription: Subscriptions, db: 
     with open(file_path, "wb") as f:
         f.write(pdf)
 
-    return filename  # Return only the unique filename
-
+    return filename
 
 @router.get("/subscription/{subscription_id}", response_model=SubscriptionResponse)
 def get_subscription_endpoint(

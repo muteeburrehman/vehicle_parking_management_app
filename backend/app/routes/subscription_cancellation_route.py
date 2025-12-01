@@ -19,6 +19,7 @@ from app.queries.owner import get_owner_by_dni
 from app.queries.vehicle import get_vehicle
 from app.routes.subscription_routes import env
 from app.schemas.subscription_cancellation import CancellationResponse, CancellationCreate
+from app.utils.work_order_helper import get_next_work_order_number, generate_work_order_filename
 
 router = APIRouter()
 
@@ -26,7 +27,13 @@ base_path = os.getcwd()
 UPLOAD_DIR = PosixPath(base_path) / "cancelled_subscription_files"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+
 async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellations, db: Session):
+    """Generate cancellation work order PDF with unique sequential numbering"""
+
+    # Get next work order number FIRST - using 'cancellation' counter type
+    work_order_num, work_order_formatted = get_next_work_order_number(db, counter_type='cancellation')
+
     # Fetch owner information
     owner = get_owner_by_dni(db=db, owner_dni=cancelled_subscription.owner_id)
     if not owner:
@@ -48,13 +55,14 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
         value = getattr(obj, attr, None)
         return value if value is not None else default
 
-    # Prepare data for the template
+    # Prepare data for the template - USE THE SEQUENTIAL CANCELLATION WORK ORDER NUMBER
     template_data = {
-        'order_no': f"{safe_get(cancelled_subscription, 'id')}/24",
+        'order_no': work_order_formatted,  # This will be like "1/25", "2/25" for cancellations
         'date': safe_get(cancelled_subscription, 'modification_time', datetime.now()).strftime('%d/%m/%Y'),
         'vehicle_type': safe_get(vehicle, 'vehicle_type', '').upper(),
         'effective_date': safe_get(cancelled_subscription, 'effective_date', datetime.now()).strftime('%d/%m/%Y'),
-        'effective_cancellation_date': safe_get(cancelled_subscription, 'effective_cancellation_date', datetime.now()).strftime('%d/%m/%Y'),
+        'effective_cancellation_date': safe_get(cancelled_subscription, 'effective_cancellation_date',
+                                                datetime.now()).strftime('%d/%m/%Y'),
         'name_surname': f"{safe_get(owner, 'first_name')} {safe_get(owner, 'last_name')}",
         'phone': safe_get(owner, 'phone_number', ''),
         'email': safe_get(owner, 'email', ''),
@@ -70,7 +78,8 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     }
 
     # Print statement for debugging
-    print(f"Cancelled Subscription ID: {safe_get(cancelled_subscription, 'id', 'N/A')}")
+    print(
+        f"Generating cancellation work order #{work_order_formatted} for Subscription ID: {safe_get(cancelled_subscription, 'id', 'N/A')}")
 
     # Render HTML template
     template = env.get_template('cancellation_work_order_template.html')
@@ -101,13 +110,14 @@ async def generate_cancellation_work_order_pdf(cancelled_subscription: Cancellat
     ''')
     pdf = HTML(string=html_content).write_pdf(stylesheets=[css])
 
-    # Save the PDF
-    filename = f"cancellation_ODT_{safe_get(cancelled_subscription, 'id', 'unknown')}.pdf"
+    # Generate unique filename using "ODTBaja" prefix and work order number
+    filename = generate_work_order_filename(work_order_num, order_type='cancellation')
     file_path = UPLOAD_DIR / filename
+
     with open(file_path, "wb") as f:
         f.write(pdf)
 
-    return filename  # Return only the filename
+    return filename
 
 @router.post("/subscriptions/cancel", response_model=CancellationResponse)
 async def cancel_subscription(request: CancellationCreate, db: Session = Depends(get_db)):
