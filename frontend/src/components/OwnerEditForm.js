@@ -85,17 +85,18 @@ const OwnerEditForm = () => {
     }, [dni, getOwnerByDNI]);
 
     const fetchVehicles = async (ownerId) => {
-        setLoadingVehicles(true);
-        try {
-            const vehiclesData = await fetchVehiclesByOwnerId(ownerId);
-            setVehicles(vehiclesData);
-        } catch (error) {
-            console.error('Error al cargar los vehículos:', error);
-            toast.error("No se pudo obtener los datos de los vehículos!");
-        } finally {
-            setLoadingVehicles(false);
-        }
-    };
+    setLoadingVehicles(true);
+    try {
+        const vehiclesData = await fetchVehiclesByOwnerId(ownerId);
+        console.log("Vehicles for this owner:", vehiclesData); // ADD THIS LINE
+        setVehicles(vehiclesData);
+    } catch (error) {
+        console.error('Error al cargar los vehículos:', error);
+        toast.error("No se pudo obtener los datos de los vehículos!");
+    } finally {
+        setLoadingVehicles(false);
+    }
+};
 
     useEffect(() => {
         if (!loadingOwner && selectedOwner) {
