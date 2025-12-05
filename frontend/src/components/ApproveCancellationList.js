@@ -30,15 +30,31 @@ const ApproveCancellationList = () => {
                 setApprovedCancellations(cancellations);
                 setSubscriptionTypes(types);
 
-                // Fetch owner data for each cancellation
+                // Fetch owner data for each cancellation with error handling
                 const ownerPromises = cancellations.map(cancellation =>
                     fetchOwnerByDNI(cancellation.owner_id)
+                        .catch(err => {
+                            console.warn(`Failed to fetch owner ${cancellation.owner_id}:`, err.message);
+                            // Return a placeholder object instead of null
+                            return {
+                                dni: cancellation.owner_id,
+                                first_name: 'N/A',
+                                last_name: 'N/A',
+                                email: 'N/A',
+                                phone_number: 'N/A'
+                            };
+                        })
                 );
+
                 const ownerData = await Promise.all(ownerPromises);
+
                 const ownersMap = ownerData.reduce((acc, owner, index) => {
-                    acc[cancellations[index].owner_id] = owner;
+                    if (owner) {
+                        acc[cancellations[index].owner_id] = owner;
+                    }
                     return acc;
                 }, {});
+
                 setOwners(ownersMap);
                 setError('');
             } catch (err) {
@@ -68,8 +84,8 @@ const ApproveCancellationList = () => {
     };
 
     const handleRowClick = (id) => {
-    navigate(`/approved-cancellation-detail/${id}`);
-};
+        navigate(`/approved-cancellation-detail/${id}`);
+    };
 
     const handleSearchChange = (event) => {
         setSearchQuery(event.target.value);
@@ -135,7 +151,12 @@ const ApproveCancellationList = () => {
                     <tbody>
                         {filteredCancellations.length > 0 ? (
                             filteredCancellations.map((approved) => {
-                                const owner = owners[approved.owner_id] || {};
+                                const owner = owners[approved.owner_id] || {
+                                    first_name: 'N/A',
+                                    last_name: 'N/A',
+                                    email: 'N/A',
+                                    phone_number: 'N/A'
+                                };
                                 return (
                                     <tr
                                         key={approved.id}

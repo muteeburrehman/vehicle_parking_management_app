@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 /**
@@ -27,7 +26,7 @@ export const approveCancellation = async (cancellationId, data) => {
 
 /**
  * Get all approved cancellations.
- * @returns {Promise<Array>} - A list of all approved cancellations.
+ * @returns {Promise<object>} - Response containing approved_cancellations array.
  */
 export const getApprovedCancellations = async () => {
     try {

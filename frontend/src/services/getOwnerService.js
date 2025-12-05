@@ -16,15 +16,32 @@ export const fetchAllOwners = async () => {
 // Function to fetch owner by DNI
 export const fetchOwnerByDNI = async (owner_dni) => {
     try {
-        // Trim the DNI and remove the params object
+        // Trim the DNI
         const trimmedDni = owner_dni.trim();
-        const response = await axios.get(`${API_URL}/owner/${trimmedDni}`);
 
-        console.log(response.data)
-        return response.data
+        // Use query parameter instead of path parameter
+        const response = await axios.get(`${API_URL}/api/owner/${trimmedDni}`, {
+            params: {
+                owner_dni: trimmedDni
+            }
+        });
+
+        console.log(response.data);
+        return response.data;
     } catch (error) {
-        console.error('Error fetching owner data:', error.response.data);
-        throw new Error('Error fetching owner data: ' + error.response.data.detail)
+        // If direct fetch fails, try fetching all owners and filtering
+        console.warn(`Direct fetch failed for DNI ${owner_dni}, trying alternative method...`);
+        try {
+            const allOwners = await fetchAllOwners();
+            const owner = allOwners.find(o => o.dni === trimmedDni);
+            if (owner) {
+                return owner;
+            }
+            throw new Error(`Owner with DNI ${trimmedDni} not found`);
+        } catch (fallbackError) {
+            console.error('Error fetching owner data:', error.response?.data || error.message);
+            throw new Error('Error fetching owner data: ' + (error.response?.data?.detail || error.message));
+        }
     }
 };
 
