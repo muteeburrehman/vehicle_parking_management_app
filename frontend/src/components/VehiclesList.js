@@ -35,9 +35,8 @@ const VehicleList = () => {
     }, [vehicles, fetchOwnerInfo]); // Add fetchOwnerInfo to the dependency array
 
     const handleRowClick = (licensePlate) => {
-        navigate(`/vehicle/edit/${licensePlate}`);
-    };
-
+    navigate(`/vehicle/edit/${licensePlate.trim()}`);
+};
     const formatDate = (dateString) => {
         if (!dateString) return '-';
         const date = new Date(dateString);

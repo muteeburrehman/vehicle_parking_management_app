@@ -88,10 +88,8 @@ const OwnerEditForm = () => {
     setLoadingVehicles(true);
     try {
         const vehiclesData = await fetchVehiclesByOwnerId(ownerId);
-        console.log("Vehicles for this owner:", vehiclesData); // ADD THIS LINE
         setVehicles(vehiclesData);
     } catch (error) {
-        console.error('Error al cargar los vehículos:', error);
         toast.error("No se pudo obtener los datos de los vehículos!");
     } finally {
         setLoadingVehicles(false);
@@ -374,8 +372,8 @@ const OwnerEditForm = () => {
     };
 
     const handleRowClick = (licensePlate) => {
-        navigate(`/vehicle/edit/${licensePlate}`);
-    };
+    navigate(`/vehicle/edit/${licensePlate.trim()}`);
+};
 
     const filteredVehicles = useMemo(() => {
         return vehicles.filter(vehicle =>
