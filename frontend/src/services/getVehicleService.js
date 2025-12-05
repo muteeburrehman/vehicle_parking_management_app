@@ -14,16 +14,13 @@ export const fetchAllVehicles = async () => {
 
 export const fetchVehicleByLisencePlate = async (lisence_plate) => {
     try{
-        const response = await axios.get(`${API_URL}/vehicle/${lisence_plate}`, {
-            params: {lisence_plate: lisence_plate} // Ensure that lisence_plate in query parameter
-        });
+        const response = await axios.get(`${API_URL}/vehicle/${lisence_plate}`);
         console.log(response.data)
         return response.data
     } catch (error) {
         console.error('Error fetching vehicle data: ', error.response.data);
         throw new Error('Error fetching vehicle data: ' + error.response.data.detail)
     }
-
 };
 
 // Function to fetch vehicles by owner ID
