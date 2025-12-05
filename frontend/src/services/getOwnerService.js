@@ -15,10 +15,10 @@ export const fetchAllOwners = async () => {
 
 // Function to fetch owner by DNI
 export const fetchOwnerByDNI = async (owner_dni) => {
-    try {
-        // Trim the DNI
-        const trimmedDni = owner_dni.trim();
+    // Trim the DNI once at the beginning
+    const trimmedDni = owner_dni.trim();
 
+    try {
         // Use query parameter instead of path parameter
         const response = await axios.get(`${API_URL}/api/owner/${trimmedDni}`, {
             params: {
@@ -44,7 +44,6 @@ export const fetchOwnerByDNI = async (owner_dni) => {
         }
     }
 };
-
 
 export const fetchReducedMobilityOwners = async () => {
     try {
