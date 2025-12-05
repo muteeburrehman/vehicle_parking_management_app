@@ -156,7 +156,7 @@ const ApprovedCancellationDetail = () => {
         <Container className="mt-5">
             <Link to="/approved-cancellation-list">
                 <Button variant="secondary" className="mb-3">
-                    &larr; Volver a lista de bajas aprovadas
+                    &larr; Volver a la lista de bajas aprobadas
                 </Button>
             </Link>
 
@@ -164,7 +164,7 @@ const ApprovedCancellationDetail = () => {
 
             <Card>
                 <Card.Header className="bg-success text-white">
-                    <h4 className="mb-0">Baja aprovadas</h4>
+                    <h4 className="mb-0">Baja Aprobada</h4>
                 </Card.Header>
                 <Card.Body>
                     <Form>
@@ -213,7 +213,7 @@ const ApprovedCancellationDetail = () => {
                                     <Form.Control type="text" value={cancellation.parking_spot || 'N/A'} disabled />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Fecha de aprovación de la baja</Form.Label>
+                                    <Form.Label>Fecha de aprobación de la baja</Form.Label>
                                     <Form.Control type="text" value={formatDate(cancellation.modification_time)} disabled />
                                 </Form.Group>
                             </Col>

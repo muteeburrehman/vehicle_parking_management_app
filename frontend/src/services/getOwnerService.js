@@ -14,16 +14,17 @@ export const fetchAllOwners = async () => {
 };
 
 // Function to fetch owner by DNI
-export const fetchOwnerByDNI = async (dni) => {
+export const fetchOwnerByDNI = async (owner_dni) => {
     try {
-        const response = await axios.get(`${API_URL}/owner/${dni}`, {
-            params: { owner_dni: dni }
-        });
-        console.log(response.data);
-        return response.data;
+        // Trim the DNI and remove the params object
+        const trimmedDni = owner_dni.trim();
+        const response = await axios.get(`${API_URL}/owner/${trimmedDni}`);
+
+        console.log(response.data)
+        return response.data
     } catch (error) {
         console.error('Error fetching owner data:', error.response.data);
-        throw new Error('Error fetching owner data: ' + error.response.data.detail);
+        throw new Error('Error fetching owner data: ' + error.response.data.detail)
     }
 };
 

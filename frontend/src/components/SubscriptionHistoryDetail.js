@@ -148,7 +148,7 @@ const SubscriptionHistoryDetail = () => {
     return (
         <Container className="mt-4">
             <h2 className="mb-4 text-center">Volver al Historial de Abonos</h2>
-            <Button variant="secondary" onClick={() => navigate(-1)} className="mb-3">Back</Button>
+            <Button variant="secondary" onClick={() => navigate(-1)} className="mb-3">atrás</Button>
             <Card className="shadow-sm">
                 <Card.Body>
                     <Card.Title className="text-center mb-4">DVolver al Historial de Abonos con ID: <strong>{history.history_id}</strong></Card.Title>

@@ -15,12 +15,12 @@ def login(request: RequestDetails, db: Session = Depends(get_db)):
     user = get_user_by_email(db, request.email)
 
     if user is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="email incorrecto")
 
     if not verify_password(request.password, user.password):  # Pass the actual password
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect password"
+            detail="password incorrecto"
         )
 
     # Check for existing active token
